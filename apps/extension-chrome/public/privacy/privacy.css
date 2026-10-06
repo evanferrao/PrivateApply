@@ -1,0 +1,210 @@
+    /* ── Design Tokens ── */
+    :root {
+      --black: #18181b;
+      --white: #ffffff;
+      --off-white: #faf9f6;
+      --green: #1e5e41;
+      --green-light: #edf6f1;
+      --green-mid: #2d8a60;
+      --accent: #1e5e41;
+      --accent-subtle: #edf6f1;
+      --accent-border: #c8e4d6;
+      --accent-hover: #164932;
+      --gray-100: #f4f3ee;
+      --gray-200: #e6e4dc;
+      --gray-400: #9b988f;
+      --gray-600: #57554f;
+      --gray-800: #272623;
+      --border: #e5e3dc;
+      --border-subtle: #eeece5;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    html.dark {
+      --black: #f4f4f5;
+      --white: #18181b;
+      --off-white: #121214;
+      --green: #34a873;
+      --green-light: #162d22;
+      --green-mid: #3ebd83;
+      --accent: #34a873;
+      --accent-subtle: #162d22;
+      --accent-border: #1d4332;
+      --accent-hover: #3ebd83;
+      --gray-100: #1e1e23;
+      --gray-200: #2b2b31;
+      --gray-400: #7a7a85;
+      --gray-600: #a8a8b2;
+      --gray-800: #e4e4e9;
+      --border: #2b2b31;
+      --border-subtle: #222227;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--off-white);
+      color: var(--black);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      color: var(--black);
+      padding: 24px 0;
+    }
+    html.dark .header {
+      background: var(--green);
+      border-bottom: none;
+      color: #fff;
+    }
+    .header-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header-icon {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+    }
+    .header-text h1 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--black);
+    }
+    html.dark .header-text h1 { color: #fff; }
+    .header-text p {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 2px;
+    }
+    html.dark .header-text p { color: rgba(255,255,255,0.7); }
+
+    .main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--black);
+      margin-bottom: 10px;
+    }
+
+    .card p, .card li {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #374151;
+    }
+
+    .card ul {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+    .card li { margin-bottom: 4px; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge--green {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .badge--blue {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .highlight-box {
+      background: #f0f7e8;
+      border-left: 3px solid #7cb342;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+    }
+    .highlight-box p {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1e2a3a;
+    }
+
+    .perm-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    .perm-table th, .perm-table td {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .perm-table th {
+      font-weight: 600;
+      color: #1e2a3a;
+      background: #f9fafb;
+    }
+    .perm-table td:first-child {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: #7cb342;
+      white-space: nowrap;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 16px 24px 32px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .footer a {
+      color: #64748b;
+      text-decoration: none;
+    }
+    .footer a:hover { color: #1e2a3a; }
+
+    .dark-mode-toggle {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer; color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.1); }
+
+    /* Dark mode — mostly handled by CSS tokens */
+    html.dark .highlight-box { background: var(--green-light); border-left-color: var(--green-mid); }
+    html.dark .badge--green { background: var(--green-light); color: var(--green-mid); }
+    html.dark .badge--blue { background: #0c2d48; color: #7dd3fc; }
+    html.dark .perm-table td:first-child { color: var(--green-mid); }
