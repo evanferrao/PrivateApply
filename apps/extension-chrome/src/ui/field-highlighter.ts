@@ -43,8 +43,8 @@ export function highlightField(selector: string, type: 'filling' | 'success' | '
         background: 'rgba(59, 130, 246, 0.1)'
       },
       success: {
-        outline: '3px solid #1a7f5a',
-        background: 'rgba(16, 185, 129, 0.1)'
+        outline: '3px solid #1e5e41',
+        background: 'rgba(30, 94, 65, 0.1)'
       },
       error: {
         outline: '3px solid #ef4444',
@@ -181,8 +181,9 @@ export function showFieldLabel(selector: string, text: string, duration: number 
     const label = document.createElement('div');
     label.style.cssText = `
       position: absolute;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a7f5a 100%);
-      color: white;
+      background: #18181b;
+      border: 1px solid #27272a;
+      color: #f4f4f5;
       padding: 4px 8px;
       border-radius: 4px;
       font-size: 12px;

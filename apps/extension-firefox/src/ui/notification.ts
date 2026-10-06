@@ -129,8 +129,8 @@ export function clearAllNotifications(): void {
 function getTypeStyle(type: NotificationType): { accent: string; iconSvg: string } {
   const styles = {
     success: {
-      accent: '#1a7f5a',
-      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#1a7f5a"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      accent: '#1e5e41',
+      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#1e5e41"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     },
     error: {
       accent: '#ef4444',
@@ -141,8 +141,8 @@ function getTypeStyle(type: NotificationType): { accent: string; iconSvg: string
       iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1.5l7.5 14H1.5L9 1.5z" fill="#f59e0b"/><path d="M9 7v3.5M9 12.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     },
     info: {
-      accent: '#0a0a0a',
-      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#0a0a0a"/><path d="M9 8.5v4M9 5.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      accent: '#18181b',
+      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#18181b"/><path d="M9 8.5v4M9 5.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     },
   };
   return styles[type];

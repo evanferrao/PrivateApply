@@ -18,7 +18,7 @@ export function showAutofillNotification(fieldCount: number): void {
     <div class="offlyn-notif-content">
       <div class="offlyn-notif-icon">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <circle cx="9" cy="9" r="9" fill="#1a7f5a"/>
+          <circle cx="9" cy="9" r="9" fill="#1e5e41"/>
           <path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
@@ -183,7 +183,7 @@ function ensureStyles(): void {
       gap: 10px;
       min-width: 280px;
       max-width: 360px;
-      border-left: 4px solid #1a7f5a;
+      border-left: 4px solid #1e5e41;
       animation: offlyn-notif-pulse 2s ease-out 0.35s 3;
     }
     .offlyn-notif-icon {

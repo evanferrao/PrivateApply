@@ -104,7 +104,7 @@ export function showMissingInfoQuestionnaire(
       <div class="missing-drawer-top">
         <div class="missing-drawer-title-group">
           <div class="missing-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a7f5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e5e41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
           </div>
@@ -350,18 +350,18 @@ function ensureStyles(): void {
       flex: 1;
       font-size: 13px;
       padding: 7px 10px;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #e5e3dc;
       border-radius: 6px;
       outline: none;
       background: #ffffff;
-      color: #0f172a;
+      color: #18181b;
     }
     .missing-input:focus {
-      border-color: #1a7f5a;
-      box-shadow: 0 0 0 2px rgba(26,127,90,0.15);
+      border-color: #1e5e41;
+      box-shadow: 0 0 0 2px rgba(30,94,65,0.15);
     }
     .btn-fill-single {
-      background: #1a7f5a;
+      background: #1e5e41;
       color: #ffffff;
       border: none;
       font-size: 12px;
@@ -372,13 +372,13 @@ function ensureStyles(): void {
       white-space: nowrap;
       transition: background 0.15s;
     }
-    .btn-fill-single:hover { background: #156648; }
+    .btn-fill-single:hover { background: #164932; }
     .missing-field-options {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 11px;
-      color: #64748b;
+      color: #57554f;
     }
     .save-profile-checkbox {
       display: flex;
@@ -388,15 +388,15 @@ function ensureStyles(): void {
     }
     .missing-drawer-footer {
       padding: 12px 18px;
-      background: #f8fafc;
-      border-top: 1px solid #e2e8f0;
+      background: #faf9f6;
+      border-top: 1px solid #e5e3dc;
       display: flex;
       align-items: center;
       justify-content: flex-end;
       gap: 10px;
     }
     .btn-fill-all {
-      background: #0f172a;
+      background: #18181b;
       color: #ffffff;
       border: none;
       font-size: 13px;
@@ -406,16 +406,16 @@ function ensureStyles(): void {
       cursor: pointer;
       transition: background 0.15s;
     }
-    .btn-fill-all:hover { background: #1e293b; }
+    .btn-fill-all:hover { background: #27272a; }
     .btn-dismiss-drawer {
       background: none;
       border: none;
       font-size: 13px;
-      color: #64748b;
+      color: #57554f;
       cursor: pointer;
       padding: 8px 10px;
     }
-    .btn-dismiss-drawer:hover { color: #0f172a; }
+    .btn-dismiss-drawer:hover { color: #18181b; }
   `;
   document.head.appendChild(style);
 }

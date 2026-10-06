@@ -303,8 +303,8 @@ function highlightFieldSuccess(selector: string): void {
   activeHighlight = selector;
 
   el.style.transition = 'outline .2s, box-shadow .2s';
-  el.style.outline = '3px solid #1a7f5a';
-  el.style.boxShadow = '0 0 0 6px rgba(16,185,129,.25)';
+  el.style.outline = '3px solid #1e5e41';
+  el.style.boxShadow = '0 0 0 6px rgba(30, 94, 65, 0.2)';
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   // Auto-clear after 2 seconds
@@ -336,7 +336,7 @@ function updateApplyCount(): void {
 }
 
 function confidenceColor(c: number): string {
-  if (c >= 0.8) return '#1a7f5a';
+  if (c >= 0.8) return '#1e5e41';
   if (c >= 0.6) return '#f59e0b';
   return '#94a3b8';
 }
@@ -387,8 +387,9 @@ function injectStyles(): void {
 /* ── Header ── */
 .osp-header {
   padding: 16px 20px;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a7f5a 100%);
-  color: #fff;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+  color: #f4f4f5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -397,7 +398,7 @@ function injectStyles(): void {
 .osp-header-left { display: flex; align-items: center; gap: 12px; }
 .osp-logo {
   width: 32px; height: 32px;
-  background: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 16px; flex-shrink: 0;
@@ -405,13 +406,13 @@ function injectStyles(): void {
 .osp-title { font-weight: 700; font-size: 16px; line-height: 1.2; }
 .osp-subtitle { font-size: 12px; opacity: .85; margin-top: 2px; }
 .osp-close {
-  background: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.1);
   border: none; color: #fff; width: 30px; height: 30px;
   border-radius: 6px; cursor: pointer; font-size: 20px;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s;
 }
-.osp-close:hover { background: rgba(255,255,255,.3); }
+.osp-close:hover { background: rgba(255,255,255,.2); }
 
 /* ── Scrollable body ── */
 .osp-body {
@@ -421,22 +422,22 @@ function injectStyles(): void {
 
 /* ── Card ── */
 .osp-card {
-  border: 1px solid #e2e0da;
+  border: 1px solid #e5e3dc;
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 10px;
   background: #fff;
   transition: border-color .2s, opacity .2s;
 }
-.osp-card:hover { border-color: #0a0a0a; }
+.osp-card:hover { border-color: #18181b; }
 .osp-card--disabled { opacity: .45; }
-.osp-card--disabled:hover { border-color: #e2e0da; }
+.osp-card--disabled:hover { border-color: #e5e3dc; }
 .osp-card--applied {
-  border-color: #1a7f5a;
-  background: #e6f4ee;
-  opacity: .7;
+  border-color: #1e5e41;
+  background: #edf6f1;
+  opacity: .8;
 }
-.osp-card--applied:hover { border-color: #1a7f5a; }
+.osp-card--applied:hover { border-color: #1e5e41; }
 .osp-card--applied .osp-options { pointer-events: none; opacity: .5; }
 
 .osp-card-head {
@@ -466,21 +467,21 @@ function injectStyles(): void {
   flex-shrink: 0;
 }
 .osp-btn-single {
-  background: #eef2ff; color: #0a0a0a;
-  border: 1px solid #c7d2fe; border-radius: 6px;
+  background: #f4f3ee; color: #18181b;
+  border: 1px solid #e5e3dc; border-radius: 6px;
   padding: 3px 10px; font-size: 11px; font-weight: 600;
   cursor: pointer; transition: all .15s;
   flex-shrink: 0; font-family: inherit;
 }
 .osp-btn-single:hover {
-  background: #0a0a0a; color: #fff;
-  border-color: #0a0a0a;
+  background: #18181b; color: #fff;
+  border-color: #18181b;
 }
 .osp-btn-single:disabled {
   opacity: .5; cursor: default;
 }
 .osp-applied-tag {
-  color: #1a7f5a; font-size: 11px; font-weight: 700;
+  color: #1e5e41; font-size: 11px; font-weight: 700;
   flex-shrink: 0; white-space: nowrap;
 }
 
@@ -488,13 +489,13 @@ function injectStyles(): void {
 .osp-options { display: flex; flex-direction: column; gap: 6px; }
 .osp-option {
   display: flex; align-items: flex-start; gap: 8px;
-  padding: 8px 10px; border: 2px solid #e2e0da;
+  padding: 8px 10px; border: 2px solid #e5e3dc;
   border-radius: 8px; cursor: pointer;
   transition: border-color .15s, background .15s;
 }
-.osp-option:hover { border-color: rgba(124, 179, 66, 0.4); background: #f0f7e8; }
-.osp-option--selected { border-color: #0a0a0a; background: #f0f7e8; }
-.osp-option input[type=radio] { margin-top: 3px; accent-color: #0a0a0a; flex-shrink: 0; }
+.osp-option:hover { border-color: #c8e4d6; background: #faf9f6; }
+.osp-option--selected { border-color: #1e5e41; background: #edf6f1; }
+.osp-option input[type=radio] { margin-top: 3px; accent-color: #1e5e41; flex-shrink: 0; }
 
 .osp-option-body { flex: 1; min-width: 0; }
 .osp-option-value {
@@ -510,10 +511,10 @@ function injectStyles(): void {
   font-size: 10px; font-weight: 600;
   text-transform: uppercase; color: #fff;
 }
-.osp-source--profile { background: #3b82f6; }
-.osp-source--contextual { background: #0a0a0a; }
-.osp-source--ai { background: #1a7f5a; }
-.osp-source--learned { background: #1a7f5a; }
+.osp-source--profile { background: #2d68c4; }
+.osp-source--contextual { background: #18181b; }
+.osp-source--ai { background: #1e5e41; }
+.osp-source--learned { background: #1e5e41; }
 .osp-reason {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -521,8 +522,8 @@ function injectStyles(): void {
 /* ── Footer ── */
 .osp-footer {
   padding: 12px 16px;
-  border-top: 1px solid #e2e0da;
-  background: #f9fafb;
+  border-top: 1px solid #e5e3dc;
+  background: #faf9f6;
   display: flex; gap: 10px; justify-content: flex-end;
   flex-shrink: 0;
 }
@@ -533,16 +534,17 @@ function injectStyles(): void {
   transition: all .15s; font-family: inherit;
 }
 .osp-btn-cancel {
-  background: #fff; color: #374151;
-  border: 1px solid #d1d5db;
+  background: #fff; color: #18181b;
+  border: 1px solid #e5e3dc;
 }
-.osp-btn-cancel:hover { background: #f3f4f6; }
+.osp-btn-cancel:hover { background: #f4f3ee; }
 .osp-btn-apply {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a7f5a 100%);
+  background: #1e5e41;
   color: #fff;
 }
 .osp-btn-apply:hover {
-  box-shadow: 0 4px 14px rgba(30, 42, 58, 0.3);
+  background: #164932;
+  box-shadow: 0 4px 12px rgba(30, 94, 65, 0.25);
   transform: translateY(-1px);
 }
 .osp-btn-apply:active { transform: translateY(0); }

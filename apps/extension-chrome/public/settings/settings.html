@@ -10,47 +10,79 @@
   <script src="../shared/theme-init.js"></script>
   <title>Settings - Offlyn Apply</title>
   <style>
-    /* ── Design Tokens ── */
+    /* ── Unified Design Tokens ── */
     :root {
-      --black: #0a0a0a;
+      --black: #18181b;
       --white: #ffffff;
-      --off-white: #f9f8f6;
-      --green: #1a7f5a;
-      --green-light: #e6f4ee;
-      --green-mid: #2da870;
-      --gray-100: #f4f3f0;
-      --gray-200: #e8e6e1;
-      --gray-400: #9e9b93;
-      --gray-600: #5a5750;
-      --gray-800: #2c2b28;
-      --border: #e2e0da;
+      --off-white: #faf9f6;
+      --accent: #1e5e41;
+      --accent-hover: #164932;
+      --accent-subtle: #edf6f1;
+      --accent-border: #c3e2d2;
+      --accent-contrast: #ffffff;
+      --green: #1e5e41;
+      --green-light: #edf6f1;
+      --green-mid: #257853;
+      --blue: #2d557a;
+      --blue-light: #eff5fa;
+      --purple: #1e5e41;
+      --purple-light: #edf6f1;
+      --amber: #b45309;
+      --amber-light: #fef7ee;
+      --red: #b91c1c;
+      --red-light: #fdf2f2;
+      --gray-50: #fbfbf9;
+      --gray-100: #f4f3ef;
+      --gray-200: #e5e3dc;
+      --gray-300: #d3cfc5;
+      --gray-400: #8a8780;
+      --gray-600: #52525b;
+      --gray-800: #18181b;
+      --border: #e5e3dc;
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 16px;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
       --font-serif: 'Lora', Georgia, serif;
       --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
     html.dark {
-      --black: #ffffff;
-      --white: #0a0a0a;
-      --off-white: #111111;
-      --green: #2da870;
-      --green-light: #1a3a2a;
-      --green-mid: #34d399;
-      --gray-100: #1a1a1a;
-      --gray-200: #2a2a2a;
-      --gray-400: #737373;
-      --gray-600: #a3a3a3;
-      --gray-800: #e5e5e5;
-      --border: #2a2a2a;
+      --black: #f4f4f5;
+      --white: #18181b;
+      --off-white: #121214;
+      --accent: #34a873;
+      --accent-hover: #42be85;
+      --accent-subtle: #142a1f;
+      --accent-border: #1f4735;
+      --accent-contrast: #0c1c14;
+      --green: #34a873;
+      --green-light: #142a1f;
+      --green-mid: #42be85;
+      --blue: #5a94c9;
+      --blue-light: #112130;
+      --purple: #34a873;
+      --purple-light: #142a1f;
+      --amber: #e09433;
+      --amber-light: #2a1b0b;
+      --red: #ea5b5b;
+      --red-light: #2d1313;
+      --gray-50: #141417;
+      --gray-100: #202024;
+      --gray-200: #2b2b31;
+      --gray-300: #3b3b43;
+      --gray-400: #71717a;
+      --gray-600: #a1a1aa;
+      --gray-800: #f4f4f5;
+      --border: #2b2b31;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: var(--font-sans);
-      background: var(--gray-100);
+      background: var(--off-white);
       color: var(--black);
       min-height: 100vh;
       line-height: 1.6;
@@ -59,9 +91,10 @@
 
     /* Header */
     .header {
-      background: var(--black);
-      color: var(--white);
-      padding: 24px 0;
+      background: var(--white);
+      color: var(--black);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
     }
     .header-inner {
       max-width: 640px;
@@ -85,7 +118,7 @@
     }
     .header-text p {
       font-size: 13px;
-      opacity: 0.7;
+      color: var(--gray-600);
       margin-top: 2px;
     }
 
@@ -294,10 +327,10 @@
       flex: 1;
       min-width: 140px;
       padding: 10px 14px;
-      background: #f0f9ff;
-      border: 1.5px solid #7dd3fc;
+      background: var(--blue-light);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      color: #0369a1;
+      color: var(--blue);
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
@@ -306,14 +339,14 @@
       text-align: center;
     }
     .btn-download-data:hover {
-      background: #e0f2fe;
-      border-color: #0369a1;
+      background: var(--gray-100);
+      border-color: var(--blue);
     }
     .btn-nuke {
       flex: 1;
       min-width: 140px;
       padding: 10px 14px;
-      background: #dc2626;
+      background: var(--red);
       border: none;
       border-radius: 8px;
       color: #fff;
@@ -324,25 +357,25 @@
       font-family: inherit;
       text-align: center;
     }
-    .btn-nuke:hover { background: #b91c1c; }
+    .btn-nuke:hover { background: #991b1b; }
     .btn-cancel-nuke {
       padding: 10px 14px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
+      background: var(--white);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      color: #6b7280;
+      color: var(--gray-600);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       transition: all .15s;
       font-family: inherit;
     }
-    .btn-cancel-nuke:hover { background: #f9fafb; color: #374151; }
+    .btn-cancel-nuke:hover { background: var(--gray-100); color: var(--black); }
     .action-feedback {
       display: inline-block;
       margin-left: 10px;
       font-size: 12px;
-      color: #7cb342;
+      color: var(--accent);
       opacity: 0;
       transition: opacity 0.2s;
     }
@@ -358,19 +391,19 @@
     .storage-meter {
       flex: 1;
       height: 6px;
-      background: #e5e7eb;
+      background: var(--border);
       border-radius: 3px;
       overflow: hidden;
     }
     .storage-meter-fill {
       height: 100%;
-      background: #7cb342;
+      background: var(--accent);
       border-radius: 3px;
       transition: width 0.3s;
     }
     .storage-text {
       font-size: 12px;
-      color: #64748b;
+      color: var(--gray-600);
       white-space: nowrap;
     }
 
@@ -385,25 +418,25 @@
       display: block;
       font-size: 12px;
       font-weight: 600;
-      color: #64748b;
+      color: var(--gray-600);
       margin-bottom: 5px;
     }
     .ollama-field input {
       width: 100%;
       padding: 9px 12px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--border);
       border-radius: 8px;
       font-size: 13px;
       font-family: inherit;
-      color: #1a1a1a;
-      background: #f9fafb;
+      color: var(--black);
+      background: var(--white);
       transition: border-color 0.2s;
     }
     .ollama-field input:focus {
       outline: none;
-      border-color: #7cb342;
-      box-shadow: 0 0 0 3px rgba(124,179,66,0.12);
-      background: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+      background: var(--white);
     }
     .ollama-field small {
       display: block;

@@ -7,29 +7,48 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="../shared/theme-init.js"></script>
 <style>
   :root {
-    --green: #16a34a;
-    --green-light: #dcfce7;
-    --blue: #2563eb;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
+    --green: #1e5e41;
+    --green-light: #edf6f1;
+    --green-hover: #164932;
+    --blue: #2d68c4;
+    --gray-50: #faf9f6;
+    --gray-100: #f4f3ee;
+    --gray-200: #e6e4dc;
+    --gray-300: #d5d2c8;
+    --gray-400: #9b988f;
+    --gray-500: #747167;
+    --gray-600: #57554f;
+    --gray-700: #3a3934;
+    --gray-800: #18181b;
+    --card-bg: #ffffff;
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-serif: 'Lora', Georgia, serif;
+  }
+  html.dark {
+    --green: #34a873;
+    --green-light: #162d22;
+    --green-hover: #3ebd83;
+    --blue: #60a5fa;
+    --gray-50: #121214;
+    --gray-100: #18181b;
+    --gray-200: #2b2b31;
+    --gray-300: #3a3a42;
+    --gray-400: #7a7a85;
+    --gray-500: #9b9ba6;
+    --gray-600: #b5b5c0;
+    --gray-700: #d4d4dc;
+    --gray-800: #f4f4f5;
+    --card-bg: #18181b;
   }
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: var(--font-sans); background: var(--gray-50); color: var(--gray-800); }
 
   /* ── Tutorial header ── */
   .tutorial-header {
-    background: #fff;
+    background: var(--card-bg);
     border-bottom: 1px solid var(--gray-200);
     padding: 14px 24px;
     display: flex; align-items: center; justify-content: space-between;
@@ -54,7 +73,7 @@
   .page-container { max-width: 800px; margin: 0 auto; padding: 24px; }
 
   .job-posting {
-    background: #fff; border: 1px solid var(--gray-200);
+    background: var(--card-bg); border: 1px solid var(--gray-200);
     border-radius: 12px; padding: 28px; margin-bottom: 20px;
   }
   .job-posting h1 {
@@ -73,7 +92,7 @@
 
   /* ── Application form ── */
   .application-form {
-    background: #fff; border: 1px solid var(--gray-200);
+    background: var(--card-bg); border: 1px solid var(--gray-200);
     border-radius: 12px; padding: 28px;
   }
   .form-title {
@@ -89,15 +108,16 @@
     width: 100%; padding: 10px 12px;
     border: 1px solid var(--gray-300); border-radius: 8px;
     font-family: inherit; font-size: 13px; color: var(--gray-800);
-    background: #fff;
+    background: var(--card-bg);
   }
   .form-row textarea { resize: vertical; min-height: 100px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-submit {
-    padding: 12px 28px; background: var(--blue); color: #fff;
+    padding: 12px 28px; background: var(--green); color: #fff;
     border: none; border-radius: 8px; font-size: 14px;
     font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 8px;
   }
+  .form-submit:hover { background: var(--green-hover); }
   .tool-buttons {
     display: flex; gap: 10px; margin-top: 16px; padding-top: 16px;
     border-top: 1px solid var(--gray-200);
@@ -105,7 +125,7 @@
   .mock-tool-btn {
     display: flex; align-items: center; gap: 6px;
     padding: 8px 14px; border: 1px solid var(--gray-300);
-    border-radius: 8px; background: #fff; color: var(--gray-600);
+    border-radius: 8px; background: var(--card-bg); color: var(--gray-600);
     font-size: 12px; font-weight: 500; cursor: default; font-family: inherit;
   }
   .mock-tool-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
@@ -114,7 +134,8 @@
   .tour-tooltip {
     position: fixed;
     width: 300px;
-    background: #fff;
+    background: var(--card-bg);
+    border: 1px solid var(--gray-200);
     border-radius: 12px;
     box-shadow: 0 12px 40px rgba(0,0,0,.18);
     padding: 20px;
@@ -131,7 +152,7 @@
     width: 0; height: 0;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-left: 8px solid #fff;
+    border-left: 8px solid var(--card-bg);
     filter: drop-shadow(2px 0 2px rgba(0,0,0,.06));
   }
   .tour-tooltip.arrow-left::after {
@@ -143,7 +164,7 @@
     width: 0; height: 0;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-right: 8px solid #fff;
+    border-right: 8px solid var(--card-bg);
     filter: drop-shadow(-2px 0 2px rgba(0,0,0,.06));
   }
   .tour-step {
@@ -166,7 +187,7 @@
     font-weight: 600; cursor: pointer; font-family: inherit;
     transition: background .15s;
   }
-  .tour-btn-next:hover { background: #15803d; }
+  .tour-btn-next:hover { background: var(--green-hover); }
   .tour-btn-skip {
     padding: 8px 16px; background: none; border: none;
     color: var(--gray-400); font-size: 12px; cursor: pointer;
@@ -183,7 +204,8 @@
   }
   .completion-overlay.active { display: flex; }
   .completion-card {
-    background: #fff; border-radius: 16px;
+    background: var(--card-bg); border-radius: 16px;
+    border: 1px solid var(--gray-200);
     padding: 40px; text-align: center;
     max-width: 420px; width: 90%;
     box-shadow: 0 20px 60px rgba(0,0,0,.2);
@@ -208,16 +230,19 @@
     font-weight: 600; cursor: pointer; font-family: inherit;
     transition: background .15s;
   }
-  .completion-btn:hover { background: #15803d; }
+  .completion-btn:hover { background: var(--green-hover); }
 
   /* ── Filled state animation ── */
   .form-row input.filled, .form-row textarea.filled {
     border-color: var(--green);
-    background: #f0fdf4;
+    background: var(--green-light);
     animation: fillPulse .5s ease;
   }
   @keyframes fillPulse {
-    0% { background: #fff; }
+    0% { background: var(--card-bg); }
+    50% { background: var(--green-light); }
+    100% { background: var(--green-light); }
+  }
     50% { background: #dcfce7; }
     100% { background: #f0fdf4; }
   }

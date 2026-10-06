@@ -125,8 +125,8 @@ export function showProgress(total: number): void {
         flex-shrink:0;
         margin-top:2px;
         width:18px;height:18px;
-        border:2.5px solid #e2e8f0;
-        border-top-color:#1a7f5a;
+        border:2.5px solid #e5e3dc;
+        border-top-color:#1e5e41;
         border-radius:50%;
         animation:offlyn-spin 0.7s linear infinite;
       "></div>
@@ -144,10 +144,10 @@ export function showProgress(total: number): void {
           ">${ICON_PAUSE}</button>
         </div>
         <div style="
-          background:#f1f5f9;height:5px;border-radius:3px;overflow:hidden;
+          background:#f4f3ee;height:5px;border-radius:3px;overflow:hidden;
         ">
           <div id="offlyn-progress-bar" style="
-            background:linear-gradient(90deg,#1a7f5a,#22c55e);
+            background:#1e5e41;
             height:100%;width:0%;
             border-radius:3px;
             transition:width 0.25s ease;
@@ -248,22 +248,20 @@ export function showProgressComplete(success: boolean, filled: number, total: nu
     spinner.style.animation = 'none';
     spinner.style.border = 'none';
     setHTML(spinner, success
-      ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#1a7f5a"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-      : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#f59e0b"/><path d="M9 6v3.5M9 11.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`);
+      ? `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#1e5e41"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#d97706"/><path d="M9 6v3.5M9 11.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`);
   }
 
   if (title) {
     title.textContent = success
       ? `Filled ${filled} / ${total} fields`
       : `Partially filled: ${filled} / ${total}`;
-    title.style.color = success ? '#1a7f5a' : '#f59e0b';
+    title.style.color = success ? '#1e5e41' : '#d97706';
   }
 
   if (bar) {
     bar.style.width = '100%';
-    bar.style.background = success
-      ? 'linear-gradient(90deg,#1a7f5a,#22c55e)'
-      : 'linear-gradient(90deg,#f59e0b,#fbbf24)';
+    bar.style.background = success ? '#1e5e41' : '#d97706';
   }
 
   progressElement = progressElement;

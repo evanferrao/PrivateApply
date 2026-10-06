@@ -6,72 +6,69 @@
  */
 
 export const colors = {
-  // Primary Brand Colors
-  navy: '#1E2A3A',
-  green: '#7CB342',
-  greenDark: '#558B2F',
+  // Primary Brand Colors (Refined Pine / Forest Sage)
+  accent: '#1E5E41',
+  accentHover: '#164932',
+  accentDark: '#34A873',
+  green: '#1E5E41',
+  greenDark: '#164932',
   white: '#FFFFFF',
   
-  // Neutral Grays
-  grayLight: '#F5F7FA',
-  grayMedium: '#CBD5E1',
-  grayDark: '#64748B',
+  // Neutral Grays (Warm, human, anti-slop)
+  grayLight: '#FAF9F6',
+  grayMedium: '#E5E3DC',
+  grayDark: '#52525B',
+  charcoal: '#18181B',
   
-  // Semantic Colors
-  success: '#7CB342',
-  error: '#EF4444',
-  warning: '#F59E0B',
-  info: '#3B82F6',
+  // Semantic Colors (Desaturated, balanced)
+  success: '#1E5E41',
+  error: '#B91C1C',
+  warning: '#B45309',
+  info: '#2D557A',
   
   // Status Colors (for dashboard)
-  statusSubmitted: '#3B82F6',
-  statusInterviewing: '#F59E0B',
-  statusRejected: '#EF4444',
-  statusAccepted: '#7CB342',
-  statusWithdrawn: '#64748B',
+  statusSubmitted: '#2D557A',
+  statusInterviewing: '#B45309',
+  statusRejected: '#B91C1C',
+  statusAccepted: '#1E5E41',
+  statusWithdrawn: '#71717A',
   
   // Text Colors
-  textPrimary: '#1E2A3A',
-  textSecondary: '#64748B',
-  textDisabled: '#CBD5E1',
-  textInverse: '#FFFFFF',
+  textPrimary: '#18181B',
+  textSecondary: '#52525B',
+  textDisabled: '#8A8780',
+  textInverse: '#FAF9F6',
   
   // Background Colors
   bgPrimary: '#FFFFFF',
-  bgSecondary: '#F5F7FA',
-  bgDark: '#1E2A3A',
-  bgGreenTint: '#F0F7E8',
+  bgSecondary: '#FAF9F6',
+  bgDark: '#121214',
+  bgSurfaceDark: '#18181B',
+  bgGreenTint: '#EDF6F1',
   
   // Border Colors
-  borderLight: '#E5E7EB',
-  borderMedium: '#CBD5E1',
-  borderAccent: '#7CB342',
+  borderLight: '#E5E3DC',
+  borderMedium: '#D3CFC5',
+  borderAccent: '#1E5E41',
+  borderDark: '#2B2B31',
 } as const;
 
 /**
  * Computed colors (derived from primary colors)
  */
 export const computed = {
-  // Green variants (for hover states)
-  greenHover: '#558B2F',
-  greenActive: '#4A7A28',
-  greenDisabled: '#CBD5E1',
+  greenHover: '#164932',
+  greenActive: '#0F3624',
+  greenDisabled: '#D3CFC5',
   
-  // Navy variants (for backgrounds)
-  navyLight: '#2D4A5E',
-  navyDark: '#0F172A',
+  navyLight: '#2D557A',
+  navyDark: '#18181B',
   
   // Opacity variants
-  navyAlpha10: 'rgba(30, 42, 58, 0.1)',
-  navyAlpha15: 'rgba(30, 42, 58, 0.15)',
-  navyAlpha20: 'rgba(30, 42, 58, 0.2)',
-  navyAlpha30: 'rgba(30, 42, 58, 0.3)',
-  navyAlpha50: 'rgba(30, 42, 58, 0.5)',
-  
-  greenAlpha10: 'rgba(124, 179, 66, 0.1)',
-  greenAlpha20: 'rgba(124, 179, 66, 0.2)',
-  greenAlpha30: 'rgba(124, 179, 66, 0.3)',
-  greenAlpha50: 'rgba(124, 179, 66, 0.5)',
+  accentAlpha10: 'rgba(30, 94, 65, 0.1)',
+  accentAlpha15: 'rgba(30, 94, 65, 0.15)',
+  accentAlpha20: 'rgba(30, 94, 65, 0.2)',
+  accentAlpha30: 'rgba(30, 94, 65, 0.3)',
 } as const;
 
 /**
@@ -79,7 +76,7 @@ export const computed = {
  */
 export function getCSSVariables(): string {
   return `
-    --color-navy: ${colors.navy};
+    --color-accent: ${colors.accent};
     --color-green: ${colors.green};
     --color-white: ${colors.white};
     

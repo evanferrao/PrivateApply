@@ -9,38 +9,69 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="../shared/theme-init.js"></script>
   <style>
+    /* ── Unified Design Tokens ── */
     :root {
-      --black: #0a0a0a;
+      --black: #18181b;
       --white: #ffffff;
-      --off-white: #f9f8f6;
-      --green: #16a34a;
-      --green-light: #e6f4ee;
-      --green-mid: #2da870;
-      --gray-50: #fafaf9;
-      --gray-100: #f4f3f0;
-      --gray-200: #e8e6e1;
-      --gray-400: #9e9b93;
-      --gray-600: #5a5750;
-      --gray-800: #2c2b28;
-      --border: #e2e0da;
+      --off-white: #faf9f6;
+      --accent: #1e5e41;
+      --accent-hover: #164932;
+      --accent-subtle: #edf6f1;
+      --accent-border: #c3e2d2;
+      --accent-contrast: #ffffff;
+      --green: #1e5e41;
+      --green-light: #edf6f1;
+      --green-mid: #257853;
+      --blue: #2d557a;
+      --blue-light: #eff5fa;
+      --purple: #1e5e41;
+      --purple-light: #edf6f1;
+      --amber: #b45309;
+      --amber-light: #fef7ee;
+      --red: #b91c1c;
+      --red-light: #fdf2f2;
+      --gray-50: #fbfbf9;
+      --gray-100: #f4f3ef;
+      --gray-200: #e5e3dc;
+      --gray-300: #d3cfc5;
+      --gray-400: #8a8780;
+      --gray-600: #52525b;
+      --gray-800: #18181b;
+      --border: #e5e3dc;
       --radius: 8px;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
       --font-serif: 'Lora', Georgia, serif;
       --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     html.dark {
-      --black: #ffffff;
-      --white: #111111;
-      --off-white: #1a1a1a;
-      --green: #2da870;
-      --green-light: #1a3a2a;
-      --green-mid: #34d399;
-      --gray-50: #161616;
-      --gray-100: #1e1e1e;
-      --gray-200: #2a2a2a;
-      --gray-400: #737373;
-      --gray-600: #a3a3a3;
-      --gray-800: #e5e5e5;
-      --border: #2a2a2a;
+      --black: #f4f4f5;
+      --white: #18181b;
+      --off-white: #121214;
+      --accent: #34a873;
+      --accent-hover: #42be85;
+      --accent-subtle: #142a1f;
+      --accent-border: #1f4735;
+      --accent-contrast: #0c1c14;
+      --green: #34a873;
+      --green-light: #142a1f;
+      --green-mid: #42be85;
+      --blue: #5a94c9;
+      --blue-light: #112130;
+      --purple: #34a873;
+      --purple-light: #142a1f;
+      --amber: #e09433;
+      --amber-light: #2a1b0b;
+      --red: #ea5b5b;
+      --red-light: #2d1313;
+      --gray-50: #141417;
+      --gray-100: #202024;
+      --gray-200: #2b2b31;
+      --gray-300: #3b3b43;
+      --gray-400: #71717a;
+      --gray-600: #a1a1aa;
+      --gray-800: #f4f4f5;
+      --border: #2b2b31;
     }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -120,16 +151,18 @@
     /* ── Autofill tab ── */
     .job-card {
       padding: 10px 12px;
-      background: #1e293b;
+      background: var(--gray-100);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       margin-bottom: 12px;
-      color: #fff;
+      color: var(--black);
     }
-    html.dark .job-card { background: #0f172a; }
+    .job-card-detected { display: flex; align-items: flex-start; gap: 8px; }
     .job-dot {
       width: 7px; height: 7px; background: #4ade80;
       border-radius: 50%; margin-top: 4px; flex-shrink: 0;
       position: relative;
+      box-shadow: 0 0 0 2px var(--accent-subtle);
     }
     .job-dot::before {
       content: ''; position: absolute; top: 50%; left: 50%;
@@ -141,23 +174,20 @@
       0% { transform: scale(1); opacity: .7; }
       100% { transform: scale(2.4); opacity: 0; }
     }
-    @keyframes ping {
-      0% { transform: translate(-50%,-50%) scale(1); opacity: .7; }
-      75%,100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
-    }
-    .job-title { font-size: 12px; font-weight: 600; line-height: 1.3; }
-    .job-detail { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .job-empty { font-size: 11px; color: rgba(255,255,255,.35); font-style: italic; }
+    .job-title { font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--black); }
+    .job-detail { font-size: 11px; color: var(--gray-600); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .job-empty { font-size: 11px; color: var(--gray-400); font-style: italic; }
 
     .btn-autofill {
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 12px;
-      background: var(--green); color: #fff;
+      width: 100%; padding: 11px;
+      background: var(--green); color: var(--accent-contrast);
       border: none; border-radius: var(--radius);
       font-size: 13px; font-weight: 600; font-family: inherit;
       cursor: pointer; transition: all .15s;
+      box-shadow: var(--shadow-xs);
     }
-    .btn-autofill:hover { background: #15803d; box-shadow: 0 4px 12px rgba(22,163,74,.3); transform: translateY(-1px); }
+    .btn-autofill:hover { background: var(--accent-hover); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
     .btn-autofill:active { transform: translateY(0); }
     .btn-autofill:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
     .btn-autofill svg { flex-shrink: 0; }
@@ -197,35 +227,34 @@
     .badge-notification {
       display: none; align-items: center; gap: 8px;
       padding: 8px 10px; margin-top: 10px;
-      background: #fef3c7; border: 1px solid #fde68a;
-      border-radius: var(--radius); font-size: 11px; color: #92400e;
+      background: var(--amber-light); border: 1px solid rgba(180, 83, 9, 0.2);
+      border-radius: var(--radius); font-size: 11px; color: var(--amber);
     }
-    html.dark .badge-notification { background: #422006; border-color: #92400e; color: #fbbf24; }
     .badge-notification .badge-text { flex: 1; line-height: 1.35; }
     .badge-notification .badge-text strong { font-weight: 600; }
     .badge-notification .badge-action {
-      background: #f59e0b; color: #fff; border: none;
+      background: var(--amber); color: #fff; border: none;
       padding: 4px 10px; border-radius: 5px;
       font-size: 10px; font-weight: 600; cursor: pointer;
       white-space: nowrap;
     }
     .badge-notification .badge-dismiss {
-      background: none; border: none; color: #92400e;
+      background: none; border: none; color: var(--amber);
       cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
     }
-    html.dark .badge-notification .badge-dismiss { color: #fbbf24; }
 
     /* New jobs banner */
     .new-jobs-banner {
       display: none; align-items: center; gap: 8px;
       padding: 8px 10px; margin-top: 10px;
-      background: linear-gradient(90deg, #7c3aed, #6d28d9);
-      border-radius: var(--radius); font-size: 11px; color: #fff; cursor: pointer;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius); font-size: 11px; color: var(--accent); cursor: pointer;
     }
     .new-jobs-banner:hover { opacity: .92; }
-    .new-jobs-text { flex: 1; font-weight: 500; line-height: 1.3; }
-    .new-jobs-text small { display: block; font-weight: 400; font-size: 10px; opacity: .8; }
-    .new-jobs-dismiss { background: none; border: none; color: rgba(255,255,255,.6); cursor: pointer; font-size: 14px; }
+    .new-jobs-text { flex: 1; font-weight: 600; line-height: 1.3; color: var(--accent); }
+    .new-jobs-text small { display: block; font-weight: 400; font-size: 10px; color: var(--gray-600); }
+    .new-jobs-dismiss { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 14px; }
 
     /* Profile warning */
     #profile-warning {

@@ -340,22 +340,23 @@ function injectStyles(): void {
 
 /* ── Header ── */
 .ocl-header {
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a7f5a 100%);
-  color: #fff;
+  padding: 14px 18px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+  color: #f4f4f5;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
 }
 .ocl-back {
-  background: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.1);
   border: none; color: #fff; width: 32px; height: 32px;
   border-radius: 6px; cursor: pointer; font-size: 18px;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s; flex-shrink: 0;
 }
-.ocl-back:hover { background: rgba(255,255,255,.3); }
+.ocl-back:hover { background: rgba(255,255,255,.2); }
 .ocl-header-center { flex: 1; min-width: 0; }
 .ocl-title { font-weight: 700; font-size: 16px; line-height: 1.2; }
 .ocl-subtitle {
@@ -363,13 +364,13 @@ function injectStyles(): void {
   max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ocl-close {
-  background: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.1);
   border: none; color: #fff; width: 32px; height: 32px;
   border-radius: 6px; cursor: pointer; font-size: 20px;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s; flex-shrink: 0;
 }
-.ocl-close:hover { background: rgba(255,255,255,.3); }
+.ocl-close:hover { background: rgba(255,255,255,.2); }
 
 /* ── Body ── */
 .ocl-body {
@@ -384,8 +385,8 @@ function injectStyles(): void {
 }
 .ocl-spinner {
   width: 16px; height: 16px;
-  border: 2px solid rgba(124, 179, 66, 0.3);
-  border-top-color: #1a7f5a;
+  border: 2px solid rgba(30, 94, 65, 0.2);
+  border-top-color: #1e5e41;
   border-radius: 50%;
   animation: oclSpin .7s linear infinite;
   flex-shrink: 0;
@@ -395,14 +396,14 @@ function injectStyles(): void {
 .ocl-body-text {
   font-size: 14px;
   line-height: 1.75;
-  color: #1f2937;
+  color: #18181b;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .ocl-error {
   color: #dc2626;
-  background: #fef2f2;
+  background: #fdf2f2;
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -413,62 +414,63 @@ function injectStyles(): void {
 /* ── Refinement bar ── */
 .ocl-refine-bar {
   padding: 10px 20px;
-  border-top: 1px solid #e2e0da;
-  background: #f5f9f0;
+  border-top: 1px solid #e5e3dc;
+  background: #faf9f6;
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
 }
 .ocl-refine-label {
-  font-size: 12px; font-weight: 600; color: #0a0a0a;
+  font-size: 12px; font-weight: 600; color: #18181b;
   flex-shrink: 0;
 }
 .ocl-refine-btn {
   padding: 5px 12px; border-radius: 6px;
   font-size: 12px; font-weight: 600;
-  cursor: pointer; border: 1px solid rgba(124, 179, 66, 0.4);
-  background: #fff; color: #1a7f5a;
+  cursor: pointer; border: 1px solid #c8e4d6;
+  background: #fff; color: #1e5e41;
   transition: all .15s; font-family: inherit;
 }
 .ocl-refine-btn:hover {
-  background: #1a7f5a; color: #fff; border-color: #1a7f5a;
+  background: #1e5e41; color: #fff; border-color: #1e5e41;
 }
 .ocl-refine-btn:disabled {
   opacity: .5; cursor: default;
-  background: #fff; color: #1a7f5a;
+  background: #fff; color: #1e5e41;
 }
 
 /* ── Actions ── */
 .ocl-actions {
   padding: 12px 20px;
-  border-top: 1px solid #e2e0da;
-  background: #f9fafb;
+  border-top: 1px solid #e5e3dc;
+  background: #faf9f6;
   display: flex; flex-wrap: wrap; gap: 8px;
   flex-shrink: 0;
 }
 .ocl-btn {
   padding: 8px 14px; border-radius: 8px;
   font-size: 12px; font-weight: 600;
-  cursor: pointer; border: 1px solid #d1d5db;
-  background: #fff; color: #374151;
+  cursor: pointer; border: 1px solid #e5e3dc;
+  background: #fff; color: #18181b;
   transition: all .15s; font-family: inherit;
   display: flex; align-items: center; gap: 4px;
 }
-.ocl-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+.ocl-btn:hover { background: #f4f3ee; border-color: #d5d2c8; }
 .ocl-btn:disabled { opacity: .5; cursor: default; }
 
 .ocl-btn-apply {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a7f5a 100%);
+  background: #1e5e41;
   color: #fff; border: none;
 }
 .ocl-btn-apply:hover {
-  box-shadow: 0 4px 14px rgba(30, 42, 58, 0.3);
+  background: #164932;
+  box-shadow: 0 4px 12px rgba(30, 94, 65, 0.25);
   transform: translateY(-1px);
 }
 .ocl-btn-regen {
   margin-left: auto;
-  color: #0a0a0a; border-color: rgba(124, 179, 66, 0.3);
+  color: #18181b; border-color: #c8e4d6;
 }
-.ocl-btn-regen:hover { background: #e6f4ee; }
+.ocl-btn-regen:hover { background: #edf6f1; }
   `;
   document.head.appendChild(s);
 }

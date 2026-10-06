@@ -10,61 +10,74 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="../shared/theme-init.js"></script>
   <style>
-    /* ── Design Tokens ── */
+    /* ── Unified Design Tokens ── */
     :root {
-      --black: #0a0a0a;
+      --black: #18181b;
       --white: #ffffff;
-      --off-white: #f9f8f6;
-      --green: #1a7f5a;
-      --green-light: #e6f4ee;
-      --green-mid: #2da870;
-      --blue: #2563eb;
-      --blue-light: #eff6ff;
-      --purple: #7c3aed;
-      --purple-light: #f5f3ff;
-      --amber: #d97706;
-      --amber-light: #fffbeb;
-      --red: #dc2626;
-      --red-light: #fef2f2;
-      --gray-50: #f8fafc;
-      --gray-100: #f1f5f9;
-      --gray-200: #e2e8f0;
-      --gray-300: #cbd5e1;
-      --gray-400: #94a3b8;
-      --gray-600: #475569;
-      --gray-800: #1e293b;
-      --border: #e2e8f0;
+      --off-white: #faf9f6;
+      --accent: #1e5e41;
+      --accent-hover: #164932;
+      --accent-subtle: #edf6f1;
+      --accent-border: #c3e2d2;
+      --accent-contrast: #ffffff;
+      --green: #1e5e41;
+      --green-light: #edf6f1;
+      --green-mid: #257853;
+      --blue: #2d557a;
+      --blue-light: #eff5fa;
+      --purple: #1e5e41;
+      --purple-light: #edf6f1;
+      --amber: #b45309;
+      --amber-light: #fef7ee;
+      --red: #b91c1c;
+      --red-light: #fdf2f2;
+      --gray-50: #fbfbf9;
+      --gray-100: #f4f3ef;
+      --gray-200: #e5e3dc;
+      --gray-300: #d3cfc5;
+      --gray-400: #8a8780;
+      --gray-600: #52525b;
+      --gray-800: #18181b;
+      --border: #e5e3dc;
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 14px;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.07);
       --font-serif: 'Lora', Georgia, serif;
       --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     }
     
     html.dark {
-      --black: #f8fafc;
-      --white: #0f172a;
-      --off-white: #020617;
-      --green: #2da870;
-      --green-light: #064e3b;
-      --green-mid: #34d399;
-      --blue: #3b82f6;
-      --blue-light: #1e3a8a;
-      --purple: #8b5cf6;
-      --purple-light: #2e1065;
-      --amber: #f59e0b;
-      --amber-light: #451a03;
-      --red: #ef4444;
-      --red-light: #450a0a;
-      --gray-50: #020617;
-      --gray-100: #1e293b;
-      --gray-200: #334155;
-      --gray-300: #475569;
-      --gray-400: #64748b;
-      --gray-600: #94a3b8;
-      --gray-800: #f1f5f9;
-      --border: #334155;
+      --black: #f4f4f5;
+      --white: #18181b;
+      --off-white: #121214;
+      --accent: #34a873;
+      --accent-hover: #42be85;
+      --accent-subtle: #142a1f;
+      --accent-border: #1f4735;
+      --accent-contrast: #0c1c14;
+      --green: #34a873;
+      --green-light: #142a1f;
+      --green-mid: #42be85;
+      --blue: #5a94c9;
+      --blue-light: #112130;
+      --purple: #34a873;
+      --purple-light: #142a1f;
+      --amber: #e09433;
+      --amber-light: #2a1b0b;
+      --red: #ea5b5b;
+      --red-light: #2d1313;
+      --gray-50: #141417;
+      --gray-100: #202024;
+      --gray-200: #2b2b31;
+      --gray-300: #3b3b43;
+      --gray-400: #71717a;
+      --gray-600: #a1a1aa;
+      --gray-800: #f4f4f5;
+      --border: #2b2b31;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -157,7 +170,7 @@
       transition: all 0.15s;
     }
     .mode-tab:hover { background: var(--gray-100); color: var(--black); }
-    .mode-tab.active { background: var(--white); color: var(--purple); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .mode-tab.active { background: var(--white); color: var(--accent); border: 1px solid var(--border); box-shadow: var(--shadow-xs); }
 
     /* Status Bar */
     .status-ribbon {
@@ -188,13 +201,13 @@
     }
 
     .status-dot {
-      width: 9px; height: 9px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: var(--gray-400);
     }
-    .status-dot.connected { background: #16a34a; box-shadow: 0 0 6px #16a34a88; }
-    .status-dot.warning { background: #f59e0b; box-shadow: 0 0 6px #f59e0b88; }
-    .status-dot.disconnected { background: #dc2626; box-shadow: 0 0 6px #dc262688; }
+    .status-dot.connected { background: var(--color-success); box-shadow: 0 0 0 2px var(--color-success-subtle); }
+    .status-dot.warning { background: var(--color-warning); box-shadow: 0 0 0 2px var(--color-warning-subtle); }
+    .status-dot.disconnected { background: var(--color-error); box-shadow: 0 0 0 2px var(--color-error-subtle); }
 
     .ai-select {
       font-size: 12px;
@@ -304,8 +317,8 @@
 
     .editor-textarea:focus {
       outline: none;
-      border-color: var(--purple);
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
     }
 
     .btn-sm {
@@ -323,7 +336,7 @@
       align-items: center;
       gap: 5px;
     }
-    .btn-sm:hover { background: var(--gray-100); border-color: var(--gray-400); color: var(--black); }
+    .btn-sm:hover { background: var(--gray-100); border-color: var(--gray-300); color: var(--black); }
 
     /* Action bar */
     .action-bar {
@@ -340,18 +353,19 @@
 
     .btn-primary {
       display: inline-flex; align-items: center; gap: 8px;
-      background: #7c3aed; color: #fff; border: none;
-      padding: 10px 20px; border-radius: var(--radius-sm);
-      font-size: 14px; font-weight: 600; cursor: pointer;
+      background: var(--accent); color: var(--accent-contrast); border: none;
+      padding: 9px 18px; border-radius: var(--radius-sm);
+      font-size: 13.5px; font-weight: 600; cursor: pointer;
       font-family: inherit; transition: all 0.15s;
+      box-shadow: var(--shadow-xs);
     }
-    .btn-primary:hover { background: #6d28d9; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: var(--shadow-sm); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-secondary {
       display: inline-flex; align-items: center; gap: 6px;
       background: var(--white); border: 1px solid var(--border); color: var(--black);
-      padding: 10px 16px; border-radius: var(--radius-sm);
+      padding: 9px 16px; border-radius: var(--radius-sm);
       font-size: 13px; font-weight: 600; cursor: pointer;
       font-family: inherit; transition: all 0.15s;
     }
@@ -360,12 +374,12 @@
 
     .btn-success {
       display: inline-flex; align-items: center; gap: 6px;
-      background: #16a34a; color: #fff; border: none;
-      padding: 10px 18px; border-radius: var(--radius-sm);
+      background: var(--accent); color: var(--accent-contrast); border: none;
+      padding: 9px 16px; border-radius: var(--radius-sm);
       font-size: 13px; font-weight: 600; cursor: pointer;
       font-family: inherit; transition: all 0.15s;
     }
-    .btn-success:hover { background: #15803d; box-shadow: 0 4px 12px rgba(22,163,74,0.3); }
+    .btn-success:hover { background: var(--accent-hover); }
     .btn-success:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .live-status {
@@ -413,7 +427,7 @@
       gap: 6px;
     }
     .inspect-tab:hover { color: var(--black); }
-    .inspect-tab.active { background: var(--white); color: var(--purple); border-color: var(--border); border-bottom-color: var(--white); margin-bottom: -1px; }
+    .inspect-tab.active { background: var(--white); color: var(--accent); border-color: var(--border); border-bottom-color: var(--white); margin-bottom: -1px; }
 
     .tab-content { padding: 18px; display: none; }
     .tab-content.active { display: block; }
@@ -476,9 +490,9 @@
       letter-spacing: 0.5px;
     }
     .badge-tailored {
-      background: rgba(34, 197, 94, 0.15);
-      color: #15803d;
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: var(--accent-subtle);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
       font-size: 11px;
       padding: 2px 6px;
       border-radius: 4px;
@@ -492,7 +506,7 @@
       align-items: center;
       justify-content: center;
       background: var(--gray-50);
-      color: var(--gray-500);
+      color: var(--gray-600);
       padding: 24px;
       text-align: center;
       gap: 12px;
@@ -512,8 +526,8 @@
       font-size: 12px;
       line-height: 1.5;
     }
-    .diff-table tr.added { background: rgba(34, 197, 94, 0.12); color: #15803d; }
-    .diff-table tr.removed { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+    .diff-table tr.added { background: var(--accent-subtle); color: var(--accent); }
+    .diff-table tr.removed { background: var(--red-light); color: var(--red); }
     .diff-table td { padding: 3px 8px; vertical-align: top; white-space: pre-wrap; word-break: break-all; }
     .diff-table td.line-num { width: 45px; text-align: right; color: var(--gray-400); user-select: none; border-right: 1px solid var(--border); }
     .diff-table td.sign { width: 20px; text-align: center; font-weight: bold; user-select: none; }
@@ -559,8 +573,8 @@
     /* Keyword badges */
     .keyword-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
     .keyword-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-    .keyword-badge.present { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .keyword-badge.missing { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .keyword-badge.present { background: var(--accent-subtle); color: var(--accent); border: 1px solid var(--accent-border); }
+    .keyword-badge.missing { background: var(--red-light); color: var(--red); border: 1px solid rgba(185, 28, 28, 0.2); }
 
     .beta-badge {
       font-size: 10px;
@@ -796,7 +810,7 @@
               <div style="font-size:11px;color:var(--gray-500);" id="tailored-pdf-status">Pending Tailoring</div>
             </div>
             <div id="tailored-pdf-placeholder" class="pdf-placeholder-box">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               <div style="font-weight:600;color:var(--gray-700);">Tailored Résumé Not Yet Generated</div>
               <div style="font-size:12px;max-width:320px;">Click <b>Tailor &amp; Compile LaTeX</b> to customize your bullet points and inspect the live differences side-by-side with your original résumé.</div>
             </div>

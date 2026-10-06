@@ -396,9 +396,9 @@ function renderSemanticChanges(changes: SemanticChange[]): void {
         <span class="badge-info">${escapeHtml(c.section || 'Section')}</span>
         <span style="font-weight:600;">${c.type.replace('_', ' ').toUpperCase()}</span>
       </div>
-      ${c.reason ? `<div style="color:var(--purple);font-size:12px;margin-bottom:4px;"><strong>Goal:</strong> ${escapeHtml(c.reason)}</div>` : ''}
-      ${c.original ? `<div style="color:#b91c1c;font-size:12px;"><s>${escapeHtml(c.original)}</s></div>` : ''}
-      ${c.updated ? `<div style="color:#15803d;font-size:12px;margin-top:2px;"><strong>+</strong> ${escapeHtml(c.updated)}</div>` : ''}
+      ${c.reason ? `<div style="color:var(--accent);font-size:12px;margin-bottom:4px;font-weight:500;"><strong>Goal:</strong> ${escapeHtml(c.reason)}</div>` : ''}
+      ${c.original ? `<div style="color:var(--red);font-size:12px;"><s>${escapeHtml(c.original)}</s></div>` : ''}
+      ${c.updated ? `<div style="color:var(--accent);font-size:12px;margin-top:2px;"><strong>+</strong> ${escapeHtml(c.updated)}</div>` : ''}
     `;
     semanticChangesBox.appendChild(card);
   });

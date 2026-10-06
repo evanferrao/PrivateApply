@@ -657,7 +657,7 @@ function addStyles(): void {
     .ofl-cube:hover {
       transform: scale(1.08);
       box-shadow:
-        0 5px 16px rgba(22, 163, 74, 0.30),
+        0 5px 16px rgba(30, 94, 65, 0.20),
         inset 0 1px 2px rgba(255,255,255,0.90);
     }
     .ofl-cube-logo {
@@ -670,7 +670,8 @@ function addStyles(): void {
 
     /* ─── Header ─── */
     .ofl-header {
-      background: #0a0a0a;
+      background: #18181b;
+      border-bottom: 1px solid #27272a;
       padding: 10px 12px;
       display: flex;
       align-items: center;
@@ -796,31 +797,31 @@ function addStyles(): void {
     }
     .ofl-btn-icon { font-size: 16px; }
     .ofl-btn-fill {
-      background: #1a7f5a;
-      color: #0a0a0a;
+      background: #1e5e41;
+      color: #ffffff;
     }
     .ofl-btn-fill:hover {
-      background: #2da870;
+      background: #164932;
       transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(39, 227, 141, 0.3);
+      box-shadow: 0 4px 12px rgba(30, 94, 65, 0.25);
     }
     .ofl-btn-fill:active {
-      background: #1a7f5a;
+      background: #1e5e41;
       transform: translateY(0);
     }
     .ofl-btn-cover {
-      background: #0a0a0a;
+      background: #18181b;
       color: #FFFFFF;
-      border: 2px solid #1a7f5a;
+      border: 1px solid #3f3f46;
     }
     .ofl-btn-cover:hover {
-      background: #0a0a0a;
-      border-color: #2da870;
+      background: #27272a;
+      border-color: #52525b;
       transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(39, 227, 141, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     .ofl-btn-cover:active {
-      background: #0a0a0a;
+      background: #18181b;
       transform: translateY(0);
     }
 
@@ -833,9 +834,9 @@ function addStyles(): void {
       padding: 0 8px;
       transition: all .2s;
     }
-    .ofl-status-info  { color: #0a0a0a; }
-    .ofl-status-success { color: #0a0a0a; background: rgba(39, 227, 141, 0.15); padding: 4px 8px; border: 1px solid #1a7f5a; }
-    .ofl-status-error   { color: #0a0a0a; background: rgba(239, 68, 68, 0.15); padding: 4px 8px; border: 1px solid #EF4444; }
+    .ofl-status-info  { color: #18181b; }
+    .ofl-status-success { color: #1e5e41; background: #edf6f1; padding: 4px 8px; border: 1px solid #c8e4d6; }
+    .ofl-status-error   { color: #dc2626; background: #fdf2f2; padding: 4px 8px; border: 1px solid #fecaca; }
 
     .ofl-footer {
       padding: 8px 16px;

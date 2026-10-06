@@ -591,9 +591,9 @@ export function mountDinoRunner(container: HTMLElement): void {
 
   const ctx = canvas.getContext('2d')!;
   const isDark = document.documentElement.classList.contains('dark');
-  const FG = isDark ? '#e5e5e5' : '#2c2b28';
-  const BG = isDark ? '#1a1a1a' : '#f4f3f0';
-  const GREEN = isDark ? '#2da870' : '#1a7f5a';
+  const FG = isDark ? '#f4f4f5' : '#18181b';
+  const BG = isDark ? '#18181b' : '#f4f3ee';
+  const GREEN = isDark ? '#34a873' : '#1e5e41';
   const RED = isDark ? '#f87171' : '#dc2626';
 
   interface Obstacle {

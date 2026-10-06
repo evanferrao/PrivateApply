@@ -488,15 +488,15 @@ function isDarkMode(): boolean {
 function chartTheme() {
   const dark = isDarkMode();
   return {
-    gridColor: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-    tickColor: dark ? '#94a3b8' : '#64748b',
-    legendColor: dark ? '#cbd5e1' : '#334155',
-    totalLine: dark ? '#7dd3fc' : '#1e2a3a',
-    totalFill: dark ? 'rgba(125,211,252,0.08)' : 'rgba(30,42,58,0.07)',
-    submittedLine: '#4299e1',
-    submittedFill: 'rgba(66,153,225,0.1)',
-    interviewingLine: '#ed8936',
-    interviewingFill: 'rgba(237,137,54,0.1)',
+    gridColor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+    tickColor: dark ? '#a1a1aa' : '#52525b',
+    legendColor: dark ? '#f4f4f5' : '#18181b',
+    totalLine: dark ? '#34a873' : '#1e5e41',
+    totalFill: dark ? 'rgba(52,168,115,0.1)' : 'rgba(30,94,65,0.08)',
+    submittedLine: dark ? '#5a94c9' : '#2d557a',
+    submittedFill: dark ? 'rgba(90,148,201,0.1)' : 'rgba(45,85,122,0.08)',
+    interviewingLine: dark ? '#e09433' : '#b45309',
+    interviewingFill: dark ? 'rgba(224,148,51,0.1)' : 'rgba(180,83,9,0.08)',
   };
 }
 
@@ -579,6 +579,7 @@ function renderStatusChart() {
   if (!ctx) return;
 
   const t = chartTheme();
+  const dark = isDarkMode();
   
   const submitted = allApplications.filter(a => a.status === 'submitted').length;
   const interviewing = allApplications.filter(a => a.status === 'interviewing').length;
@@ -593,20 +594,20 @@ function renderStatusChart() {
       datasets: [{
         data: [submitted, interviewing, rejected, accepted, withdrawn],
         backgroundColor: [
-          'rgba(66, 153, 225, 0.8)',
-          'rgba(237, 137, 54, 0.8)',
-          'rgba(245, 101, 101, 0.8)',
-          'rgba(72, 187, 120, 0.8)',
-          'rgba(160, 174, 192, 0.8)',
+          dark ? 'rgba(90, 148, 201, 0.85)' : 'rgba(45, 85, 122, 0.85)',
+          dark ? 'rgba(224, 148, 51, 0.85)' : 'rgba(180, 83, 9, 0.85)',
+          dark ? 'rgba(234, 91, 91, 0.85)' : 'rgba(185, 28, 28, 0.85)',
+          dark ? 'rgba(52, 168, 115, 0.85)' : 'rgba(30, 94, 65, 0.85)',
+          dark ? 'rgba(113, 113, 122, 0.85)' : 'rgba(138, 135, 128, 0.85)',
         ],
         borderColor: [
-          '#4299e1',
-          '#ed8936',
-          '#f56565',
-          '#48bb78',
-          '#a0aec0',
+          dark ? '#5a94c9' : '#2d557a',
+          dark ? '#e09433' : '#b45309',
+          dark ? '#ea5b5b' : '#b91c1c',
+          dark ? '#34a873' : '#1e5e41',
+          dark ? '#71717a' : '#8a8780',
         ],
-        borderWidth: isDarkMode() ? 0 : 2,
+        borderWidth: dark ? 0 : 2,
       }],
     },
     options: {
