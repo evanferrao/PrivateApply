@@ -36,7 +36,7 @@ export const colors = {
   // Text Colors
   textPrimary: '#18181B',
   textSecondary: '#52525B',
-  textDisabled: '#8A8780',
+  textDisabled: '#5C5953',
   textInverse: '#FAF9F6',
   
   // Background Colors

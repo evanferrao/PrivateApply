@@ -33,7 +33,9 @@ export interface SemanticMatchResult {
     | 'compensation'
     | 'reference'
     | 'custom_field'
-    | 'question_bank';
+    | 'question_bank'
+    | 'work_preferences'
+    | 'legal_disclosures';
   fieldKey: string;
   fieldLabel: string;
   entity?: string; // e.g. "father", "mother", "applicant", "school"
@@ -677,6 +679,342 @@ export class SemanticProfileMatcher {
             selectionReason: `Resolved from question bank ("${q.question}")`,
           };
         }
+      }
+    }
+
+    // ── 10. WORK PREFERENCES (Workplace type, preferred locations/cities, relocation, shifts, travel) ──
+    const wp = profile.workPreferences;
+    if (wp) {
+      // Workplace arrangement (Remote / Hybrid / Onsite / Flexible)
+      if (matchesAny(combined, ['workplace', 'work arrangement', 'remote or on-site', 'remote or onsite', 'hybrid or remote', 'work environment', 'work model', 'work preference', 'telecommute'])) {
+        const types = wp.workplaceTypes || [];
+        const strVal = types.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ');
+        return {
+          value: strVal || 'Remote, Hybrid',
+          confidence: 0.94,
+          source: 'work_preferences',
+          fieldKey: 'workplace_types',
+          fieldLabel: 'Workplace Arrangement',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved preferred workplace arrangements',
+        };
+      }
+
+      // Preferred Locations / Target Cities
+      if (matchesAny(combined, ['preferred location', 'desired location', 'location preference', 'which location', 'which city', 'preferred city', 'target location', 'work location', 'location options'])) {
+        const locs = wp.preferredLocations || [];
+        if (locs.length > 0) {
+          return {
+            value: locs.join(', '),
+            confidence: 0.93,
+            source: 'work_preferences',
+            fieldKey: 'preferred_locations',
+            fieldLabel: 'Preferred Locations / Cities',
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: 'Resolved preferred job locations and cities',
+          };
+        }
+      }
+
+      // Willingness to Relocate
+      if (matchesAny(combined, ['relocate', 'willing to relocate', 'open to relocation', 'relocation'])) {
+        const willing = wp.willingToRelocate;
+        const val = typeof willing === 'boolean' ? (willing ? 'Yes' : 'No') : String(willing);
+        return {
+          value: field.type === 'checkbox' ? Boolean(willing) : val,
+          confidence: 0.95,
+          source: 'work_preferences',
+          fieldKey: 'willing_to_relocate',
+          fieldLabel: 'Willingness to Relocate',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved relocation willingness',
+        };
+      }
+
+      // Willingness to Travel
+      if (matchesAny(combined, ['willing to travel', 'open to travel', 'travel requirement', 'willingness to travel'])) {
+        const willing = wp.willingToTravel;
+        return {
+          value: field.type === 'checkbox' ? willing : willing ? 'Yes' : 'No',
+          confidence: 0.94,
+          source: 'work_preferences',
+          fieldKey: 'willing_to_travel',
+          fieldLabel: 'Willingness to Travel',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved travel willingness',
+        };
+      }
+
+      // Travel Percentage
+      if (matchesAny(combined, ['travel percentage', '% travel', 'percentage of travel', 'travel expectation'])) {
+        const pct = wp.travelPercentage ?? (wp.willingToTravel ? 25 : 0);
+        return {
+          value: field.type === 'number' ? pct : `${pct}%`,
+          confidence: 0.94,
+          source: 'work_preferences',
+          fieldKey: 'travel_percentage',
+          fieldLabel: 'Travel Percentage',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved travel percentage expectation',
+        };
+      }
+
+      // Earliest Start Date
+      if (matchesAny(combined, ['earliest start date', 'available start date', 'when can you start', 'start date', 'available to begin', 'earliest joining'])) {
+        if (wp.earliestStartDate) {
+          return {
+            value: wp.earliestStartDate,
+            confidence: 0.95,
+            source: 'work_preferences',
+            fieldKey: 'earliest_start_date',
+            fieldLabel: 'Earliest Start Date',
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: 'Resolved earliest available start date',
+          };
+        }
+      }
+
+      // Employment Types (Full-time, Contract, etc.)
+      if (matchesAny(combined, ['employment type', 'job type', 'full time or part time', 'contract or full time'])) {
+        const types = wp.employmentTypes || ['full_time'];
+        const formatted = types.map(t => t.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ');
+        return {
+          value: formatted,
+          confidence: 0.92,
+          source: 'work_preferences',
+          fieldKey: 'employment_types',
+          fieldLabel: 'Preferred Employment Types',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved preferred employment types',
+        };
+      }
+    }
+
+    // ── 11. LEGAL DISCLOSURES & SCREENING KNOCKOUTS ───────────────────────────
+    const ld = profile.legalDisclosures;
+    if (ld) {
+      // 18 Years of Age or Older
+      if (matchesAny(combined, ['18 years', 'at least 18', 'age 18', 'legal age', '18 or older', 'are you 18'])) {
+        const val = ld.over18;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'over_18',
+          fieldLabel: 'Age Verification (18+)',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved age verification requirement',
+        };
+      }
+
+      // Legally Authorized to Work
+      if (matchesAny(combined, ['legally authorized', 'authorized to work', 'legal right to work', 'work eligibility', 'eligible to work'])) {
+        const val = ld.legallyAuthorized;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'legally_authorized',
+          fieldLabel: 'Legal Work Authorization',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved legal work authorization status',
+        };
+      }
+
+      // Visa Sponsorship Requirement
+      if (matchesAny(combined, ['require sponsorship', 'visa sponsorship', 'sponsorship for employment', 'future require sponsorship', 'sponsorship now or in the future', 'need sponsorship'])) {
+        const val = ld.requiresSponsorship;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'requires_sponsorship',
+          fieldLabel: 'Visa Sponsorship Requirement',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved visa sponsorship requirement',
+        };
+      }
+
+      // Visa Status / Work Permit Type
+      if (matchesAny(combined, ['visa status', 'visa type', 'work permit type', 'current immigration status', 'work authorization status', 'citizenship status'])) {
+        if (ld.visaStatus) {
+          return {
+            value: ld.visaStatus,
+            confidence: 0.95,
+            source: 'legal_disclosures',
+            fieldKey: 'visa_status',
+            fieldLabel: 'Visa / Immigration Status',
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: 'Resolved immigration / visa status',
+          };
+        }
+      }
+
+      // Security Clearance
+      if (matchesAny(combined, ['security clearance', 'clearance level', 'active clearance', 'government clearance'])) {
+        const clr = ld.securityClearance || 'none';
+        const strVal = clr === 'none' ? 'None' : clr.replace('_', ' ').toUpperCase();
+        return {
+          value: strVal,
+          confidence: 0.94,
+          source: 'legal_disclosures',
+          fieldKey: 'security_clearance',
+          fieldLabel: 'Security Clearance',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved security clearance level',
+        };
+      }
+
+      // ITAR / Export Control Compliance
+      if (matchesAny(combined, ['itar', 'u.s. person', 'us person under itar', 'export control', 'ear compliance'])) {
+        const val = ld.itarCompliant ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.96,
+          source: 'legal_disclosures',
+          fieldKey: 'itar_compliant',
+          fieldLabel: 'ITAR / Export Control Compliance',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved ITAR US Person eligibility',
+        };
+      }
+
+      // Driver's License
+      if (matchesAny(combined, ["driver's license", 'drivers license', 'valid driver license', 'driving license'])) {
+        const val = ld.hasValidDriverLicense ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.95,
+          source: 'legal_disclosures',
+          fieldKey: 'driver_license',
+          fieldLabel: "Valid Driver's License",
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: "Resolved driver's license possession",
+        };
+      }
+
+      // Previously Employed at Company
+      if (matchesAny(combined, ['previously worked', 'previously employed', 'former employee', 'ever worked for', 'worked here before', 'prior employment with'])) {
+        const val = ld.previouslyEmployedAtCompany ?? false;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.96,
+          source: 'legal_disclosures',
+          fieldKey: 'previously_employed',
+          fieldLabel: 'Previous Employment Disclosure',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved prior employment disclosure',
+        };
+      }
+
+      // Relatives at Company
+      if (matchesAny(combined, ['relatives employed', 'relatives working', 'family members working', 'relative at', 'family at company', 'nepotism'])) {
+        const val = ld.hasRelativesAtCompany ?? false;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.96,
+          source: 'legal_disclosures',
+          fieldKey: 'relatives_employed',
+          fieldLabel: 'Relatives at Company Disclosure',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved relatives employment disclosure',
+        };
+      }
+
+      // Non-Compete or Restrictive Covenants
+      if (matchesAny(combined, ['non-compete', 'non compete', 'non-solicitation', 'restrictive covenant', 'post-employment restriction'])) {
+        const val = ld.hasNonCompeteOrRestrictions ?? false;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.95,
+          source: 'legal_disclosures',
+          fieldKey: 'non_compete',
+          fieldLabel: 'Non-Compete Agreement Disclosure',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved non-compete covenant disclosure',
+        };
+      }
+
+      // Background Check Consent
+      if (matchesAny(combined, ['background check', 'background investigation', 'consent to background', 'background screening'])) {
+        const val = ld.backgroundCheckConsent ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'background_check_consent',
+          fieldLabel: 'Background Check Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved background check consent',
+        };
+      }
+
+      // Drug Screen Consent
+      if (matchesAny(combined, ['drug screen', 'drug test', 'drug screening', 'substance test'])) {
+        const val = ld.drugScreeningConsent ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'drug_screening_consent',
+          fieldLabel: 'Drug Screening Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved drug screening consent',
+        };
+      }
+
+      // Referral Source / How did you hear about us?
+      if (matchesAny(combined, ['how did you hear', 'referral source', 'how did you find us', 'where did you hear', 'source of referral', 'how did you hear about this position'])) {
+        const src = ld.referralSource || 'LinkedIn';
+        return {
+          value: src,
+          confidence: 0.94,
+          source: 'legal_disclosures',
+          fieldKey: 'referral_source',
+          fieldLabel: 'Referral Source / How Did You Hear',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved application referral source',
+        };
       }
     }
 

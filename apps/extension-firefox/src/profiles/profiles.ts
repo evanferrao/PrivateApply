@@ -20,11 +20,16 @@ import {
   calculateDerivedExperience,
   createDefaultIndiaPack,
   createDefaultCustomField,
+  createDefaultWorkPreferences,
+  createDefaultLegalAndDisclosures,
+  createDefaultQuestionBank,
   type EducationRecord,
   type DetailedEmploymentRecord,
   type FamilyContact,
   type CustomFieldDefinition,
   type QuestionBankItem,
+  type WorkPreferences,
+  type LegalAndDisclosures,
 } from '../shared/applicant-profile';
 import { setHTML } from '../shared/html';
 
@@ -98,10 +103,23 @@ async function init(): Promise<void> {
     };
   }
 
+  if (!activeProfileData.workPreferences) {
+    activeProfileData.workPreferences = createDefaultWorkPreferences();
+  }
+  if (!activeProfileData.legalDisclosures) {
+    activeProfileData.legalDisclosures = createDefaultLegalAndDisclosures();
+  }
+  if (!activeProfileData.questionBank || activeProfileData.questionBank.length === 0) {
+    activeProfileData.questionBank = createDefaultQuestionBank();
+    await saveUserProfile(activeProfileData);
+  }
+
   renderActiveBanner();
   populatePersonalForm();
   populateEducationList();
   populateExperienceList();
+  populateWorkPreferencesForm();
+  populateScreeningForm();
   populateFamilyList();
   populateIndiaPackForm();
   populateCustomFieldsList();
@@ -658,6 +676,251 @@ function setupExpOverrideModalEvents(): void {
   });
 }
 
+// ── Work Preferences ───────────────────────────────────────────────────────
+
+let currentPreferredLocations: string[] = [];
+
+function renderCityTags(): void {
+  const container = document.getElementById('wp-cities-container');
+  if (!container) return;
+
+  if (currentPreferredLocations.length === 0) {
+    container.innerHTML = `
+      <span style="font-size: 13px; color: var(--gray-400); font-style: italic;">
+        No preferred locations added yet. Add cities above (e.g. Remote, San Francisco, London).
+      </span>
+    `;
+    return;
+  }
+
+  let html = '';
+  currentPreferredLocations.forEach((loc, idx) => {
+    html += `
+      <span class="city-tag">
+        ${escapeHtml(loc)}
+        <button type="button" class="btn-del-city" data-idx="${idx}" title="Remove location">&times;</button>
+      </span>
+    `;
+  });
+  setHTML(container, html);
+
+  container.querySelectorAll('.btn-del-city').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      currentPreferredLocations.splice(idx, 1);
+      renderCityTags();
+    });
+  });
+}
+
+function addCityTag(cityName: string): void {
+  const trimmed = cityName.trim();
+  if (!trimmed) return;
+  // Case-insensitive duplicate check
+  if (!currentPreferredLocations.some(l => l.toLowerCase() === trimmed.toLowerCase())) {
+    currentPreferredLocations.push(trimmed);
+    renderCityTags();
+  }
+}
+
+function populateWorkPreferencesForm(): void {
+  if (!activeProfileData) return;
+  const wp = activeProfileData.workPreferences || createDefaultWorkPreferences();
+
+  const types = wp.workplaceTypes || [];
+  (document.getElementById('wp-type-remote') as HTMLInputElement).checked = types.includes('remote');
+  (document.getElementById('wp-type-hybrid') as HTMLInputElement).checked = types.includes('hybrid');
+  (document.getElementById('wp-type-onsite') as HTMLInputElement).checked = types.includes('onsite');
+  (document.getElementById('wp-type-flexible') as HTMLInputElement).checked = types.includes('flexible');
+
+  currentPreferredLocations = [...(wp.preferredLocations || [])];
+  renderCityTags();
+
+  // Relocation
+  const relocateVal = typeof wp.willingToRelocate === 'boolean' 
+    ? (wp.willingToRelocate ? 'true' : 'false') 
+    : (wp.willingToRelocate || 'false');
+  (document.getElementById('wp-relocate') as HTMLSelectElement).value = String(relocateVal);
+  (document.getElementById('wp-relocate-assist') as HTMLInputElement).checked = Boolean(wp.relocationAssistanceRequired);
+
+  // Travel
+  (document.getElementById('wp-travel-willing') as HTMLInputElement).checked = Boolean(wp.willingToTravel);
+  (document.getElementById('wp-travel-pct') as HTMLInputElement).value = String(wp.travelPercentage ?? '');
+
+  // Earliest start
+  (document.getElementById('wp-earliest-start') as HTMLInputElement).value = wp.earliestStartDate || '';
+
+  // Employment types
+  const empTypes = wp.employmentTypes || ['full_time'];
+  document.querySelectorAll<HTMLInputElement>('.wp-emp-type').forEach(cb => {
+    cb.checked = empTypes.includes(cb.value as any);
+  });
+
+  // Shifts
+  const shifts = wp.shiftPreferences || ['day', 'flexible'];
+  document.querySelectorAll<HTMLInputElement>('.wp-shift').forEach(cb => {
+    cb.checked = shifts.includes(cb.value as any);
+  });
+  (document.getElementById('wp-overtime') as HTMLInputElement).checked = Boolean(wp.overtimeWilling);
+
+  // Targets
+  (document.getElementById('wp-target-roles') as HTMLInputElement).value = (wp.targetRoleTitles || []).join(', ');
+  (document.getElementById('wp-target-industries') as HTMLInputElement).value = (wp.targetIndustries || []).join(', ');
+
+  // Salary
+  (document.getElementById('wp-min-salary') as HTMLInputElement).value = String(wp.minimumAcceptableSalary ?? '');
+  (document.getElementById('wp-target-salary') as HTMLInputElement).value = String(wp.targetSalary ?? '');
+  (document.getElementById('wp-salary-currency') as HTMLSelectElement).value = wp.salaryCurrency || 'USD';
+  (document.getElementById('wp-salary-period') as HTMLSelectElement).value = wp.salaryPeriod || 'annual';
+
+  // Notes
+  (document.getElementById('wp-notes') as HTMLTextAreaElement).value = wp.notes || '';
+}
+
+async function saveWorkPreferences(): Promise<void> {
+  if (!activeProfileData) return;
+  if (!activeProfileData.workPreferences) {
+    activeProfileData.workPreferences = createDefaultWorkPreferences();
+  }
+  const wp = activeProfileData.workPreferences;
+
+  const types: Array<'remote' | 'hybrid' | 'onsite' | 'flexible'> = [];
+  if ((document.getElementById('wp-type-remote') as HTMLInputElement).checked) types.push('remote');
+  if ((document.getElementById('wp-type-hybrid') as HTMLInputElement).checked) types.push('hybrid');
+  if ((document.getElementById('wp-type-onsite') as HTMLInputElement).checked) types.push('onsite');
+  if ((document.getElementById('wp-type-flexible') as HTMLInputElement).checked) types.push('flexible');
+  wp.workplaceTypes = types;
+
+  wp.preferredLocations = [...currentPreferredLocations];
+
+  const relocVal = (document.getElementById('wp-relocate') as HTMLSelectElement).value;
+  wp.willingToRelocate = relocVal === 'true' ? true : relocVal === 'false' ? false : (relocVal as any);
+  wp.relocationAssistanceRequired = (document.getElementById('wp-relocate-assist') as HTMLInputElement).checked;
+
+  wp.willingToTravel = (document.getElementById('wp-travel-willing') as HTMLInputElement).checked;
+  const travelPct = parseInt((document.getElementById('wp-travel-pct') as HTMLInputElement).value, 10);
+  wp.travelPercentage = isNaN(travelPct) ? undefined : travelPct;
+
+  wp.earliestStartDate = (document.getElementById('wp-earliest-start') as HTMLInputElement).value.trim() || undefined;
+
+  const empTypes: Array<any> = [];
+  document.querySelectorAll<HTMLInputElement>('.wp-emp-type:checked').forEach(cb => {
+    empTypes.push(cb.value);
+  });
+  wp.employmentTypes = empTypes;
+
+  const shifts: Array<any> = [];
+  document.querySelectorAll<HTMLInputElement>('.wp-shift:checked').forEach(cb => {
+    shifts.push(cb.value);
+  });
+  wp.shiftPreferences = shifts;
+  wp.overtimeWilling = (document.getElementById('wp-overtime') as HTMLInputElement).checked;
+
+  const rolesStr = (document.getElementById('wp-target-roles') as HTMLInputElement).value.trim();
+  wp.targetRoleTitles = rolesStr ? rolesStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const indStr = (document.getElementById('wp-target-industries') as HTMLInputElement).value.trim();
+  wp.targetIndustries = indStr ? indStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const minSal = parseFloat((document.getElementById('wp-min-salary') as HTMLInputElement).value);
+  wp.minimumAcceptableSalary = isNaN(minSal) ? undefined : minSal;
+
+  const tgtSal = parseFloat((document.getElementById('wp-target-salary') as HTMLInputElement).value);
+  wp.targetSalary = isNaN(tgtSal) ? undefined : tgtSal;
+
+  wp.salaryCurrency = (document.getElementById('wp-salary-currency') as HTMLSelectElement).value;
+  wp.salaryPeriod = (document.getElementById('wp-salary-period') as HTMLSelectElement).value as any;
+  wp.notes = (document.getElementById('wp-notes') as HTMLTextAreaElement).value.trim() || undefined;
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Work Preferences saved');
+}
+
+// ── Screening & Legal Disclosures ──────────────────────────────────────────
+
+function populateScreeningForm(): void {
+  if (!activeProfileData) return;
+  const scr = activeProfileData.legalDisclosures || createDefaultLegalAndDisclosures();
+
+  (document.getElementById('scr-over-18') as HTMLSelectElement).value = scr.over18 ? 'true' : 'false';
+  (document.getElementById('scr-authorized') as HTMLSelectElement).value = scr.legallyAuthorized ? 'true' : 'false';
+  (document.getElementById('scr-sponsorship') as HTMLSelectElement).value = scr.requiresSponsorship ? 'true' : 'false';
+
+  (document.getElementById('scr-visa-status') as HTMLSelectElement).value = scr.visaStatus || 'US Citizen / Permanent Resident';
+  (document.getElementById('scr-sponsorship-timeline') as HTMLSelectElement).value = scr.sponsorshipTimeline || 'Not in foreseeable future';
+
+  (document.getElementById('scr-opt-stem') as HTMLInputElement).checked = Boolean(scr.optStemEligible);
+  (document.getElementById('scr-opt-months') as HTMLInputElement).value = String(scr.optMonthsRemaining ?? '');
+
+  (document.getElementById('scr-clearance') as HTMLSelectElement).value = scr.securityClearance || 'none';
+  (document.getElementById('scr-itar') as HTMLSelectElement).value = scr.itarCompliant ? 'true' : 'false';
+
+  (document.getElementById('scr-driver-license') as HTMLInputElement).checked = Boolean(scr.hasValidDriverLicense);
+  (document.getElementById('scr-driver-state') as HTMLInputElement).value = scr.driverLicenseState || '';
+  (document.getElementById('scr-clean-driving') as HTMLInputElement).checked = Boolean(scr.hasCleanDrivingRecord);
+
+  (document.getElementById('scr-prev-employed') as HTMLSelectElement).value = scr.previouslyEmployedAtCompany ? 'true' : 'false';
+  (document.getElementById('scr-prev-employed-details') as HTMLInputElement).value = scr.previousEmploymentDetails || '';
+
+  (document.getElementById('scr-relatives') as HTMLSelectElement).value = scr.hasRelativesAtCompany ? 'true' : 'false';
+  (document.getElementById('scr-relatives-details') as HTMLInputElement).value = scr.relativesDetails || '';
+
+  (document.getElementById('scr-noncompete') as HTMLSelectElement).value = scr.hasNonCompeteOrRestrictions ? 'true' : 'false';
+  (document.getElementById('scr-noncompete-details') as HTMLInputElement).value = scr.nonCompeteDetails || '';
+
+  (document.getElementById('scr-bg-check') as HTMLSelectElement).value = scr.backgroundCheckConsent ? 'true' : 'false';
+  (document.getElementById('scr-drug-screen') as HTMLSelectElement).value = scr.drugScreeningConsent ? 'true' : 'false';
+
+  (document.getElementById('scr-referral-source') as HTMLSelectElement).value = scr.referralSource || 'LinkedIn';
+  (document.getElementById('scr-referrer-name') as HTMLInputElement).value = scr.referrerName || '';
+  (document.getElementById('scr-referrer-email') as HTMLInputElement).value = scr.referrerEmail || '';
+}
+
+async function saveScreening(): Promise<void> {
+  if (!activeProfileData) return;
+  if (!activeProfileData.legalDisclosures) {
+    activeProfileData.legalDisclosures = createDefaultLegalAndDisclosures();
+  }
+  const scr = activeProfileData.legalDisclosures;
+
+  scr.over18 = (document.getElementById('scr-over-18') as HTMLSelectElement).value === 'true';
+  scr.legallyAuthorized = (document.getElementById('scr-authorized') as HTMLSelectElement).value === 'true';
+  scr.requiresSponsorship = (document.getElementById('scr-sponsorship') as HTMLSelectElement).value === 'true';
+
+  scr.visaStatus = (document.getElementById('scr-visa-status') as HTMLSelectElement).value;
+  scr.sponsorshipTimeline = (document.getElementById('scr-sponsorship-timeline') as HTMLSelectElement).value;
+
+  scr.optStemEligible = (document.getElementById('scr-opt-stem') as HTMLInputElement).checked;
+  const optMonths = parseInt((document.getElementById('scr-opt-months') as HTMLInputElement).value, 10);
+  scr.optMonthsRemaining = isNaN(optMonths) ? undefined : optMonths;
+
+  scr.securityClearance = (document.getElementById('scr-clearance') as HTMLSelectElement).value as any;
+  scr.itarCompliant = (document.getElementById('scr-itar') as HTMLSelectElement).value === 'true';
+
+  scr.hasValidDriverLicense = (document.getElementById('scr-driver-license') as HTMLInputElement).checked;
+  scr.driverLicenseState = (document.getElementById('scr-driver-state') as HTMLInputElement).value.trim() || undefined;
+  scr.hasCleanDrivingRecord = (document.getElementById('scr-clean-driving') as HTMLInputElement).checked;
+
+  scr.previouslyEmployedAtCompany = (document.getElementById('scr-prev-employed') as HTMLSelectElement).value === 'true';
+  scr.previousEmploymentDetails = (document.getElementById('scr-prev-employed-details') as HTMLInputElement).value.trim() || undefined;
+
+  scr.hasRelativesAtCompany = (document.getElementById('scr-relatives') as HTMLSelectElement).value === 'true';
+  scr.relativesDetails = (document.getElementById('scr-relatives-details') as HTMLInputElement).value.trim() || undefined;
+
+  scr.hasNonCompeteOrRestrictions = (document.getElementById('scr-noncompete') as HTMLSelectElement).value === 'true';
+  scr.nonCompeteDetails = (document.getElementById('scr-noncompete-details') as HTMLInputElement).value.trim() || undefined;
+
+  scr.backgroundCheckConsent = (document.getElementById('scr-bg-check') as HTMLSelectElement).value === 'true';
+  scr.drugScreeningConsent = (document.getElementById('scr-drug-screen') as HTMLSelectElement).value === 'true';
+
+  scr.referralSource = (document.getElementById('scr-referral-source') as HTMLSelectElement).value;
+  scr.referrerName = (document.getElementById('scr-referrer-name') as HTMLInputElement).value.trim() || undefined;
+  scr.referrerEmail = (document.getElementById('scr-referrer-email') as HTMLInputElement).value.trim() || undefined;
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Screening & Disclosures saved');
+}
+
 // ── Family & Contacts ──────────────────────────────────────────────────────
 
 function populateFamilyList(): void {
@@ -1059,9 +1322,42 @@ function setupActionButtons(): void {
   document.getElementById('btn-add-education')?.addEventListener('click', promptAddEducation);
   document.getElementById('btn-add-employment')?.addEventListener('click', () => openJobModal(undefined, 'full_time'));
   document.getElementById('btn-add-internship')?.addEventListener('click', () => openJobModal(undefined, 'internship'));
+  document.getElementById('btn-save-work-preferences')?.addEventListener('click', saveWorkPreferences);
+  document.getElementById('btn-save-screening')?.addEventListener('click', saveScreening);
   document.getElementById('btn-add-family-contact')?.addEventListener('click', promptAddFamily);
   document.getElementById('btn-save-india-pack')?.addEventListener('click', saveIndiaPack);
   document.getElementById('btn-add-question')?.addEventListener('click', promptAddQuestion);
+
+  // City tags events
+  const cityInput = document.getElementById('wp-city-input') as HTMLInputElement | null;
+  const addCityBtn = document.getElementById('btn-add-pref-city');
+
+  addCityBtn?.addEventListener('click', () => {
+    if (cityInput && cityInput.value.trim()) {
+      addCityTag(cityInput.value);
+      cityInput.value = '';
+      cityInput.focus();
+    }
+  });
+
+  cityInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (cityInput.value.trim()) {
+        addCityTag(cityInput.value);
+        cityInput.value = '';
+      }
+    }
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-add-city]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const city = btn.dataset.addCity;
+      if (city) {
+        addCityTag(city);
+      }
+    });
+  });
 
   setupJobModalEvents();
   setupExpOverrideModalEvents();

@@ -581,3 +581,176 @@ export function createDefaultCustomField(
     updatedAt: Date.now(),
   };
 }
+
+export interface WorkPreferences {
+  workplaceTypes: Array<'remote' | 'hybrid' | 'onsite' | 'flexible'>;
+  preferredLocations: string[]; // Any number of preferred cities/regions e.g. ["Remote", "San Francisco", "Austin", "London"]
+  willingToRelocate: boolean | 'negotiable' | 'with_assistance';
+  relocationAssistanceRequired?: boolean;
+  willingToTravel: boolean;
+  travelPercentage?: number; // e.g. 0, 25, 50, 75, 100
+  employmentTypes?: Array<'full_time' | 'part_time' | 'contract_w2' | 'contract_1099' | 'c2c' | 'internship' | 'freelance'>;
+  shiftPreferences?: Array<'day' | 'night' | 'weekend' | 'rotating' | 'flexible'>;
+  overtimeWilling?: boolean;
+  targetRoleTitles?: string[];
+  targetIndustries?: string[];
+  preferredTimezones?: string[];
+  noticePeriodDays?: number;
+  earliestStartDate?: string;
+  minimumAcceptableSalary?: number;
+  targetSalary?: number;
+  salaryCurrency?: string;
+  salaryPeriod?: 'annual' | 'monthly' | 'hourly';
+  notes?: string;
+}
+
+export interface LegalAndDisclosures {
+  over18: boolean;
+  legallyAuthorized: boolean;
+  requiresSponsorship: boolean;
+  sponsorshipTimeline?: string; // "Immediate", "Within 6 months", "Not in foreseeable future"
+  visaStatus?: string; // "US Citizen", "US Permanent Resident", "H-1B", "F-1 STEM OPT", "TN", "Canadian Citizen", "UK Right to Work", "EU Blue Card", etc.
+  optStemEligible?: boolean;
+  optMonthsRemaining?: number;
+  securityClearance?: 'none' | 'confidential' | 'secret' | 'top_secret' | 'ts_sci' | 'polygraph' | 'public_trust';
+  itarCompliant?: boolean; // U.S. Person under ITAR/EAR regulations
+  hasValidDriverLicense?: boolean;
+  driverLicenseState?: string;
+  hasCleanDrivingRecord?: boolean;
+  previouslyEmployedAtCompany?: boolean;
+  previousEmploymentDetails?: string;
+  hasRelativesAtCompany?: boolean;
+  relativesDetails?: string;
+  hasNonCompeteOrRestrictions?: boolean;
+  nonCompeteDetails?: string;
+  backgroundCheckConsent?: boolean;
+  drugScreeningConsent?: boolean;
+  referralSource?: string; // "LinkedIn", "Indeed", "Company Career Site", "Employee Referral", "GitHub", "Other"
+  referrerName?: string;
+  referrerEmail?: string;
+}
+
+export function createDefaultWorkPreferences(): WorkPreferences {
+  return {
+    workplaceTypes: ['remote', 'hybrid'],
+    preferredLocations: ['Remote'],
+    willingToRelocate: false,
+    relocationAssistanceRequired: false,
+    willingToTravel: false,
+    travelPercentage: 0,
+    employmentTypes: ['full_time'],
+    shiftPreferences: ['day', 'flexible'],
+    overtimeWilling: false,
+    targetRoleTitles: [],
+    targetIndustries: [],
+    preferredTimezones: [],
+    noticePeriodDays: 14,
+    salaryCurrency: 'USD',
+    salaryPeriod: 'annual',
+  };
+}
+
+export function createDefaultLegalAndDisclosures(): LegalAndDisclosures {
+  return {
+    over18: true,
+    legallyAuthorized: true,
+    requiresSponsorship: false,
+    visaStatus: 'US Citizen / Permanent Resident',
+    securityClearance: 'none',
+    itarCompliant: true,
+    hasValidDriverLicense: true,
+    hasCleanDrivingRecord: true,
+    previouslyEmployedAtCompany: false,
+    hasRelativesAtCompany: false,
+    hasNonCompeteOrRestrictions: false,
+    backgroundCheckConsent: true,
+    drugScreeningConsent: true,
+    referralSource: 'LinkedIn',
+  };
+}
+
+export function createDefaultQuestionBank(): QuestionBankItem[] {
+  return [
+    {
+      id: 'qb_why_company',
+      question: 'Why do you want to work here?',
+      aliases: ['why this company', 'why us', 'why work with us', 'what interests you about this role', 'why do you want to join', 'what attracted you to this position'],
+      answer: 'I am drawn to your mission of building impactful products with high technical excellence. My background directly aligns with the challenges your engineering team is solving, and I value your collaborative, high-ownership engineering culture.',
+      category: 'narrative',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_challenging_project',
+      question: 'Describe a challenging technical project you worked on and how you resolved obstacles.',
+      aliases: ['challenging project', 'tell us about a project', 'complex technical problem', 'proudest project', 'difficult engineering challenge'],
+      answer: 'In my recent role, I led the architecture and refactoring of a core distributed data pipeline that suffered from performance bottlenecks during peak loads. I profiled memory and I/O bottlenecks, introduced asynchronous streaming processing, and added automated test coverage, reducing latency by 45% while maintaining zero downtime.',
+      category: 'narrative',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_greatest_strength',
+      question: 'What are your greatest professional strengths?',
+      aliases: ['key strengths', 'biggest strength', 'what are you best at', 'core competencies', 'what sets you apart'],
+      answer: 'My greatest strengths are rapid technical problem solving, clean system architecture, and clear cross-functional communication. I bridge complex technical requirements into reliable, maintainable software while keeping customer experience front and center.',
+      category: 'narrative',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_remote_experience',
+      question: 'Describe your experience working in distributed or remote teams.',
+      aliases: ['remote work experience', 'distributed team', 'how do you handle remote work', 'asynchronous communication', 'working from home'],
+      answer: 'I have extensive experience working asynchronously in high-velocity distributed teams across multiple time zones. I rely on clear written documentation, proactive communication, reliable task tracking, and structured self-management to drive projects to completion.',
+      category: 'screening',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_disagreement',
+      question: 'Tell us about a time you had a technical disagreement with a colleague and how you resolved it.',
+      aliases: ['technical disagreement', 'conflict resolution', 'disagree and commit', 'how do you handle disagreement'],
+      answer: 'When debating database architectures for a new feature, a colleague favored a document store while I advocated for a relational schema. Rather than debating theoretically, we defined specific read/write throughput criteria and ran a focused benchmark. The benchmark validated their document-store approach for our specific queries, so I gladly supported it and led the implementation.',
+      category: 'behavioral',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_unusual_belief',
+      question: 'What is something you believe that most people disagree with?',
+      aliases: ['contrarian view', 'what do you believe that others do not', 'unconventional opinion', 'hot take'],
+      answer: 'In software development, I believe removing unnecessary features and deleting code usually produces far more value, security, and velocity than adding new abstractions.',
+      category: 'behavioral',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_heard_about',
+      question: 'How did you hear about this position?',
+      aliases: ['how did you find us', 'referral source', 'where did you hear about this role', 'how did you hear about this job', 'source of application'],
+      answer: 'LinkedIn Jobs',
+      category: 'screening',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+    {
+      id: 'qb_looking_for',
+      question: 'What are you looking for in your next role?',
+      aliases: ['what are you looking for', 'ideal next role', 'career goals', 'what do you want in your next position'],
+      answer: 'I am looking for a high-impact engineering role where I can tackle complex technical systems, collaborate with thoughtful teammates, and deliver software that makes a tangible difference for users.',
+      category: 'narrative',
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    },
+  ];
+}
+

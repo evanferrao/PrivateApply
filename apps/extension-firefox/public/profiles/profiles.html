@@ -682,6 +682,58 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 44px;
+      padding: 8px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      align-items: center;
+    }
+    .city-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-light);
+      color: var(--green);
+      border: 1px solid var(--accent-border);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .city-tag button {
+      background: none;
+      border: none;
+      color: var(--green);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      padding: 0;
+    }
+    .city-tag button:hover {
+      color: #dc2626;
+    }
+    .quick-tag-btn {
+      background: var(--gray-100);
+      border: 1px solid var(--border);
+      color: var(--gray-800);
+      font-size: 12px;
+      padding: 4px 9px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .quick-tag-btn:hover {
+      background: var(--gray-200);
+      border-color: var(--gray-400);
+    }
   </style>
 </head>
 <body>
@@ -727,6 +779,14 @@
       <button type="button" class="hub-tab-btn" data-tab="tab-experience">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         Experience & CTC
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-preferences">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Work Preferences
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-screening">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Screening & Disclosures
       </button>
       <button type="button" class="hub-tab-btn" data-tab="tab-family">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -949,6 +1009,418 @@
           </div>
         </div>
         <div id="employment-records-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: Work Preferences -->
+    <div id="tab-preferences" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Workplace Arrangement & Target Locations</div>
+            <div class="hub-card-desc">Set your workplace mode (remote, hybrid, onsite) and add any number of target cities or regions. Autofill seamlessly maps these to location preferences across Workday, Greenhouse, Ashby, and Lever.</div>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 20px;">
+          <label style="font-size: 13px; font-weight: 600;">Workplace Types Accepted</label>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px;">
+            <label style="display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13.5px;">
+              <input type="checkbox" id="wp-type-remote" value="remote" style="width: 16px; height: 16px; accent-color: var(--green);">
+              <strong>Remote</strong> (Fully work-from-home)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13.5px;">
+              <input type="checkbox" id="wp-type-hybrid" value="hybrid" style="width: 16px; height: 16px; accent-color: var(--green);">
+              <strong>Hybrid</strong> (Office + remote blend)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13.5px;">
+              <input type="checkbox" id="wp-type-onsite" value="onsite" style="width: 16px; height: 16px; accent-color: var(--green);">
+              <strong>On-site</strong> (Office / in-person)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13.5px;">
+              <input type="checkbox" id="wp-type-flexible" value="flexible" style="width: 16px; height: 16px; accent-color: var(--green);">
+              <strong>Flexible</strong> (Open to employer preference)
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 20px;">
+          <label style="font-size: 13px; font-weight: 600;">
+            Target Cities & Preferred Locations (Store any number of locations)
+          </label>
+          <div style="font-size: 12px; color: var(--gray-600); margin-bottom: 8px;">
+            Add cities, metropolitan regions, or states you are willing to work in or relocate to. The matcher matches exact or closest city names.
+          </div>
+          
+          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <input type="text" id="wp-city-input" class="field-input" placeholder="Type a city or region (e.g. San Francisco, CA or London) and press Enter or Add..." style="flex: 1;">
+            <button type="button" class="btn-action-primary" id="btn-add-pref-city" style="white-space: nowrap;">+ Add City</button>
+          </div>
+
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 11.5px; color: var(--gray-600); font-weight: 500;">Quick add:</span>
+            <button type="button" class="quick-tag-btn" data-add-city="Remote">+ Remote</button>
+            <button type="button" class="quick-tag-btn" data-add-city="San Francisco, CA">+ San Francisco</button>
+            <button type="button" class="quick-tag-btn" data-add-city="New York, NY">+ New York</button>
+            <button type="button" class="quick-tag-btn" data-add-city="Austin, TX">+ Austin</button>
+            <button type="button" class="quick-tag-btn" data-add-city="Seattle, WA">+ Seattle</button>
+            <button type="button" class="quick-tag-btn" data-add-city="London, UK">+ London</button>
+            <button type="button" class="quick-tag-btn" data-add-city="Bengaluru, India">+ Bengaluru</button>
+            <button type="button" class="quick-tag-btn" data-add-city="Toronto, Canada">+ Toronto</button>
+          </div>
+
+          <!-- Dynamic tags container -->
+          <div id="wp-cities-container" class="tag-container"></div>
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="wp-relocate">Willingness to Relocate</label>
+            <select id="wp-relocate" class="field-select">
+              <option value="false">No (Not willing to relocate)</option>
+              <option value="true">Yes (Willing to relocate)</option>
+              <option value="negotiable">Negotiable</option>
+              <option value="with_assistance">Only with Relocation Assistance</option>
+            </select>
+          </div>
+          <div class="field-group" style="justify-content: center;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 18px; font-weight: 500;">
+              <input type="checkbox" id="wp-relocate-assist" style="width: 16px; height: 16px; accent-color: var(--green);">
+              Requires employer relocation assistance package
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin-bottom: 6px;">
+              <input type="checkbox" id="wp-travel-willing" style="width: 16px; height: 16px; accent-color: var(--green);">
+              Willing to Travel for Business
+            </label>
+            <input type="number" id="wp-travel-pct" class="field-input" min="0" max="100" step="5" placeholder="Max travel percentage (e.g. 10 or 25%)">
+          </div>
+          <div class="field-group">
+            <label for="wp-earliest-start">Earliest Start Date / Availability</label>
+            <input type="text" id="wp-earliest-start" class="field-input" placeholder="e.g. Immediately, 2 weeks notice, or 2026-11-01">
+          </div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Schedule, Employment Type & Compensation Target</div>
+            <div class="hub-card-desc">Specify desired shift patterns, engagement types, target titles, and compensation expectations.</div>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 18px;">
+          <label style="font-size: 13px; font-weight: 600;">Desired Employment Types</label>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px;">
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="full_time" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Full-time
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="contract_w2" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Contract (W-2)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="contract_1099" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Contract (1099)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="c2c" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Corp-to-Corp (C2C)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="part_time" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Part-time
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="internship" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Internship
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-emp-type" value="freelance" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Freelance
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 18px;">
+          <label style="font-size: 13px; font-weight: 600;">Shift & Working Hours Preference</label>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px;">
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-shift" value="day" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Day shift (Standard business hours)
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-shift" value="flexible" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Flexible hours
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-shift" value="night" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Night / Graveyard shift
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-shift" value="weekend" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Weekend shift
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+              <input type="checkbox" class="wp-shift" value="rotating" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Rotating shifts
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; margin-left: 8px;">
+              <input type="checkbox" id="wp-overtime" style="width: 15px; height: 15px; accent-color: var(--green);">
+              Willing to work overtime
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="wp-target-roles">Target Job Titles (comma-separated)</label>
+            <input type="text" id="wp-target-roles" class="field-input" placeholder="e.g. Senior Software Engineer, Backend Engineer, Tech Lead">
+          </div>
+          <div class="field-group">
+            <label for="wp-target-industries">Target Industries (comma-separated)</label>
+            <input type="text" id="wp-target-industries" class="field-input" placeholder="e.g. Technology, Fintech, HealthTech, AI">
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="wp-min-salary">Minimum Acceptable Salary</label>
+            <input type="number" id="wp-min-salary" class="field-input" placeholder="e.g. 120000">
+          </div>
+          <div class="field-group">
+            <label for="wp-target-salary">Target / Desired Salary</label>
+            <input type="number" id="wp-target-salary" class="field-input" placeholder="e.g. 150000">
+          </div>
+          <div class="field-group">
+            <label for="wp-salary-currency">Currency & Period</label>
+            <div style="display: flex; gap: 6px;">
+              <select id="wp-salary-currency" class="field-select" style="flex: 1;">
+                <option value="USD">USD ($)</option>
+                <option value="INR">INR (₹)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="CAD">CAD ($)</option>
+                <option value="AUD">AUD ($)</option>
+                <option value="SGD">SGD ($)</option>
+              </select>
+              <select id="wp-salary-period" class="field-select" style="flex: 1;">
+                <option value="annual">Annual</option>
+                <option value="monthly">Monthly</option>
+                <option value="hourly">Hourly</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 20px;">
+          <label for="wp-notes">Workplace Preferences Notes & Constraints</label>
+          <textarea id="wp-notes" class="field-textarea" placeholder="e.g. Seeking asynchronous engineering teams. Available for on-call rotations on weekdays only."></textarea>
+        </div>
+
+        <button type="button" class="btn-action-primary" id="btn-save-work-preferences">Save Work Preferences</button>
+      </div>
+    </div>
+
+    <!-- TAB: Screening & Disclosures -->
+    <div id="tab-screening" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Work Authorization & Visa Sponsorship</div>
+            <div class="hub-card-desc">Standard eligibility questions asked across Greenhouse, Workday, Lever, and SmartRecruiters.</div>
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="scr-over-18">Are you 18 years of age or older?</label>
+            <select id="scr-over-18" class="field-select">
+              <option value="true">Yes (18 or older)</option>
+              <option value="false">No (Under 18)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="scr-authorized">Legally authorized to work?</label>
+            <select id="scr-authorized" class="field-select">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="scr-sponsorship">Require visa sponsorship?</label>
+            <select id="scr-sponsorship" class="field-select">
+              <option value="false">No sponsorship required</option>
+              <option value="true">Yes, sponsorship required</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="scr-visa-status">Current Work Authorization / Visa Status</label>
+            <select id="scr-visa-status" class="field-select">
+              <option value="US Citizen / Permanent Resident">US Citizen / Permanent Resident (Green Card)</option>
+              <option value="H-1B">H-1B Specialty Occupation</option>
+              <option value="F-1 STEM OPT">F-1 STEM OPT</option>
+              <option value="TN Visa">TN Visa (NAFTA/USMCA)</option>
+              <option value="Canadian Citizen / PR">Canadian Citizen / Permanent Resident</option>
+              <option value="UK Right to Work">UK Right to Work / Indefinite Leave</option>
+              <option value="EU Citizen / Blue Card">EU Citizen / EU Blue Card</option>
+              <option value="Indian Citizen">Indian Citizen (Right to Work in India)</option>
+              <option value="E-3 / O-1 / Other">Other Visa Status</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="scr-sponsorship-timeline">Sponsorship Timeline</label>
+            <select id="scr-sponsorship-timeline" class="field-select">
+              <option value="Not in foreseeable future">Not in foreseeable future</option>
+              <option value="Immediate upon hire">Immediate upon hire</option>
+              <option value="Within 6 months">Within 6 months</option>
+              <option value="Within 1-2 years">Within 1-2 years</option>
+              <option value="Upon STEM OPT expiration">Upon STEM OPT expiration</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 6px; font-weight: 500;">
+              <input type="checkbox" id="scr-opt-stem" style="width: 16px; height: 16px; accent-color: var(--green);">
+              Eligible for F-1 STEM OPT extension
+            </label>
+          </div>
+          <div class="field-group">
+            <label for="scr-opt-months">OPT / STEM Months Remaining</label>
+            <input type="number" id="scr-opt-months" class="field-input" min="0" max="36" placeholder="e.g. 24 or 36">
+          </div>
+          <div class="field-group">
+            <label for="scr-clearance">Security Clearance</label>
+            <select id="scr-clearance" class="field-select">
+              <option value="none">None</option>
+              <option value="confidential">Confidential</option>
+              <option value="secret">Secret</option>
+              <option value="top_secret">Top Secret</option>
+              <option value="ts_sci">TS/SCI</option>
+              <option value="polygraph">TS/SCI with Polygraph</option>
+              <option value="public_trust">Public Trust</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="scr-itar">ITAR / EAR Export Control Status</label>
+          <select id="scr-itar" class="field-select">
+            <option value="true">Yes — U.S. Person (U.S. Citizen, Permanent Resident, or Asylee / Refugee)</option>
+            <option value="false">No — Not a U.S. Person under ITAR regulations</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Compliance, Disclosures & Referral Details</div>
+            <div class="hub-card-desc">Answers to common screening questions including driving records, conflicts of interest, and background screening.</div>
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin-top: 6px;">
+              <input type="checkbox" id="scr-driver-license" style="width: 16px; height: 16px; accent-color: var(--green);">
+              Valid Driver's License
+            </label>
+          </div>
+          <div class="field-group">
+            <label for="scr-driver-state">Issuing State / Jurisdiction</label>
+            <input type="text" id="scr-driver-state" class="field-input" placeholder="e.g. California or DL-04">
+          </div>
+          <div class="field-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin-top: 6px;">
+              <input type="checkbox" id="scr-clean-driving" style="width: 16px; height: 16px; accent-color: var(--green);">
+              Clean Driving Record
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="scr-prev-employed">Previously employed by this company?</label>
+            <select id="scr-prev-employed" class="field-select">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+            <input type="text" id="scr-prev-employed-details" class="field-input" placeholder="If yes, specify role, dates, or employee ID" style="margin-top: 6px;">
+          </div>
+          <div class="field-group">
+            <label for="scr-relatives">Relatives or family working at this company?</label>
+            <select id="scr-relatives" class="field-select">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+            <input type="text" id="scr-relatives-details" class="field-input" placeholder="If yes, specify relative's name and relationship" style="margin-top: 6px;">
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 16px;">
+          <label for="scr-noncompete">Subject to non-compete, non-solicitation, or restrictive covenant?</label>
+          <select id="scr-noncompete" class="field-select">
+            <option value="false">No (Free to accept employment without restrictions)</option>
+            <option value="true">Yes (Active non-compete or confidentiality agreement exists)</option>
+          </select>
+          <input type="text" id="scr-noncompete-details" class="field-input" placeholder="If yes, describe restrictions or agreement expiration date" style="margin-top: 6px;">
+        </div>
+
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="scr-bg-check">Consent to pre-employment background check?</label>
+            <select id="scr-bg-check" class="field-select">
+              <option value="true">Yes (Consent provided)</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="scr-drug-screen">Consent to pre-employment drug screening?</label>
+            <select id="scr-drug-screen" class="field-select">
+              <option value="true">Yes (Consent provided)</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-bottom: 20px;">
+          <div class="field-group">
+            <label for="scr-referral-source">How did you hear about this position?</label>
+            <select id="scr-referral-source" class="field-select">
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Company Career Site">Company Career Site</option>
+              <option value="Indeed">Indeed</option>
+              <option value="Employee Referral">Employee Referral</option>
+              <option value="GitHub">GitHub</option>
+              <option value="Handshake">Handshake / Campus</option>
+              <option value="Wellfound / AngelList">Wellfound / AngelList</option>
+              <option value="Recruiter Outreach">Recruiter Outreach</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="scr-referrer-name">Referrer Name (optional)</label>
+            <input type="text" id="scr-referrer-name" class="field-input" placeholder="e.g. John Doe">
+          </div>
+          <div class="field-group">
+            <label for="scr-referrer-email">Referrer Email (optional)</label>
+            <input type="email" id="scr-referrer-email" class="field-input" placeholder="e.g. john@company.com">
+          </div>
+        </div>
+
+        <button type="button" class="btn-action-primary" id="btn-save-screening">Save Screening & Disclosures</button>
       </div>
     </div>
 

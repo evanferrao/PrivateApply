@@ -83,6 +83,8 @@ import type {
   LanguageProficiency,
   DerivedExperienceSummary,
   ExperienceOverrides,
+  WorkPreferences,
+  LegalAndDisclosures,
 } from './applicant-profile';
 
 export interface UserProfile {
@@ -162,6 +164,8 @@ export interface UserProfile {
   languages?: LanguageProficiency[];
   derivedExperience?: DerivedExperienceSummary;
   experienceOverrides?: ExperienceOverrides;
+  workPreferences?: WorkPreferences;
+  legalDisclosures?: LegalAndDisclosures;
 
   lastUpdated: number;
 }
