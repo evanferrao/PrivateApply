@@ -828,6 +828,18 @@
 
     <!-- TAB 3: Experience & Compensation -->
     <div id="tab-experience" class="tab-panel">
+      <!-- Derived stats header & controls -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:13.5px; font-weight:600; color:var(--gray-800);">Experience &amp; Tenure Calculation</span>
+          <span id="exp-calc-badge" class="record-tag" style="background:#e0f2fe; color:#0369a1; font-weight:600;">Auto-Calculated</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-action-secondary" id="btn-edit-exp-stats" style="font-size:12.5px; padding:6px 14px;">✎ Edit / Override Stats</button>
+          <button type="button" class="btn-action-secondary" id="btn-reset-exp-stats" style="font-size:12.5px; padding:6px 14px; display:none;">↺ Reset to Auto</button>
+        </div>
+      </div>
+
       <!-- Derived stats bar -->
       <div class="derived-stats-banner">
         <div>
@@ -902,10 +914,13 @@
       <div class="hub-card">
         <div class="hub-card-header">
           <div>
-            <div class="hub-card-title">Employment Records</div>
-            <div class="hub-card-desc">Full professional history used for deriving experience years and filling role questions.</div>
+            <div class="hub-card-title">Employment &amp; Internship Records</div>
+            <div class="hub-card-desc">Full professional and internship history. Mark roles as internships or toggle whether they count toward work experience.</div>
           </div>
-          <button type="button" class="btn-action-primary" id="btn-add-employment">+ Add Job / Employment</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn-action-primary" id="btn-add-employment">+ Add Job</button>
+            <button type="button" class="btn-action-secondary" id="btn-add-internship" style="border:1.5px solid var(--green); color:var(--green); font-weight:600;">+ Add Internship</button>
+          </div>
         </div>
         <div id="employment-records-container" class="records-list"></div>
       </div>
@@ -1183,6 +1198,117 @@
         <div style="display: flex; gap: 10px;">
           <button type="submit" class="btn-action-primary" id="modal-submit" style="flex:1;">Create Profile</button>
           <button type="button" class="btn-action-secondary" id="modal-cancel" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  <!-- Experience Stats Override Modal -->
+  <div class="modal" id="exp-override-modal">
+    <div class="modal-content" style="max-width: 520px;">
+      <h2 style="font-family: var(--font-serif); font-size: 19px; margin-bottom: 6px;">Experience &amp; Tenure Overrides</h2>
+      <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
+        Override auto-calculated values if your resume has only internships, student projects, or career gaps.
+      </p>
+
+      <div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-weight: 600; font-size: 13px; color: #166534;">🎓 Fresher / Student Preset</div>
+          <div style="font-size: 12px; color: #15803d;">Sets experience to 0 years and 0 employers with 1 click.</div>
+        </div>
+        <button type="button" class="btn-action-primary" id="btn-apply-fresher-preset" style="padding: 6px 14px; font-size: 12px; white-space: nowrap;">Apply Fresher</button>
+      </div>
+
+      <form id="exp-override-form">
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="field-group">
+            <label for="override-total-exp">Total Experience (Years)</label>
+            <input type="number" id="override-total-exp" class="field-input" step="0.1" min="0" placeholder="e.g. 0 or 2.5" required>
+          </div>
+          <div class="field-group">
+            <label for="override-fulltime-exp">Full-time Experience (Years)</label>
+            <input type="number" id="override-fulltime-exp" class="field-input" step="0.1" min="0" placeholder="e.g. 0 or 2" required>
+          </div>
+          <div class="field-group">
+            <label for="override-tenure">Current Employer Tenure (Years)</label>
+            <input type="number" id="override-tenure" class="field-input" step="0.1" min="0" placeholder="e.g. 0 or 1.2" required>
+          </div>
+          <div class="field-group">
+            <label for="override-employers">Total Employers Count</label>
+            <input type="number" id="override-employers" class="field-input" step="1" min="0" placeholder="e.g. 0 or 2" required>
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom: 18px;">
+          <label for="override-display-text">Custom Display Label (optional)</label>
+          <input type="text" id="override-display-text" class="field-input" placeholder="e.g. 0 years (Fresher) or Fresher">
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="btn-save-override" style="flex:1;">Save Overrides</button>
+          <button type="button" class="btn-action-secondary" id="btn-cancel-override" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add/Edit Employment & Internship Modal -->
+  <div class="modal" id="job-modal">
+    <div class="modal-content" style="max-width: 540px;">
+      <h2 id="job-modal-title" style="font-family: var(--font-serif); font-size: 19px; margin-bottom: 6px;">Add Employment / Internship</h2>
+      <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">
+        Add a job, internship, or volunteer role and specify whether it counts toward your professional work experience.
+      </p>
+
+      <form id="job-form">
+        <input type="hidden" id="job-edit-idx" value="-1">
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="job-type">Role Type</label>
+          <select id="job-type" class="field-select" required>
+            <option value="full_time">Full-time Job</option>
+            <option value="internship">Internship / Trainee</option>
+            <option value="part_time">Part-time</option>
+            <option value="contract">Contractor</option>
+            <option value="freelance">Freelance</option>
+            <option value="open_source">Open Source / Maintainer</option>
+          </select>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="field-group">
+            <label for="job-company">Employer / Company Name</label>
+            <input type="text" id="job-company" class="field-input" placeholder="e.g. Citrine Investments" required>
+          </div>
+          <div class="field-group">
+            <label for="job-title">Job / Internship Title</label>
+            <input type="text" id="job-title" class="field-input" placeholder="e.g. DevOps Intern" required>
+          </div>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="field-group">
+            <label for="job-start">Start Date (YYYY-MM)</label>
+            <input type="text" id="job-start" class="field-input" placeholder="e.g. 2026-04" required>
+          </div>
+          <div class="field-group">
+            <label for="job-end">End Date (YYYY-MM or Present)</label>
+            <input type="text" id="job-end" class="field-input" placeholder="e.g. 2026-06">
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom: 14px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500;">
+            <input type="checkbox" id="job-current" style="width: 16px; height: 16px; cursor: pointer;">
+            Currently working / interning here
+          </label>
+        </div>
+        <div class="field-group" style="margin-bottom: 18px; padding: 12px; background: var(--gray-100); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">
+            <input type="checkbox" id="job-counts-exp" style="width: 16px; height: 16px; margin-top: 2px; cursor: pointer;">
+            <div>
+              <span>Counts toward professional work experience &amp; employer count</span>
+              <div style="font-weight: 400; font-size: 12px; color: var(--gray-600); margin-top: 2px;">
+                Uncheck for internships, trainee roles, or volunteer open-source projects so they don't count toward your total years of work experience or employer count.
+              </div>
+            </div>
+          </label>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="job-submit" style="flex:1;">Save Record</button>
+          <button type="button" class="btn-action-secondary" id="job-cancel" style="flex:1;">Cancel</button>
         </div>
       </form>
     </div>

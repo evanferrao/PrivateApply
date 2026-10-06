@@ -82,6 +82,7 @@ import type {
   BackgroundCompliance,
   LanguageProficiency,
   DerivedExperienceSummary,
+  ExperienceOverrides,
 } from './applicant-profile';
 
 export interface UserProfile {
@@ -160,6 +161,7 @@ export interface UserProfile {
   compliance?: BackgroundCompliance;
   languages?: LanguageProficiency[];
   derivedExperience?: DerivedExperienceSummary;
+  experienceOverrides?: ExperienceOverrides;
 
   lastUpdated: number;
 }

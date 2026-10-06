@@ -68,6 +68,60 @@ describe('Applicant Profile - Derived Experience Calculator', () => {
     expect(summary.totalExperienceMonths).toBe(18); // 12 FT + 6 PT
     expect(summary.totalEmployersCount).toBe(3);
   });
+
+  it('excludes internships and open source roles when countsTowardsExperience is false', () => {
+    const records = [
+      {
+        employerName: 'Citrine Investments',
+        jobTitle: 'DevOps Intern',
+        startDate: '2026-04-01',
+        endDate: '2026-06-01',
+        employmentType: 'internship' as const,
+        countsTowardsExperience: false,
+      },
+      {
+        employerName: 'Android Open Source Project',
+        jobTitle: 'crDroid Maintainer',
+        startDate: '2020-04-01',
+        endDate: '2023-07-01',
+        employmentType: 'open_source' as const,
+        countsTowardsExperience: false,
+      },
+    ];
+
+    const summary = calculateDerivedExperience(records as any);
+    expect(summary.totalExperienceYears).toBe(0);
+    expect(summary.totalExperienceMonths).toBe(0);
+    expect(summary.fullTimeYears).toBe(0);
+    expect(summary.totalEmployersCount).toBe(0);
+    expect(summary.displayTotalExperience).toBe('0 years');
+  });
+
+  it('respects experienceOverrides directly when user customizes stats', () => {
+    const records = [
+      {
+        employerName: 'Some Company',
+        startDate: '2020-01-01',
+        endDate: '2023-01-01',
+        employmentType: 'full_time' as const,
+      },
+    ];
+
+    const overrides = {
+      isOverridden: true,
+      totalExperienceYears: 0,
+      fullTimeYears: 0,
+      currentEmployerTenureYears: 0,
+      totalEmployersCount: 0,
+      displayTotalExperience: '0 years (Fresher)',
+    };
+
+    const summary = calculateDerivedExperience(records as any, overrides);
+    expect(summary.isOverridden).toBe(true);
+    expect(summary.totalExperienceYears).toBe(0);
+    expect(summary.totalEmployersCount).toBe(0);
+    expect(summary.displayTotalExperience).toBe('0 years (Fresher)');
+  });
 });
 
 describe('Applicant Profile - Default Initializers', () => {

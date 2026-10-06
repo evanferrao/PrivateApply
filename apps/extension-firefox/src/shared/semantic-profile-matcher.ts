@@ -609,7 +609,7 @@ export class SemanticProfileMatcher {
     // ── 7. DERIVED YEARS OF EXPERIENCE ─────────────────────────────────────────
     if (matchesAny(combined, ['years of experience', 'years experience', 'total experience', 'work experience in years'])) {
       const allJobs = profile.employmentHistory || profile.work || [];
-      const derived = profile.derivedExperience || calculateDerivedExperience(allJobs as any);
+      const derived = calculateDerivedExperience(allJobs as any, profile.experienceOverrides);
 
       if (derived.totalExperienceYears !== undefined) {
         const val = field.type === 'number' ? derived.totalExperienceYears : derived.displayTotalExperience;

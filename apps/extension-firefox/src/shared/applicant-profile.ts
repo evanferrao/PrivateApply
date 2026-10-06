@@ -176,7 +176,7 @@ export interface DetailedEmploymentRecord {
   country?: string;
   city?: string;
   companyWebsite?: string;
-  employmentType: 'full_time' | 'part_time' | 'contract' | 'internship' | 'freelance' | 'temporary';
+  employmentType: 'full_time' | 'part_time' | 'contract' | 'internship' | 'freelance' | 'temporary' | 'open_source';
   jobTitle: string;
   department?: string;
   employeeId?: string;
@@ -201,6 +201,7 @@ export interface DetailedEmploymentRecord {
   permissionToContact?: 'yes' | 'no' | 'after_offer';
   reasonForLeaving?: string;
   isInternship?: boolean;
+  countsTowardsExperience?: boolean; // Set false for internships / projects that should not count in work experience
   stipend?: string;
 }
 
@@ -340,6 +341,16 @@ export interface LanguageProficiency {
   isPrimary?: boolean;
 }
 
+export interface ExperienceOverrides {
+  isOverridden: boolean;
+  totalExperienceYears?: number;
+  totalExperienceMonths?: number;
+  displayTotalExperience?: string;
+  fullTimeYears?: number;
+  currentEmployerTenureYears?: number;
+  totalEmployersCount?: number;
+}
+
 export interface DerivedExperienceSummary {
   totalExperienceMonths: number;
   totalExperienceYears: number;
@@ -351,12 +362,14 @@ export interface DerivedExperienceSummary {
   totalEmployersCount: number;
   hasEmploymentGaps: boolean;
   gapsSummary?: string;
+  isOverridden?: boolean;
 }
 
 // ── Derived Experience Calculator ──────────────────────────────────────────
 
 /**
  * Calculates total experience, tenure, and gap summaries from employment records.
+ * Supports manual user overrides (e.g. for freshers with only internships).
  */
 export function calculateDerivedExperience(
   records: Array<{
@@ -366,8 +379,43 @@ export function calculateDerivedExperience(
     employmentType?: string;
     company?: string;
     employerName?: string;
-  }>
+    jobTitle?: string;
+    title?: string;
+    countsTowardsExperience?: boolean;
+    isInternship?: boolean;
+  }>,
+  overrides?: ExperienceOverrides
 ): DerivedExperienceSummary {
+  // If user provided an active override, honor it directly
+  if (overrides && overrides.isOverridden) {
+    const totalY = Math.max(0, overrides.totalExperienceYears ?? 0);
+    const totalM = overrides.totalExperienceMonths ?? Math.round(totalY * 12);
+    const yearsComponent = Math.floor(totalM / 12);
+    const remainingMonths = totalM % 12;
+    const displayTotalExperience =
+      overrides.displayTotalExperience ||
+      (totalY === 0
+        ? '0 years (Fresher)'
+        : yearsComponent > 0 && remainingMonths > 0
+        ? `${yearsComponent} yr ${remainingMonths} mo`
+        : yearsComponent > 0
+        ? `${yearsComponent} yr${yearsComponent > 1 ? 's' : ''}`
+        : `${remainingMonths} mo${remainingMonths > 1 ? 's' : ''}`);
+
+    return {
+      totalExperienceMonths: totalM,
+      totalExperienceYears: totalY,
+      displayTotalExperience,
+      fullTimeYears: Math.max(0, overrides.fullTimeYears ?? 0),
+      partTimeYears: 0,
+      internshipMonths: 0,
+      currentEmployerTenureYears: Math.max(0, overrides.currentEmployerTenureYears ?? 0),
+      totalEmployersCount: Math.max(0, overrides.totalEmployersCount ?? 0),
+      hasEmploymentGaps: false,
+      isOverridden: true,
+    };
+  }
+
   if (!records || records.length === 0) {
     return {
       totalExperienceMonths: 0,
@@ -379,6 +427,7 @@ export function calculateDerivedExperience(
       currentEmployerTenureYears: 0,
       totalEmployersCount: 0,
       hasEmploymentGaps: false,
+      isOverridden: false,
     };
   }
 
@@ -389,7 +438,7 @@ export function calculateDerivedExperience(
   let internshipMonths = 0;
   let currentTenureMonths = 0;
 
-  const validIntervals: Array<{ start: Date; end: Date; type: string; current: boolean }> = [];
+  const validIntervals: Array<{ start: Date; end: Date; type: string; current: boolean; countsTowardsExperience: boolean }> = [];
 
   for (const r of records) {
     if (!r.startDate) continue;
@@ -413,21 +462,41 @@ export function calculateDerivedExperience(
     );
 
     const type = r.employmentType || 'full_time';
-    if (type === 'internship') {
+    const isIntern = type === 'internship' || Boolean(r.isInternship);
+    const titleLower = String(r.jobTitle || (r as any).title || '').toLowerCase();
+    const isInternTitle = titleLower.includes('intern') || titleLower.includes('trainee');
+    const isOpenSource = type === 'open_source' || titleLower.includes('open source') || titleLower.includes('maintainer');
+
+    // If countsTowardsExperience is explicitly false, it definitely does not count toward work exp
+    const counts = r.countsTowardsExperience !== false;
+
+    if (isIntern || isInternTitle) {
       internshipMonths += diffMonths;
+      // In default calculation, internships do not add to total professional work experience months unless explicitly flagged
+      if (r.countsTowardsExperience === true) {
+        totalMonths += diffMonths;
+      }
+    } else if (isOpenSource) {
+      if (counts && r.countsTowardsExperience === true) {
+        totalMonths += diffMonths;
+      }
     } else if (type === 'part_time') {
       partTimeMonths += diffMonths;
-      totalMonths += Math.round(diffMonths * 0.5);
+      if (counts) {
+        totalMonths += Math.round(diffMonths * 0.5);
+      }
     } else {
-      fullTimeMonths += diffMonths;
-      totalMonths += diffMonths;
+      if (counts) {
+        fullTimeMonths += diffMonths;
+        totalMonths += diffMonths;
+      }
     }
 
-    if (isCurrent) {
+    if (isCurrent && counts) {
       currentTenureMonths = Math.max(currentTenureMonths, diffMonths);
     }
 
-    validIntervals.push({ start, end, type, current: isCurrent });
+    validIntervals.push({ start, end, type, current: isCurrent, countsTowardsExperience: counts });
   }
 
   const totalYears = Math.round((totalMonths / 12) * 10) / 10;
@@ -446,6 +515,9 @@ export function calculateDerivedExperience(
       ? `${yearsComponent} yr${yearsComponent > 1 ? 's' : ''}`
       : `${remainingMonths} mo${remainingMonths > 1 ? 's' : ''}`;
 
+  // Count employers: exclude roles where countsTowardsExperience is explicitly false
+  const qualifyingEmployers = validIntervals.filter(i => i.countsTowardsExperience);
+
   return {
     totalExperienceMonths: totalMonths,
     totalExperienceYears: totalYears,
@@ -454,8 +526,9 @@ export function calculateDerivedExperience(
     partTimeYears: ptYears,
     internshipMonths,
     currentEmployerTenureYears: tenureYears,
-    totalEmployersCount: validIntervals.length,
+    totalEmployersCount: qualifyingEmployers.length,
     hasEmploymentGaps: false,
+    isOverridden: false,
   };
 }
 

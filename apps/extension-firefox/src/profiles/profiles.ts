@@ -297,21 +297,81 @@ function populateExperienceList(): void {
   (document.getElementById('comp-work-pref') as HTMLSelectElement).value = prof?.workPreference || 'remote';
 
   // Derived stats
-  const allJobs = activeProfileData.employmentHistory || activeProfileData.work || [];
-  const derived = calculateDerivedExperience(allJobs as any);
+  // Auto-migrate activeProfileData.work to employmentHistory if empty
+  if (!activeProfileData.employmentHistory || activeProfileData.employmentHistory.length === 0) {
+    if (activeProfileData.work && activeProfileData.work.length > 0) {
+      activeProfileData.employmentHistory = activeProfileData.work.map((w, idx) => {
+        const titleLower = (w.title || '').toLowerCase();
+        const companyLower = (w.company || '').toLowerCase();
+        const isIntern = titleLower.includes('intern') || titleLower.includes('trainee');
+        const isOpenSource = titleLower.includes('maintainer') || companyLower.includes('open source');
+        const isSelfEmployed = titleLower.includes('freelance') || titleLower.includes('consultant');
+
+        let type: DetailedEmploymentRecord['employmentType'] = 'full_time';
+        let counts = true;
+        if (isIntern) {
+          type = 'internship';
+          counts = false;
+        } else if (isOpenSource) {
+          type = 'open_source';
+          counts = false;
+        } else if (isSelfEmployed) {
+          type = 'freelance';
+        }
+
+        return {
+          id: `job_migrated_${idx}_${Date.now()}`,
+          employerName: w.company || 'Unknown Employer',
+          jobTitle: w.title || 'Role',
+          startDate: w.startDate || '',
+          endDate: w.endDate || '',
+          currentlyEmployed: Boolean(w.current),
+          employmentType: type,
+          isInternship: isIntern,
+          countsTowardsExperience: counts,
+        };
+      });
+      saveUserProfile(activeProfileData).catch(console.error);
+    } else {
+      activeProfileData.employmentHistory = [];
+    }
+  }
+
+  const detailedJobs = activeProfileData.employmentHistory || [];
+  const derived = calculateDerivedExperience(detailedJobs as any, activeProfileData.experienceOverrides);
+
+  // Sync professional yearsOfExperience with derived
+  if (!activeProfileData.professional) activeProfileData.professional = {};
+  activeProfileData.professional.yearsOfExperience = derived.totalExperienceYears;
+
   document.getElementById('stat-total-exp')!.textContent = derived.displayTotalExperience;
   document.getElementById('stat-fulltime-exp')!.textContent = `${derived.fullTimeYears} yrs`;
   document.getElementById('stat-tenure')!.textContent = `${derived.currentEmployerTenureYears} yrs`;
   document.getElementById('stat-employers')!.textContent = String(derived.totalEmployersCount);
 
+  // Update badge and reset button
+  const badgeEl = document.getElementById('exp-calc-badge');
+  const resetBtn = document.getElementById('btn-reset-exp-stats');
+  if (badgeEl && resetBtn) {
+    if (derived.isOverridden) {
+      badgeEl.textContent = 'Custom Override';
+      badgeEl.style.background = '#fef3c7';
+      badgeEl.style.color = '#92400e';
+      resetBtn.style.display = 'inline-block';
+    } else {
+      badgeEl.textContent = 'Auto-Calculated';
+      badgeEl.style.background = '#e0f2fe';
+      badgeEl.style.color = '#0369a1';
+      resetBtn.style.display = 'none';
+    }
+  }
+
   // Job cards
   const container = document.getElementById('employment-records-container')!;
-  const detailedJobs = activeProfileData.employmentHistory || [];
-
-  if (detailedJobs.length === 0 && (!activeProfileData.work || activeProfileData.work.length === 0)) {
+  if (detailedJobs.length === 0) {
     container.innerHTML = `
       <div style="text-align: center; padding: 28px; color: var(--gray-600); font-size: 13.5px;">
-        No employment records added yet. Click "+ Add Job / Employment" to add work history.
+        No employment or internship records added yet. Click "+ Add Job" or "+ Add Internship" to add history.
       </div>
     `;
     return;
@@ -319,31 +379,49 @@ function populateExperienceList(): void {
 
   let html = '';
   detailedJobs.forEach((job, idx) => {
+    const isIntern = job.employmentType === 'internship' || Boolean(job.isInternship);
+    const isOpenSource = job.employmentType === 'open_source';
+    const countsExp = job.countsTowardsExperience !== false;
+
     html += `
       <div class="record-item">
         <div class="record-details">
           <div class="record-title">${escapeHtml(job.jobTitle)} at ${escapeHtml(job.employerName)}</div>
           <div class="record-subtitle">${escapeHtml(job.startDate)} — ${job.currentlyEmployed ? 'Present' : escapeHtml(job.endDate || '')}</div>
           <div class="record-tags">
-            <span class="record-tag">${job.employmentType.replace('_', ' ')}</span>
+            <span class="record-tag" style="${isIntern ? 'background:#fef3c7;color:#92400e;' : isOpenSource ? 'background:#ede9fe;color:#5b21b6;' : ''}">${job.employmentType.replace('_', ' ')}</span>
+            ${countsExp ? '<span class="record-tag" style="background:#dcfce7;color:#15803d;">Counts toward Exp</span>' : '<span class="record-tag" style="background:#f1f5f9;color:#475569;">Excluded from Work Exp</span>'}
             ${job.noticePeriodDays ? `<span class="record-tag">Notice: ${job.noticePeriodDays} days</span>` : ''}
             ${job.currentlyEmployed ? '<span class="record-tag" style="background:#dcfce7;color:#15803d;">Current</span>' : ''}
           </div>
         </div>
-        <button type="button" class="btn-action-danger btn-del-job" data-idx="${idx}">Delete</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-action-secondary btn-edit-job" data-idx="${idx}" style="font-size:12px; padding:4px 10px;">Edit</button>
+          <button type="button" class="btn-action-danger btn-del-job" data-idx="${idx}">Delete</button>
+        </div>
       </div>
     `;
   });
 
   setHTML(container, html);
 
+  container.querySelectorAll('.btn-edit-job').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      openJobModal(idx);
+    });
+  });
+
   container.querySelectorAll('.btn-del-job').forEach(btn => {
     btn.addEventListener('click', async () => {
       const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
       activeProfileData?.employmentHistory?.splice(idx, 1);
+      if (activeProfileData?.work && activeProfileData.work.length > idx) {
+        activeProfileData.work.splice(idx, 1);
+      }
       await saveUserProfile(activeProfileData!);
       populateExperienceList();
-      showToast('✓ Job record deleted');
+      showToast('✓ Record deleted');
     });
   });
 }
@@ -381,31 +459,202 @@ async function saveCompensation(): Promise<void> {
   showToast('✓ Compensation & notice period saved');
 }
 
-function promptAddEmployment(): void {
-  const company = prompt('Employer / Company Name:', '');
-  if (!company) return;
-  const title = prompt('Job Title / Designation:', '') || '';
-  const start = prompt('Start Date (YYYY-MM):', '2022-01') || '';
-  const current = confirm('Is this your current employer?');
-  const end = current ? undefined : prompt('End Date (YYYY-MM):', '2024-01') || undefined;
+function openJobModal(idx?: number, defaultType: string = 'full_time'): void {
+  const modal = document.getElementById('job-modal');
+  const titleEl = document.getElementById('job-modal-title');
+  const editIdxInput = document.getElementById('job-edit-idx') as HTMLInputElement;
+  const typeSelect = document.getElementById('job-type') as HTMLSelectElement;
+  const companyInput = document.getElementById('job-company') as HTMLInputElement;
+  const titleInput = document.getElementById('job-title') as HTMLInputElement;
+  const startInput = document.getElementById('job-start') as HTMLInputElement;
+  const endInput = document.getElementById('job-end') as HTMLInputElement;
+  const currentCheckbox = document.getElementById('job-current') as HTMLInputElement;
+  const countsCheckbox = document.getElementById('job-counts-exp') as HTMLInputElement;
 
-  if (!activeProfileData) return;
-  if (!activeProfileData.employmentHistory) activeProfileData.employmentHistory = [];
+  if (!modal) return;
 
-  const job: DetailedEmploymentRecord = {
-    id: `job_${Date.now()}`,
-    employerName: company,
-    jobTitle: title,
-    startDate: start,
-    endDate: end,
-    currentlyEmployed: current,
-    employmentType: 'full_time',
-  };
+  if (idx !== undefined && idx >= 0 && activeProfileData?.employmentHistory?.[idx]) {
+    const job = activeProfileData.employmentHistory[idx];
+    if (titleEl) titleEl.textContent = 'Edit Record';
+    editIdxInput.value = String(idx);
+    typeSelect.value = job.employmentType || 'full_time';
+    companyInput.value = job.employerName || '';
+    titleInput.value = job.jobTitle || '';
+    startInput.value = job.startDate || '';
+    endInput.value = job.endDate || '';
+    currentCheckbox.checked = Boolean(job.currentlyEmployed);
+    countsCheckbox.checked = job.countsTowardsExperience !== false;
+  } else {
+    if (titleEl) titleEl.textContent = defaultType === 'internship' ? 'Add Internship' : 'Add Employment';
+    editIdxInput.value = '-1';
+    typeSelect.value = defaultType;
+    companyInput.value = '';
+    titleInput.value = '';
+    startInput.value = '';
+    endInput.value = '';
+    currentCheckbox.checked = false;
+    // Default: internships and open-source roles do not count towards work experience by default
+    countsCheckbox.checked = defaultType !== 'internship' && defaultType !== 'open_source';
+  }
 
-  activeProfileData.employmentHistory.push(job);
-  saveUserProfile(activeProfileData).then(() => {
+  modal.classList.add('active');
+}
+
+function closeJobModal(): void {
+  document.getElementById('job-modal')?.classList.remove('active');
+}
+
+function setupJobModalEvents(): void {
+  const modal = document.getElementById('job-modal');
+  const form = document.getElementById('job-form') as HTMLFormElement;
+  const cancelBtn = document.getElementById('job-cancel');
+  const typeSelect = document.getElementById('job-type') as HTMLSelectElement;
+  const countsCheckbox = document.getElementById('job-counts-exp') as HTMLInputElement;
+  const editIdxInput = document.getElementById('job-edit-idx') as HTMLInputElement;
+
+  cancelBtn?.addEventListener('click', closeJobModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeJobModal();
+  });
+
+  typeSelect?.addEventListener('change', () => {
+    // If adding a new record, automatically adjust counts checkbox based on selected type
+    if (editIdxInput.value === '-1') {
+      const selectedType = typeSelect.value;
+      countsCheckbox.checked = selectedType !== 'internship' && selectedType !== 'open_source';
+    }
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeProfileData) return;
+    if (!activeProfileData.employmentHistory) activeProfileData.employmentHistory = [];
+
+    const idx = parseInt(editIdxInput.value, 10);
+    const type = typeSelect.value as DetailedEmploymentRecord['employmentType'];
+    const company = (document.getElementById('job-company') as HTMLInputElement).value.trim();
+    const title = (document.getElementById('job-title') as HTMLInputElement).value.trim();
+    const start = (document.getElementById('job-start') as HTMLInputElement).value.trim();
+    const current = (document.getElementById('job-current') as HTMLInputElement).checked;
+    const end = current ? undefined : (document.getElementById('job-end') as HTMLInputElement).value.trim() || undefined;
+    const counts = countsCheckbox.checked;
+
+    if (!company || !title) {
+      showToast('Please provide both employer name and title');
+      return;
+    }
+
+    const jobRecord: DetailedEmploymentRecord = {
+      id: idx >= 0 && activeProfileData.employmentHistory[idx] ? activeProfileData.employmentHistory[idx].id : `job_${Date.now()}`,
+      employerName: company,
+      jobTitle: title,
+      startDate: start,
+      endDate: end,
+      currentlyEmployed: current,
+      employmentType: type,
+      isInternship: type === 'internship',
+      countsTowardsExperience: counts,
+    };
+
+    if (idx >= 0 && idx < activeProfileData.employmentHistory.length) {
+      activeProfileData.employmentHistory[idx] = jobRecord;
+    } else {
+      activeProfileData.employmentHistory.push(jobRecord);
+    }
+
+    await saveUserProfile(activeProfileData);
+    closeJobModal();
     populateExperienceList();
-    showToast('✓ Employment record added');
+    showToast(idx >= 0 ? '✓ Record updated' : '✓ Record added');
+  });
+}
+
+function openExpOverrideModal(): void {
+  const modal = document.getElementById('exp-override-modal');
+  if (!modal || !activeProfileData) return;
+
+  const derived = calculateDerivedExperience(
+    activeProfileData.employmentHistory as any,
+    activeProfileData.experienceOverrides
+  );
+
+  const overrides = activeProfileData.experienceOverrides;
+  (document.getElementById('override-total-exp') as HTMLInputElement).value = String(
+    overrides?.totalExperienceYears ?? derived.totalExperienceYears
+  );
+  (document.getElementById('override-fulltime-exp') as HTMLInputElement).value = String(
+    overrides?.fullTimeYears ?? derived.fullTimeYears
+  );
+  (document.getElementById('override-tenure') as HTMLInputElement).value = String(
+    overrides?.currentEmployerTenureYears ?? derived.currentEmployerTenureYears
+  );
+  (document.getElementById('override-employers') as HTMLInputElement).value = String(
+    overrides?.totalEmployersCount ?? derived.totalEmployersCount
+  );
+  (document.getElementById('override-display-text') as HTMLInputElement).value =
+    overrides?.displayTotalExperience ?? (derived.isOverridden ? derived.displayTotalExperience : '');
+
+  modal.classList.add('active');
+}
+
+function closeExpOverrideModal(): void {
+  document.getElementById('exp-override-modal')?.classList.remove('active');
+}
+
+function setupExpOverrideModalEvents(): void {
+  const modal = document.getElementById('exp-override-modal');
+  const cancelBtn = document.getElementById('btn-cancel-override');
+  const form = document.getElementById('exp-override-form') as HTMLFormElement;
+  const fresherBtn = document.getElementById('btn-apply-fresher-preset');
+  const editBtn = document.getElementById('btn-edit-exp-stats');
+  const resetBtn = document.getElementById('btn-reset-exp-stats');
+
+  editBtn?.addEventListener('click', openExpOverrideModal);
+  cancelBtn?.addEventListener('click', closeExpOverrideModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeExpOverrideModal();
+  });
+
+  fresherBtn?.addEventListener('click', () => {
+    (document.getElementById('override-total-exp') as HTMLInputElement).value = '0';
+    (document.getElementById('override-fulltime-exp') as HTMLInputElement).value = '0';
+    (document.getElementById('override-tenure') as HTMLInputElement).value = '0';
+    (document.getElementById('override-employers') as HTMLInputElement).value = '0';
+    (document.getElementById('override-display-text') as HTMLInputElement).value = '0 years (Fresher)';
+  });
+
+  resetBtn?.addEventListener('click', async () => {
+    if (!activeProfileData) return;
+    if (!confirm('Reset experience stats to auto-calculated values based on your records?')) return;
+    activeProfileData.experienceOverrides = undefined;
+    await saveUserProfile(activeProfileData);
+    populateExperienceList();
+    showToast('✓ Reset to auto-calculated experience');
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeProfileData) return;
+
+    const total = parseFloat((document.getElementById('override-total-exp') as HTMLInputElement).value);
+    const ft = parseFloat((document.getElementById('override-fulltime-exp') as HTMLInputElement).value);
+    const tenure = parseFloat((document.getElementById('override-tenure') as HTMLInputElement).value);
+    const emps = parseInt((document.getElementById('override-employers') as HTMLInputElement).value, 10);
+    const customDisplay = (document.getElementById('override-display-text') as HTMLInputElement).value.trim();
+
+    activeProfileData.experienceOverrides = {
+      isOverridden: true,
+      totalExperienceYears: isNaN(total) ? 0 : total,
+      fullTimeYears: isNaN(ft) ? 0 : ft,
+      currentEmployerTenureYears: isNaN(tenure) ? 0 : tenure,
+      totalEmployersCount: isNaN(emps) ? 0 : emps,
+      displayTotalExperience: customDisplay || (total === 0 ? '0 years (Fresher)' : `${total} years`),
+    };
+
+    await saveUserProfile(activeProfileData);
+    closeExpOverrideModal();
+    populateExperienceList();
+    showToast('✓ Experience stats updated');
   });
 }
 
@@ -808,11 +1057,14 @@ function setupActionButtons(): void {
   document.getElementById('btn-save-personal')?.addEventListener('click', savePersonal);
   document.getElementById('btn-save-links')?.addEventListener('click', saveLinks);
   document.getElementById('btn-add-education')?.addEventListener('click', promptAddEducation);
-  document.getElementById('btn-save-compensation')?.addEventListener('click', saveCompensation);
-  document.getElementById('btn-add-employment')?.addEventListener('click', promptAddEmployment);
+  document.getElementById('btn-add-employment')?.addEventListener('click', () => openJobModal(undefined, 'full_time'));
+  document.getElementById('btn-add-internship')?.addEventListener('click', () => openJobModal(undefined, 'internship'));
   document.getElementById('btn-add-family-contact')?.addEventListener('click', promptAddFamily);
   document.getElementById('btn-save-india-pack')?.addEventListener('click', saveIndiaPack);
   document.getElementById('btn-add-question')?.addEventListener('click', promptAddQuestion);
+
+  setupJobModalEvents();
+  setupExpOverrideModalEvents();
 
   document.getElementById('btn-new-profile-modal')?.addEventListener('click', () => {
     (document.getElementById('profile-name') as HTMLInputElement).value = '';
