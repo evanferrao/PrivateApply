@@ -15,6 +15,7 @@ import {
   migrateToMultiProfile,
 } from '../shared/profile';
 import { setHTML } from '../shared/html';
+import { getActiveAIProvider } from '../shared/ai-provider-config';
 
 let currentState: PopupState = {
   enabled: true,
@@ -35,8 +36,16 @@ function updateUI(): void {
   const dryrunToggle = document.getElementById('dryrun-toggle');
   if (dryrunToggle) dryrunToggle.classList.toggle('active', currentState.dryRun);
 
-  // Ollama status
+  // Ollama / AI status
   const ollamaStatusEl = document.getElementById('ollama-status');
+  const providerNameEl = document.getElementById('ai-provider-name');
+  if (providerNameEl) {
+    getActiveAIProvider().then(active => {
+      if (active) {
+        providerNameEl.textContent = active.nickname || 'AI';
+      }
+    }).catch(() => {});
+  }
   if (ollamaStatusEl) {
     if (currentState.nativeHostConnected) {
       ollamaStatusEl.textContent = 'Connected';

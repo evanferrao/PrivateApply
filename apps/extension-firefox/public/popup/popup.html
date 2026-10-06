@@ -136,7 +136,11 @@
       content: ''; position: absolute; top: 50%; left: 50%;
       width: 100%; height: 100%; border-radius: 50%;
       background: #4ade80; opacity: .7;
-      animation: ping 1.4s ease-out infinite;
+      animation: job-dot-ping 1.4s ease-out infinite;
+    }
+    @keyframes job-dot-ping {
+      0% { transform: scale(1); opacity: .7; }
+      100% { transform: scale(2.4); opacity: 0; }
     }
     @keyframes ping {
       0% { transform: translate(-50%,-50%) scale(1); opacity: .7; }
@@ -382,7 +386,7 @@
   <!-- ═══ Tab 1: Autofill ═══ -->
   <div class="tab-panel active" id="tab-autofill">
     <div class="job-card" id="job-info">
-      <div class="job-empty">No job detected yet</div>
+      <div class="job-empty job-bar-empty">No job detected yet</div>
     </div>
 
     <button class="btn-autofill" id="manual-autofill-btn">
@@ -517,10 +521,10 @@
     </div>
   </div>
 
-  <!-- Ollama status footer -->
-  <div class="ollama-footer" id="ollama-bar">
+  <!-- Ollama / AI status footer -->
+  <div class="ollama-footer ollama-bar" id="ollama-bar">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-    Ollama
+    <span id="ai-provider-name">Ollama</span>
     <span class="ollama-status" id="ollama-status">--</span>
   </div>
 

@@ -26,7 +26,7 @@ export function classifyParseError(error: string): ParseErrorKind {
  */
 export function enrichParseErrorMessage(raw: string): string {
   if (/403|Forbidden/i.test(raw)) {
-    return raw + ' Ollama is blocking the extension. Please run the Offlyn AI Setup installer to configure CORS, then restart Ollama.';
+    return raw + " Ollama is blocking the extension. Please restart Ollama with OLLAMA_ORIGINS='chrome-extension://*' ollama serve or run the Offlyn AI Setup installer to configure CORS.";
   }
   if (/not found|404|model .* not found/i.test(raw)) {
     return (

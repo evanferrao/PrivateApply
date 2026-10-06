@@ -4,8 +4,20 @@
 import browser from '../shared/browser-compat';
 import { getSettings, setSettings } from '../shared/storage';
 import { log, error } from '../shared/log';
+import {
+  getAIProvidersSettings,
+  saveAIProvidersSettings,
+  setActiveAIProviderId,
+  saveAIProvider,
+  deleteAIProvider,
+  testAIProviderConnection,
+  fetchAvailableModels,
+  AI_PROVIDER_PRESETS,
+  type AIProviderConfig,
+  type AIProvidersSettings,
+} from '../shared/ai-provider-config';
 import { getOllamaConfig, saveOllamaConfig, testOllamaConnection, DEFAULT_OLLAMA_CONFIG } from '../shared/ollama-config';
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHTML } from '../shared/html';
 
 async function init(): Promise<void> {
   const settings = await getSettings();
@@ -294,8 +306,8 @@ async function init(): Promise<void> {
     if (text) text.textContent = bytes > 1024 * 1024 ? `${mb} MB used` : `${kb} KB used`;
   } catch { /* ignore */ }
 
-  // --- Ollama Configuration section ---
-  await initOllamaSettings();
+  // --- AI Providers Configuration section ---
+  await initAIProvidersSettings();
 
   // --- Version ---
   try {
@@ -317,100 +329,512 @@ function showFeedback(id: string): void {
   setTimeout(() => el.classList.remove('visible'), 2000);
 }
 
-async function initOllamaSettings(): Promise<void> {
-  const badge = document.getElementById('ollama-badge') as HTMLElement | null;
-  const hint = document.getElementById('ollama-status') as HTMLElement | null;
-  const epInput = document.getElementById('settings-ollama-endpoint') as HTMLInputElement | null;
-  const chatInput = document.getElementById('settings-ollama-chat-model') as HTMLInputElement | null;
-  const embInput = document.getElementById('settings-ollama-embed-model') as HTMLInputElement | null;
-  const testResultEl = document.getElementById('settings-ollama-test-result') as HTMLElement | null;
-
-  // Load current config into inputs
-  try {
-    const config = await getOllamaConfig();
-    if (epInput) epInput.value = config.endpoint;
-    if (chatInput) chatInput.value = config.chatModel;
-    if (embInput) embInput.value = config.embeddingModel;
-
-    // Show connection status badge
-    const result = await testOllamaConnection(config.endpoint);
-    applyOllamaBadge(badge, hint, result, config.endpoint, config.enabled);
-  } catch (err) {
-    error('Failed to load Ollama config:', err);
-  }
-
-  // Test connection button
-  document.getElementById('btn-test-ollama')?.addEventListener('click', async () => {
-    const endpoint = epInput?.value.trim() || DEFAULT_OLLAMA_CONFIG.endpoint;
-    if (testResultEl) {
-      testResultEl.textContent = 'Testing...';
-      testResultEl.className = 'ollama-test-result visible';
-    }
-    const result = await testOllamaConnection(endpoint);
-    if (testResultEl) {
-      if (!result.success) {
-        testResultEl.textContent = `Cannot reach Ollama: ${result.error}`;
-        testResultEl.className = 'ollama-test-result visible fail';
-      } else if (result.corsBlocked) {
-        setHTML(testResultEl,
-          `<strong>CORS Blocked</strong> — Ollama v${result.version} is running but blocking this extension.<br><br>` +
-          `<strong>Fix:</strong> Stop Ollama, then run this as ONE command in a new terminal:<br>` +
-          `<code style="background:#1e2a3a;color:#fbbf24;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:6px;font-size:12px;word-break:break-all;">` +
-          `OLLAMA_ORIGINS='chrome-extension://*' ollama serve</code><br>` +
-          `<span style="font-size:11px;color:#6b7280;margin-top:4px;display:inline-block;">Keep that terminal open, then click Test Connection again.</span>`);
-        testResultEl.className = 'ollama-test-result visible fail';
-      } else {
-        testResultEl.textContent = `Connected! Ollama v${result.version} — AI features fully working`;
-        testResultEl.className = 'ollama-test-result visible ok';
-      }
-    }
-    applyOllamaBadge(badge, hint, result, endpoint, true);
-  });
-
-  // Save config button
-  document.getElementById('btn-save-ollama')?.addEventListener('click', async () => {
-    try {
-      const endpoint = epInput?.value.trim() || DEFAULT_OLLAMA_CONFIG.endpoint;
-      const chatModel = chatInput?.value.trim() || DEFAULT_OLLAMA_CONFIG.chatModel;
-      const embeddingModel = embInput?.value.trim() || DEFAULT_OLLAMA_CONFIG.embeddingModel;
-
-      const cfg = await getOllamaConfig();
-      cfg.endpoint = endpoint;
-      cfg.chatModel = chatModel;
-      cfg.embeddingModel = embeddingModel;
-
-      // Test before enabling — only enable if both reachable AND CORS is not blocked
-      const result = await testOllamaConnection(endpoint);
-      cfg.enabled = result.success && !result.corsBlocked;
-      cfg.lastChecked = Date.now();
-      await saveOllamaConfig(cfg);
-
-      applyOllamaBadge(badge, hint, result, endpoint, cfg.enabled);
-      showFeedback('feedback-ollama');
-    } catch (err) {
-      error('Failed to save Ollama config:', err);
-    }
-  });
+function maskApiKey(key?: string): string {
+  if (!key || !key.trim()) return 'None (Local / Public)';
+  const trimmed = key.trim();
+  if (trimmed.length <= 8) return '••••••••';
+  return `${trimmed.slice(0, 4)}••••••••${trimmed.slice(-4)}`;
 }
 
-/** Apply badge + hint text based on connection test result */
-function applyOllamaBadge(
-  badge: HTMLElement | null,
-  hint: HTMLElement | null,
-  result: Awaited<ReturnType<typeof testOllamaConnection>>,
-  endpoint: string,
-  enabled: boolean,
-): void {
-  if (!result.success) {
-    if (badge) { badge.textContent = 'Offline'; badge.style.background = '#ffebee'; badge.style.color = '#c62828'; }
-    if (hint) hint.textContent = enabled ? 'Cannot reach Ollama — check that it is running' : 'AI features disabled — configure below to enable';
-  } else if (result.corsBlocked) {
-    if (badge) { badge.textContent = 'CORS Blocked'; badge.style.background = '#fffbeb'; badge.style.color = '#d97706'; }
-    if (hint) hint.textContent = `Ollama v${result.version} reachable but blocking extension. Stop Ollama, then run as one command: OLLAMA_ORIGINS='chrome-extension://*' ollama serve`;
-  } else {
-    if (badge) { badge.textContent = 'Connected'; badge.style.background = '#e8f5e9'; badge.style.color = '#2e7d32'; }
-    if (hint) hint.textContent = `Ollama v${result.version} at ${endpoint} — AI features ready`;
+async function initAIProvidersSettings(): Promise<void> {
+  const panel = document.getElementById('provider-editor-panel') as HTMLElement | null;
+  const formTitle = document.getElementById('provider-form-title') as HTMLElement | null;
+  const idInput = document.getElementById('provider-form-id') as HTMLInputElement | null;
+  const nicknameInput = document.getElementById('provider-input-nickname') as HTMLInputElement | null;
+  const protocolSelect = document.getElementById('provider-select-protocol') as HTMLSelectElement | null;
+  const endpointInput = document.getElementById('provider-input-endpoint') as HTMLInputElement | null;
+  const apiKeyInput = document.getElementById('provider-input-apikey') as HTMLInputElement | null;
+  const apiKeyHint = document.getElementById('provider-apikey-hint') as HTMLElement | null;
+  const toggleKeyBtn = document.getElementById('btn-toggle-key-visibility') as HTMLButtonElement | null;
+  const chatModelInput = document.getElementById('provider-input-chat-model') as HTMLInputElement | null;
+  const embedModelInput = document.getElementById('provider-input-embed-model') as HTMLInputElement | null;
+  const modelsDatalist = document.getElementById('provider-models-datalist') as HTMLElement | null;
+  const formTestResult = document.getElementById('provider-form-test-result') as HTMLElement | null;
+  const providersListEl = document.getElementById('providers-list') as HTMLElement | null;
+  const masterToggle = document.getElementById('toggle-ai-master') as HTMLElement | null;
+  const badge = document.getElementById('ollama-badge') as HTMLElement | null;
+  const hint = document.getElementById('ollama-status') as HTMLElement | null;
+
+  // Legacy fallback inputs
+  const epLegacy = document.getElementById('settings-ollama-endpoint') as HTMLInputElement | null;
+  const chatLegacy = document.getElementById('settings-ollama-chat-model') as HTMLInputElement | null;
+  const embLegacy = document.getElementById('settings-ollama-embed-model') as HTMLInputElement | null;
+  const legacyTestResult = document.getElementById('settings-ollama-test-result') as HTMLElement | null;
+
+  let currentSettings = await getAIProvidersSettings();
+
+  // Helper: Open Editor Form
+  function openEditor(provider?: AIProviderConfig): void {
+    if (!panel) return;
+    if (formTestResult) {
+      formTestResult.className = 'ollama-test-result';
+      formTestResult.textContent = '';
+    }
+
+    if (provider) {
+      if (formTitle) formTitle.textContent = `Edit Provider: ${provider.nickname}`;
+      if (idInput) idInput.value = provider.id;
+      if (nicknameInput) nicknameInput.value = provider.nickname;
+      if (protocolSelect) protocolSelect.value = provider.protocol;
+      if (endpointInput) endpointInput.value = provider.baseUrl;
+      if (apiKeyInput) apiKeyInput.value = provider.apiKey || '';
+      if (chatModelInput) chatModelInput.value = provider.chatModel;
+      if (embedModelInput) embedModelInput.value = provider.embeddingModel || '';
+    } else {
+      if (formTitle) formTitle.textContent = 'Add AI Provider';
+      if (idInput) idInput.value = '';
+      if (nicknameInput) nicknameInput.value = '';
+      if (protocolSelect) protocolSelect.value = 'openai';
+      if (endpointInput) endpointInput.value = 'https://api.openai.com/v1';
+      if (apiKeyInput) apiKeyInput.value = '';
+      if (chatModelInput) chatModelInput.value = 'gpt-4o-mini';
+      if (embedModelInput) embedModelInput.value = 'text-embedding-3-small';
+    }
+
+    updateApiKeyHint();
+    panel.classList.add('open');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+
+  function closeEditor(): void {
+    if (!panel) return;
+    panel.classList.remove('open');
+    if (formTestResult) {
+      formTestResult.className = 'ollama-test-result';
+      formTestResult.textContent = '';
+    }
+  }
+
+  function updateApiKeyHint(): void {
+    if (!apiKeyHint || !protocolSelect) return;
+    if (protocolSelect.value === 'ollama') {
+      apiKeyHint.textContent = 'Local Ollama does not require an API key';
+    } else {
+      apiKeyHint.textContent = 'Your API key is stored locally in your browser and never leaves this device';
+    }
+  }
+
+  protocolSelect?.addEventListener('change', updateApiKeyHint);
+
+  // Toggle API key visibility
+  toggleKeyBtn?.addEventListener('click', () => {
+    if (!apiKeyInput) return;
+    const isPassword = apiKeyInput.type === 'password';
+    apiKeyInput.type = isPassword ? 'text' : 'password';
+    toggleKeyBtn.textContent = isPassword ? 'Hide' : 'Show';
+  });
+
+  // Preset buttons
+  document.querySelectorAll<HTMLButtonElement>('.preset-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const presetKey = btn.dataset.preset as keyof typeof AI_PROVIDER_PRESETS;
+      if (presetKey && AI_PROVIDER_PRESETS[presetKey]) {
+        const p = AI_PROVIDER_PRESETS[presetKey];
+        if (nicknameInput) nicknameInput.value = p.nickname;
+        if (protocolSelect) protocolSelect.value = p.protocol;
+        if (endpointInput) endpointInput.value = p.baseUrl;
+        if (chatModelInput) chatModelInput.value = p.defaultChatModel;
+        if (embedModelInput) embedModelInput.value = p.defaultEmbeddingModel || '';
+        updateApiKeyHint();
+        if (formTestResult) {
+          formTestResult.className = 'ollama-test-result';
+          formTestResult.textContent = '';
+        }
+      }
+    });
+  });
+
+  // Fetch available models button
+  document.getElementById('btn-fetch-models')?.addEventListener('click', async () => {
+    const fetchBtn = document.getElementById('btn-fetch-models') as HTMLButtonElement | null;
+    const endpoint = endpointInput?.value.trim() || '';
+    const apiKey = apiKeyInput?.value.trim() || undefined;
+    const protocol = (protocolSelect?.value as 'openai' | 'ollama') || 'openai';
+
+    if (!endpoint) {
+      if (formTestResult) {
+        formTestResult.textContent = 'Please enter an endpoint URL first.';
+        formTestResult.className = 'ollama-test-result visible fail';
+      }
+      return;
+    }
+
+    if (fetchBtn) {
+      fetchBtn.disabled = true;
+      fetchBtn.textContent = 'Fetching...';
+    }
+    if (formTestResult) {
+      formTestResult.textContent = 'Querying models from endpoint...';
+      formTestResult.className = 'ollama-test-result visible';
+    }
+
+    try {
+      const models = await fetchAvailableModels(endpoint, apiKey, protocol);
+      if (modelsDatalist) {
+        setHTML(modelsDatalist, models.map(m => `<option value="${escapeHTML(m)}"></option>`).join(''));
+      }
+      if (models.length > 0) {
+        if (formTestResult) {
+          formTestResult.textContent = `Found ${models.length} model(s)! Select one or keep your custom entry.`;
+          formTestResult.className = 'ollama-test-result visible ok';
+        }
+        if (chatModelInput && !chatModelInput.value.trim()) {
+          chatModelInput.value = models[0];
+        }
+      } else {
+        if (formTestResult) {
+          formTestResult.textContent = 'Connected, but no models list returned. You can specify the model name manually.';
+          formTestResult.className = 'ollama-test-result visible';
+        }
+      }
+    } catch (err) {
+      if (formTestResult) {
+        formTestResult.textContent = `Failed to fetch models: ${err instanceof Error ? err.message : String(err)}`;
+        formTestResult.className = 'ollama-test-result visible fail';
+      }
+    } finally {
+      if (fetchBtn) {
+        fetchBtn.disabled = false;
+        fetchBtn.textContent = 'Fetch Models';
+      }
+    }
+  });
+
+  // Test Connection button in form
+  document.getElementById('btn-test-provider-form')?.addEventListener('click', async () => {
+    const testBtn = document.getElementById('btn-test-provider-form') as HTMLButtonElement | null;
+    const endpoint = endpointInput?.value.trim() || '';
+    const apiKey = apiKeyInput?.value.trim() || undefined;
+    const protocol = (protocolSelect?.value as 'openai' | 'ollama') || 'openai';
+    const chatModel = chatModelInput?.value.trim() || 'default';
+    const nickname = nicknameInput?.value.trim() || 'Testing Provider';
+
+    if (!endpoint) {
+      if (formTestResult) {
+        formTestResult.textContent = 'Please specify an Endpoint URL.';
+        formTestResult.className = 'ollama-test-result visible fail';
+      }
+      return;
+    }
+
+    if (testBtn) {
+      testBtn.disabled = true;
+      testBtn.textContent = 'Testing...';
+    }
+    if (formTestResult) {
+      formTestResult.textContent = 'Testing connection...';
+      formTestResult.className = 'ollama-test-result visible';
+    }
+
+    const candidate: AIProviderConfig = {
+      id: idInput?.value || 'test_probe',
+      nickname,
+      protocol,
+      baseUrl: endpoint,
+      apiKey,
+      chatModel,
+      embeddingModel: embedModelInput?.value.trim() || undefined,
+      enabled: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    const res = await testAIProviderConnection(candidate);
+
+    if (formTestResult) {
+      if (!res.success) {
+        formTestResult.textContent = `Cannot reach provider: ${res.error || 'Connection failed'}`;
+        formTestResult.className = 'ollama-test-result visible fail';
+      } else if (res.corsBlocked) {
+        setHTML(formTestResult,
+          `<strong>CORS Blocked</strong> — Ollama is reachable but blocking this extension.<br><br>` +
+          `<strong>Fix:</strong> Restart Ollama with:<br>` +
+          `<code style="background:#1e2a3a;color:#fbbf24;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:6px;font-size:12px;word-break:break-all;">` +
+          `OLLAMA_ORIGINS='chrome-extension://*' ollama serve</code>`);
+        formTestResult.className = 'ollama-test-result visible fail';
+      } else {
+        const lat = res.latencyMs ? ` (${res.latencyMs}ms)` : '';
+        formTestResult.textContent = `Connected! ${res.version || 'Provider ready'}${lat}`;
+        formTestResult.className = 'ollama-test-result visible ok';
+      }
+    }
+
+    if (testBtn) {
+      testBtn.disabled = false;
+      testBtn.textContent = 'Test Connection';
+    }
+  });
+
+  // Save Provider button in form
+  document.getElementById('btn-save-provider-form')?.addEventListener('click', async () => {
+    const nickname = nicknameInput?.value.trim();
+    const endpoint = endpointInput?.value.trim();
+    const chatModel = chatModelInput?.value.trim();
+    const protocol = (protocolSelect?.value as 'openai' | 'ollama') || 'openai';
+    const apiKey = apiKeyInput?.value.trim() || undefined;
+    const embeddingModel = embedModelInput?.value.trim() || undefined;
+    const existingId = idInput?.value.trim();
+
+    if (!nickname) {
+      if (formTestResult) {
+        formTestResult.textContent = 'Provider Nickname is required.';
+        formTestResult.className = 'ollama-test-result visible fail';
+      }
+      nicknameInput?.focus();
+      return;
+    }
+    if (!endpoint) {
+      if (formTestResult) {
+        formTestResult.textContent = 'Endpoint URL is required.';
+        formTestResult.className = 'ollama-test-result visible fail';
+      }
+      endpointInput?.focus();
+      return;
+    }
+    if (!chatModel) {
+      if (formTestResult) {
+        formTestResult.textContent = 'Chat Model name is required.';
+        formTestResult.className = 'ollama-test-result visible fail';
+      }
+      chatModelInput?.focus();
+      return;
+    }
+
+    const provider: AIProviderConfig = {
+      id: existingId || `provider_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      nickname,
+      protocol,
+      baseUrl: endpoint,
+      apiKey,
+      chatModel,
+      embeddingModel,
+      enabled: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    await saveAIProvider(provider);
+    currentSettings = await getAIProvidersSettings();
+    showFeedback('feedback-provider-form');
+    closeEditor();
+    await renderProvidersList();
+    await syncLegacyAndStatus();
+  });
+
+  // Show Add Form button & close/cancel buttons
+  document.getElementById('btn-show-add-provider')?.addEventListener('click', () => openEditor());
+  document.getElementById('btn-close-provider-form')?.addEventListener('click', closeEditor);
+  document.getElementById('btn-cancel-provider-form')?.addEventListener('click', closeEditor);
+
+  // Master AI Toggle
+  if (masterToggle) {
+    masterToggle.classList.toggle('active', currentSettings.enabled);
+    masterToggle.setAttribute('aria-checked', String(currentSettings.enabled));
+    masterToggle.addEventListener('click', async () => {
+      const next = !masterToggle.classList.contains('active');
+      masterToggle.classList.toggle('active', next);
+      masterToggle.setAttribute('aria-checked', String(next));
+      currentSettings.enabled = next;
+      await saveAIProvidersSettings(currentSettings);
+      await syncLegacyAndStatus();
+    });
+  }
+
+  // Render provider cards
+  async function renderProvidersList(): Promise<void> {
+    if (!providersListEl) return;
+    currentSettings = await getAIProvidersSettings();
+
+    if (currentSettings.providers.length === 0) {
+      setHTML(providersListEl, `
+        <div style="text-align:center;padding:24px 12px;background:var(--gray-50);border:1px dashed var(--border);border-radius:var(--radius);color:var(--gray-400);font-size:12px;">
+          No AI providers configured yet.<br>Click <strong>+ Add Provider</strong> above to add OpenAI, Groq, local Ollama, or any OpenAI-compatible API.
+        </div>
+      `);
+      return;
+    }
+
+    const html = currentSettings.providers.map(p => {
+      const isActive = p.id === currentSettings.activeProviderId;
+      const protocolLabel = p.protocol === 'ollama' ? 'Ollama (Local)' : 'OpenAI Compatible';
+      const keyDisplay = maskApiKey(p.apiKey);
+
+      return `
+        <div class="provider-card ${isActive ? 'active' : ''}" data-provider-id="${escapeHTML(p.id)}">
+          <div class="provider-card-header">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="provider-nickname">${escapeHTML(p.nickname)}</span>
+              <span class="provider-protocol-badge">${escapeHTML(protocolLabel)}</span>
+              ${isActive ? '<span class="provider-active-badge">Active</span>' : ''}
+            </div>
+            <div class="provider-actions">
+              ${!isActive ? `<button type="button" class="action-btn btn-set-active" data-id="${escapeHTML(p.id)}" style="padding:4px 8px;font-size:11px;">Set Active</button>` : ''}
+              <button type="button" class="action-btn btn-test-card" data-id="${escapeHTML(p.id)}" style="padding:4px 8px;font-size:11px;">Test</button>
+              <button type="button" class="action-btn btn-edit-card" data-id="${escapeHTML(p.id)}" style="padding:4px 8px;font-size:11px;">Edit</button>
+              <button type="button" class="action-btn btn-delete-card" data-id="${escapeHTML(p.id)}" style="padding:4px 8px;font-size:11px;color:#dc2626;border-color:#fecaca;">Delete</button>
+            </div>
+          </div>
+          <div class="provider-card-meta">
+            <div><strong>Endpoint:</strong> ${escapeHTML(p.baseUrl)}</div>
+            <div><strong>Chat Model:</strong> ${escapeHTML(p.chatModel)}</div>
+            ${p.embeddingModel ? `<div><strong>Embed Model:</strong> ${escapeHTML(p.embeddingModel)}</div>` : ''}
+            <div><strong>API Key:</strong> ${escapeHTML(keyDisplay)}</div>
+          </div>
+          <div class="provider-card-test-result" id="card-result-${escapeHTML(p.id)}" style="display:none;margin-top:8px;font-size:11px;padding:6px 10px;border-radius:6px;"></div>
+        </div>
+      `;
+    }).join('');
+
+    setHTML(providersListEl, html);
+
+    // Wire card buttons
+    providersListEl.querySelectorAll<HTMLButtonElement>('.btn-set-active').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+        await setActiveAIProviderId(id);
+        currentSettings = await getAIProvidersSettings();
+        await renderProvidersList();
+        await syncLegacyAndStatus();
+      });
+    });
+
+    providersListEl.querySelectorAll<HTMLButtonElement>('.btn-edit-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const p = currentSettings.providers.find(item => item.id === id);
+        if (p) openEditor(p);
+      });
+    });
+
+    providersListEl.querySelectorAll<HTMLButtonElement>('.btn-delete-card').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+        const p = currentSettings.providers.find(item => item.id === id);
+        if (!p) return;
+        if (!confirm(`Delete provider "${p.nickname}"?`)) return;
+        await deleteAIProvider(id);
+        currentSettings = await getAIProvidersSettings();
+        await renderProvidersList();
+        await syncLegacyAndStatus();
+      });
+    });
+
+    providersListEl.querySelectorAll<HTMLButtonElement>('.btn-test-card').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+        const p = currentSettings.providers.find(item => item.id === id);
+        if (!p) return;
+
+        const resultDiv = document.getElementById(`card-result-${id}`);
+        if (resultDiv) {
+          resultDiv.style.display = 'block';
+          resultDiv.style.background = '#fef3c7';
+          resultDiv.style.color = '#b45309';
+          resultDiv.textContent = 'Testing connection...';
+        }
+
+        btn.disabled = true;
+        const res = await testAIProviderConnection(p);
+        btn.disabled = false;
+
+        if (resultDiv) {
+          if (res.success) {
+            resultDiv.style.background = '#e8f5e9';
+            resultDiv.style.color = '#2e7d32';
+            const lat = res.latencyMs ? ` (${res.latencyMs}ms)` : '';
+            resultDiv.textContent = `Connected! ${res.version || 'Ready'}${lat}`;
+          } else if (res.corsBlocked) {
+            resultDiv.style.background = '#fffbeb';
+            resultDiv.style.color = '#d97706';
+            resultDiv.textContent = `CORS Blocked: needs OLLAMA_ORIGINS`;
+          } else {
+            resultDiv.style.background = '#ffebee';
+            resultDiv.style.color = '#c62828';
+            resultDiv.textContent = `Failed: ${res.error || 'Cannot reach endpoint'}`;
+          }
+        }
+      });
+    });
+  }
+
+  // Synchronize legacy inputs and badge text
+  async function syncLegacyAndStatus(): Promise<void> {
+    currentSettings = await getAIProvidersSettings();
+    const active = currentSettings.providers.find(p => p.id === currentSettings.activeProviderId)
+      || currentSettings.providers[0];
+
+    if (active) {
+      if (epLegacy) epLegacy.value = active.baseUrl;
+      if (chatLegacy) chatLegacy.value = active.chatModel;
+      if (embLegacy) embLegacy.value = active.embeddingModel || '';
+
+      if (!currentSettings.enabled) {
+        if (badge) { badge.textContent = 'Disabled'; badge.style.background = '#f3f4f6'; badge.style.color = '#6b7280'; }
+        if (hint) hint.textContent = 'AI features disabled — toggle on above to enable';
+        return;
+      }
+
+      if (badge) { badge.textContent = 'Checking...'; badge.style.background = '#fef3c7'; badge.style.color = '#b45309'; }
+      if (hint) hint.textContent = `Connecting to ${active.nickname}...`;
+
+      const res = await testAIProviderConnection(active);
+      if (res.success) {
+        if (badge) { badge.textContent = 'Connected'; badge.style.background = '#e8f5e9'; badge.style.color = '#2e7d32'; }
+        const lat = res.latencyMs ? ` (${res.latencyMs}ms)` : '';
+        if (hint) hint.textContent = `Active: ${active.nickname} · ${active.chatModel}${lat}`;
+      } else if (res.corsBlocked) {
+        if (badge) { badge.textContent = 'CORS Blocked'; badge.style.background = '#fffbeb'; badge.style.color = '#d97706'; }
+        if (hint) hint.textContent = `${active.nickname} reachable but blocking extension CORS`;
+      } else {
+        if (badge) { badge.textContent = 'Offline'; badge.style.background = '#ffebee'; badge.style.color = '#c62828'; }
+        if (hint) hint.textContent = `Cannot reach ${active.nickname}: ${res.error || 'Check endpoint'}`;
+      }
+    } else {
+      if (badge) { badge.textContent = 'No Provider'; badge.style.background = '#f3f4f6'; badge.style.color = '#6b7280'; }
+      if (hint) hint.textContent = 'No AI provider configured. Click + Add Provider to configure.';
+    }
+  }
+
+  // Legacy buttons support for backwards compatibility
+  document.getElementById('btn-test-ollama')?.addEventListener('click', async () => {
+    const active = currentSettings.providers.find(p => p.id === currentSettings.activeProviderId)
+      || currentSettings.providers[0];
+    if (!active) return;
+    if (legacyTestResult) {
+      legacyTestResult.textContent = 'Testing...';
+      legacyTestResult.className = 'ollama-test-result visible';
+    }
+    const res = await testAIProviderConnection(active);
+    if (legacyTestResult) {
+      if (res.success) {
+        legacyTestResult.textContent = `Connected! ${active.nickname} ready`;
+        legacyTestResult.className = 'ollama-test-result visible ok';
+      } else {
+        legacyTestResult.textContent = `Cannot reach ${active.nickname}: ${res.error}`;
+        legacyTestResult.className = 'ollama-test-result visible fail';
+      }
+    }
+    await syncLegacyAndStatus();
+  });
+
+  document.getElementById('btn-save-ollama')?.addEventListener('click', async () => {
+    const active = currentSettings.providers.find(p => p.id === currentSettings.activeProviderId)
+      || currentSettings.providers[0];
+    if (!active) return;
+    if (epLegacy?.value.trim()) active.baseUrl = epLegacy.value.trim();
+    if (chatLegacy?.value.trim()) active.chatModel = chatLegacy.value.trim();
+    if (embLegacy?.value.trim()) active.embeddingModel = embLegacy.value.trim();
+    await saveAIProvider(active);
+    await syncLegacyAndStatus();
+    showFeedback('feedback-ollama');
+  });
+
+  // Initial render
+  await renderProvidersList();
+  await syncLegacyAndStatus();
 }
 
 init();

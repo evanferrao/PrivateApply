@@ -432,6 +432,201 @@
     .ollama-test-result.ok { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
     .ollama-test-result.fail { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
+    /* ── AI Providers Section ── */
+    .ai-providers-container {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .btn-add-provider {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-add-provider:hover { background: var(--green-mid); }
+    .providers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .provider-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      background: var(--white);
+      transition: all 0.2s;
+    }
+    .provider-card:hover {
+      border-color: var(--gray-400);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .provider-card.active-provider {
+      border-color: var(--green);
+      background: var(--off-white);
+      box-shadow: 0 0 0 1px var(--green);
+    }
+    .provider-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .provider-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .provider-nickname {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--black);
+    }
+    .provider-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      background: var(--gray-100);
+      color: var(--gray-600);
+    }
+    .provider-tag.active {
+      background: var(--green-light);
+      color: var(--green);
+      font-weight: 600;
+    }
+    .provider-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 14px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    .provider-meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .provider-meta-label {
+      color: var(--gray-400);
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .provider-meta-value {
+      color: var(--black);
+      font-family: monospace;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .provider-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--gray-100);
+      flex-wrap: wrap;
+    }
+    .btn-provider-action {
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--gray-100);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--black);
+      transition: all 0.15s;
+    }
+    .btn-provider-action:hover { background: var(--gray-200); }
+    .btn-provider-action.btn-provider-active {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+    .btn-provider-action.btn-provider-active:hover { background: var(--green-mid); }
+    .btn-provider-action.btn-provider-delete:hover {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+    .provider-status-text {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gray-400);
+    }
+    .provider-status-text.ok { color: var(--green); }
+    .provider-status-text.fail { color: #dc2626; }
+
+    /* Provider Editor Drawer / Form */
+    .provider-editor-panel {
+      border: 1px solid var(--border);
+      background: var(--off-white);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .provider-editor-panel.open { display: flex; }
+    .preset-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .preset-pill {
+      padding: 4px 10px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--gray-600);
+      transition: all 0.15s;
+    }
+    .preset-pill:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-light);
+    }
+    .input-with-button {
+      display: flex;
+      gap: 8px;
+    }
+    .input-with-button input { flex: 1; }
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-wrapper input { padding-right: 55px; }
+    .password-toggle-btn {
+      position: absolute;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+    .password-toggle-btn:hover { color: var(--black); }
+
     /* Footer links */
     .footer {
       text-align: center;
@@ -590,40 +785,121 @@
       </div>
     </div>
 
-    <!-- Ollama AI Configuration -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">Ollama AI Configuration</div>
-        <div class="section-desc">Configure your local AI endpoint and models</div>
+    <!-- AI Providers Configuration -->
+    <div class="section" id="section-ai-providers">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div class="section-title">AI Providers &amp; Online Models</div>
+          <div class="section-desc">Connect multiple OpenAI-compatible online providers or local Ollama with custom nicknames</div>
+        </div>
+        <button class="btn-add-provider" id="btn-show-add-provider" type="button">+ Add Provider</button>
       </div>
+
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">AI Features</div>
-          <div class="setting-hint" id="ollama-status">Checking...</div>
+          <div class="setting-label">AI Capabilities</div>
+          <div class="setting-hint" id="ollama-status">Checking active provider...</div>
         </div>
-        <span id="ollama-badge" class="ollama-status-badge" style="background:#f0f0f0;color:#999;">--</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="ollama-badge" class="ollama-status-badge" style="background:#f0f0f0;color:#999;">--</span>
+          <div class="toggle active" id="toggle-ai-master" role="switch" aria-checked="true" aria-label="Enable AI capabilities" tabindex="0"></div>
+        </div>
       </div>
-      <div class="ollama-config-form">
-        <div class="ollama-field">
-          <label for="settings-ollama-endpoint">Endpoint URL</label>
+
+      <div class="ai-providers-container">
+        <!-- Add / Edit Provider Panel -->
+        <div class="provider-editor-panel" id="provider-editor-panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-weight:600;font-size:14px;" id="provider-form-title">Add AI Provider</div>
+            <button id="btn-close-provider-form" type="button" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:18px;line-height:1;">&times;</button>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-600);margin-bottom:6px;">Quick Presets</div>
+            <div class="preset-pills">
+              <button type="button" class="preset-pill" data-preset="openai">OpenAI</button>
+              <button type="button" class="preset-pill" data-preset="groq">Groq</button>
+              <button type="button" class="preset-pill" data-preset="openrouter">OpenRouter</button>
+              <button type="button" class="preset-pill" data-preset="deepseek">DeepSeek</button>
+              <button type="button" class="preset-pill" data-preset="together">Together AI</button>
+              <button type="button" class="preset-pill" data-preset="mistral">Mistral AI</button>
+              <button type="button" class="preset-pill" data-preset="ollama">Local Ollama</button>
+              <button type="button" class="preset-pill" data-preset="custom">Custom</button>
+            </div>
+          </div>
+
+          <input type="hidden" id="provider-form-id" value="">
+
+          <div class="ollama-field">
+            <label for="provider-input-nickname">Provider Nickname *</label>
+            <input type="text" id="provider-input-nickname" placeholder="e.g. Work OpenAI, Fast Groq, Local Ollama">
+            <small>A friendly nickname to identify this provider</small>
+          </div>
+
+          <div class="ollama-field">
+            <label for="provider-select-protocol">Protocol Type</label>
+            <select id="provider-select-protocol" class="setting-input" style="width:100%;margin-left:0;padding:9px 12px;">
+              <option value="openai">OpenAI Compatible (Online / Local)</option>
+              <option value="ollama">Ollama Native (Local)</option>
+            </select>
+            <small>All modern online LLM APIs (OpenAI, Groq, OpenRouter, DeepSeek, Together, vLLM) use OpenAI compatibility</small>
+          </div>
+
+          <div class="ollama-field">
+            <label for="provider-input-endpoint">API Endpoint / Base URL *</label>
+            <input type="url" id="provider-input-endpoint" placeholder="https://api.openai.com/v1">
+            <small>e.g. https://api.openai.com/v1, https://api.groq.com/openai/v1, http://localhost:11434</small>
+          </div>
+
+          <div class="ollama-field" id="provider-field-apikey">
+            <label for="provider-input-apikey">API Key</label>
+            <div class="password-wrapper">
+              <input type="password" id="provider-input-apikey" placeholder="sk-..." autocomplete="off">
+              <button type="button" class="password-toggle-btn" id="btn-toggle-key-visibility">Show</button>
+            </div>
+            <small id="provider-apikey-hint">Your API key is stored locally in your browser and never leaves this device</small>
+          </div>
+
+          <div class="ollama-field">
+            <label for="provider-input-chat-model">Chat Model *</label>
+            <div class="input-with-button">
+              <input type="text" id="provider-input-chat-model" list="provider-models-datalist" placeholder="e.g. gpt-4o-mini, llama-3.3-70b-versatile">
+              <button type="button" class="action-btn" id="btn-fetch-models" style="white-space:nowrap;padding:8px 12px;font-size:12px;">Fetch Models</button>
+            </div>
+            <datalist id="provider-models-datalist"></datalist>
+            <small>Model used for autofill reasoning, cover letters, and chat</small>
+          </div>
+
+          <div class="ollama-field">
+            <label for="provider-input-embed-model">Embedding Model (Optional)</label>
+            <input type="text" id="provider-input-embed-model" placeholder="e.g. text-embedding-3-small or nomic-embed-text">
+            <small>Optional: used for semantic vector search (keyword search used as automatic fallback)</small>
+          </div>
+
+          <div class="ollama-test-result" id="provider-form-test-result"></div>
+
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+            <button type="button" class="action-btn" id="btn-test-provider-form">Test Connection</button>
+            <button type="button" class="action-btn" id="btn-save-provider-form" style="background:var(--green);color:#fff;border-color:var(--green);">Save Provider</button>
+            <button type="button" class="action-btn" id="btn-cancel-provider-form">Cancel</button>
+            <span class="action-feedback" id="feedback-provider-form">Saved!</span>
+          </div>
+        </div>
+
+        <!-- Providers List -->
+        <div class="providers-list" id="providers-list">
+          <!-- Dynamically populated provider cards -->
+        </div>
+
+        <!-- Hidden legacy compatibility inputs to keep old tests & selectors working -->
+        <div style="display:none;">
           <input type="url" id="settings-ollama-endpoint" placeholder="http://localhost:11434">
-          <small>Default: http://localhost:11434</small>
-        </div>
-        <div class="ollama-field">
-          <label for="settings-ollama-chat-model">Chat Model</label>
           <input type="text" id="settings-ollama-chat-model" placeholder="llama3.2">
-          <small>e.g. llama3.2, llama3.2:1b, mistral</small>
-        </div>
-        <div class="ollama-field">
-          <label for="settings-ollama-embed-model">Embedding Model</label>
           <input type="text" id="settings-ollama-embed-model" placeholder="nomic-embed-text">
-          <small>Used for semantic field matching</small>
-        </div>
-        <div class="ollama-test-result" id="settings-ollama-test-result"></div>
-        <div class="ollama-actions">
-          <button class="action-btn" id="btn-test-ollama">Test Connection</button>
-          <button class="action-btn" id="btn-save-ollama">Save Config</button>
-          <span class="action-feedback" id="feedback-ollama">Saved</span>
+          <div id="settings-ollama-test-result"></div>
+          <button id="btn-test-ollama"></button>
+          <button id="btn-save-ollama"></button>
+          <span id="feedback-ollama"></span>
         </div>
       </div>
     </div>

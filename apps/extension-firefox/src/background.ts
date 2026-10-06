@@ -29,11 +29,28 @@ import { isJobURL } from './shared/ats-domains';
 import { getOllamaConfig } from './shared/ollama-config';
 import { ollamaFetch } from './shared/ollama-fetch';
 import { OllamaClient } from './shared/ollama-client';
+import {
+  getActiveAIProvider,
+  getAIProvidersSettings,
+  saveAIProvidersSettings,
+  setActiveAIProviderId,
+  saveAIProvider,
+  deleteAIProvider,
+  testAIProviderConnection,
+  fetchAvailableModels,
+  normalizeBaseUrl,
+  getChatCompletionsUrl,
+} from './shared/ai-provider-config';
+import { aiClient } from './shared/ai-client';
 
 interface ConnectionState {
   connected: boolean;
   lastError: string | null;
   checking: boolean;
+  providerNickname?: string;
+  providerId?: string;
+  protocol?: string;
+  chatModel?: string;
 }
 
 const connectionState: ConnectionState = {
@@ -71,7 +88,7 @@ async function ensureContentScript(tabId: number): Promise<boolean> {
 // isGenericJobEntry and isDuplicateSubmit are imported from ./shared/job-dedup
 
 /**
- * Check Ollama connection status
+ * Check AI connection status for the active provider
  */
 async function checkOllamaConnection(): Promise<void> {
   if (connectionState.checking) return;
@@ -79,31 +96,35 @@ async function checkOllamaConnection(): Promise<void> {
   connectionState.checking = true;
   
   try {
-    const isAvailable = await ollama.isAvailable();
+    const active = await getActiveAIProvider();
+    if (!active) {
+      connectionState.connected = false;
+      connectionState.lastError = 'No AI provider configured';
+      return;
+    }
+
+    connectionState.providerNickname = active.nickname;
+    connectionState.providerId = active.id;
+    connectionState.protocol = active.protocol;
+    connectionState.chatModel = active.chatModel;
+
+    const result = await testAIProviderConnection(active);
     
-    if (isAvailable) {
+    if (result.success) {
       if (!connectionState.connected) {
         connectionState.connected = true;
         connectionState.lastError = null;
-        info('Connected to Ollama');
-        
-        // Get version info
-        const version = await ollama.getVersion();
-        if (version) {
-          log('Ollama version:', version.version);
-        }
+        info(`Connected to AI Provider: ${active.nickname} (${result.version || active.chatModel})`);
       }
     } else {
-      if (connectionState.connected) {
-        connectionState.connected = false;
-        connectionState.lastError = 'Ollama not reachable at http://localhost:11434';
-        warn('Ollama connection lost');
-      }
+      connectionState.connected = false;
+      connectionState.lastError = result.error || 'Connection failed';
+      warn(`AI connection failed (${active.nickname}):`, result.error);
     }
   } catch (err) {
     connectionState.connected = false;
     connectionState.lastError = err instanceof Error ? err.message : 'Unknown error';
-    error('Error checking Ollama connection:', err);
+    error('Error checking AI connection:', err);
   } finally {
     connectionState.checking = false;
   }
@@ -988,20 +1009,132 @@ ${profileContext}`;
       return { injected: false };
     }
 
-    // ── Ollama Proxy — route content-script/extension-page calls through background ──
-    if (message.kind === 'OLLAMA_PROXY') {
+    // ── AI Provider Management ────────────────────────────────────────────────
+    if (message.kind === 'GET_AI_SETTINGS') {
+      const settings = await getAIProvidersSettings();
+      const active = await getActiveAIProvider();
+      return { settings, active, connected: connectionState.connected };
+    }
+
+    if (message.kind === 'SAVE_AI_SETTINGS') {
+      const msg = message as { kind: string; settings: any };
+      if (msg.settings) {
+        await saveAIProvidersSettings(msg.settings);
+        await checkOllamaConnection();
+      }
+      return { ok: true, connected: connectionState.connected };
+    }
+
+    if (message.kind === 'SET_ACTIVE_AI_PROVIDER') {
+      const msg = message as { kind: string; providerId: string };
+      if (msg.providerId) {
+        await setActiveAIProviderId(msg.providerId);
+        await checkOllamaConnection();
+      }
+      return { ok: true, connected: connectionState.connected, nickname: connectionState.providerNickname };
+    }
+
+    if (message.kind === 'SAVE_AI_PROVIDER') {
+      const msg = message as { kind: string; provider: any };
+      if (msg.provider) {
+        await saveAIProvider(msg.provider);
+        await checkOllamaConnection();
+      }
+      return { ok: true, connected: connectionState.connected };
+    }
+
+    if (message.kind === 'DELETE_AI_PROVIDER') {
+      const msg = message as { kind: string; providerId: string };
+      const success = msg.providerId ? await deleteAIProvider(msg.providerId) : false;
+      if (success) {
+        await checkOllamaConnection();
+      }
+      return { ok: success, connected: connectionState.connected };
+    }
+
+    if (message.kind === 'TEST_AI_PROVIDER') {
+      const msg = message as { kind: string; provider: any };
+      if (msg.provider) {
+        const result = await testAIProviderConnection(msg.provider);
+        return result;
+      }
+      return { success: false, error: 'No provider specified' };
+    }
+
+    if (message.kind === 'FETCH_AI_MODELS') {
+      const msg = message as { kind: string; baseUrl: string; apiKey?: string; protocol?: any };
+      const models = await fetchAvailableModels(msg.baseUrl, msg.apiKey, msg.protocol);
+      return { models };
+    }
+
+    // ── Ollama / AI Proxy — route content-script/extension-page calls through background ──
+    if (message.kind === 'OLLAMA_PROXY' || message.kind === 'AI_PROXY') {
       const msg = message as { kind: string; method: string; path: string; body?: any };
-      const config = await getOllamaConfig();
-      const endpoint = config.endpoint || 'http://localhost:11434';
+      const active = await getActiveAIProvider();
+      const endpoint = active?.baseUrl || 'http://localhost:11434';
+      const cleanEndpoint = normalizeBaseUrl(endpoint);
+
       try {
         const fetchOpts: RequestInit = {
           method: msg.method || 'GET',
           headers: { 'Content-Type': 'application/json' },
         };
+
+        if (active?.apiKey && active.apiKey.trim()) {
+          (fetchOpts.headers as Record<string, string>)['Authorization'] = `Bearer ${active.apiKey.trim()}`;
+        }
+        if (active?.headers) {
+          Object.assign(fetchOpts.headers as Record<string, string>, active.headers);
+        }
+
+        // Translation for OpenAI-compatible online providers
+        if (active && active.protocol === 'openai') {
+          if (msg.path === '/api/generate') {
+            const parsedBody = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+            const chatUrl = getChatCompletionsUrl(cleanEndpoint);
+            const messages: Array<{ role: string; content: string }> = [];
+            if (parsedBody?.system) {
+              messages.push({ role: 'system', content: parsedBody.system });
+            }
+            if (parsedBody?.prompt) {
+              messages.push({ role: 'user', content: parsedBody.prompt });
+            }
+            fetchOpts.method = 'POST';
+            fetchOpts.body = JSON.stringify({
+              model: active.chatModel || parsedBody?.model || 'gpt-4o-mini',
+              messages,
+              stream: false,
+              temperature: parsedBody?.options?.temperature ?? 0.1,
+              max_tokens: parsedBody?.options?.num_predict ?? 4096,
+            });
+            const resp = await ollamaFetch(chatUrl, fetchOpts);
+            const data = await resp.json().catch(() => ({}));
+            const content = data?.choices?.[0]?.message?.content ?? '';
+            return { ok: resp.ok, status: resp.status, data: { response: content } };
+          }
+
+          if (msg.path === '/api/embeddings') {
+            const parsedBody = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+            const embedModel = active.embeddingModel || 'text-embedding-3-small';
+            const embedUrl = cleanEndpoint.endsWith('/v1') ? `${cleanEndpoint}/embeddings` : `${cleanEndpoint}/v1/embeddings`;
+            fetchOpts.method = 'POST';
+            fetchOpts.body = JSON.stringify({
+              model: embedModel,
+              input: parsedBody?.prompt || '',
+            });
+            const resp = await ollamaFetch(embedUrl, fetchOpts);
+            const data = await resp.json().catch(() => ({}));
+            const embedding = data?.data?.[0]?.embedding || [];
+            return { ok: resp.ok, status: resp.status, data: { embedding } };
+          }
+        }
+
+        // Standard pass-through
         if (msg.body !== undefined) {
           fetchOpts.body = typeof msg.body === 'string' ? msg.body : JSON.stringify(msg.body);
         }
-        const resp = await ollamaFetch(`${endpoint}${msg.path}`, fetchOpts);
+        const targetUrl = msg.path.startsWith('http') ? msg.path : `${cleanEndpoint}${msg.path}`;
+        const resp = await ollamaFetch(targetUrl, fetchOpts);
         const text = await resp.text();
         let data: any;
         try { data = JSON.parse(text); } catch { data = text; }
@@ -1011,26 +1144,25 @@ ${profileContext}`;
       }
     }
 
-    if (message.kind === 'CHECK_OLLAMA') {
+    if (message.kind === 'CHECK_OLLAMA' || message.kind === 'CHECK_AI_STATUS') {
       if (!connectionState.connected) {
         await checkOllamaConnection();
       }
-      return { connected: connectionState.connected };
+      return {
+        connected: connectionState.connected,
+        nickname: connectionState.providerNickname || 'Local Ollama',
+        model: connectionState.chatModel || 'llama3.2',
+        protocol: connectionState.protocol || 'ollama',
+      };
     }
 
-    // Check which models are already pulled (GET — no Origin header, no 403)
-    if (message.kind === 'CHECK_OLLAMA_MODELS') {
+    // Check which models are available on active provider
+    if (message.kind === 'CHECK_OLLAMA_MODELS' || message.kind === 'GET_AI_MODELS') {
       try {
-        const config = await getOllamaConfig();
-        const endpoint = config.endpoint || 'http://localhost:11434';
-        const resp = await fetch(`${endpoint}/api/tags`);
-        if (!resp.ok) return { models: [] };
-        const data = await resp.json();
-        const names = (data.models || []).map((m: any) => {
-          const name: string = m.name || m.model || '';
-          return name.includes(':') ? name.split(':')[0] : name;
-        });
-        return { models: names };
+        const active = await getActiveAIProvider();
+        if (!active) return { models: [] };
+        const models = await fetchAvailableModels(active.baseUrl, active.apiKey, active.protocol);
+        return { models };
       } catch {
         return { models: [] };
       }
@@ -1234,42 +1366,21 @@ chrome.runtime.onConnect.addListener((port) => {
         port.postMessage({ kind: 'error', error: 'No prompt provided' });
         return;
       }
-      const config = await getOllamaConfig();
-      const endpoint = config.endpoint || 'http://localhost:11434';
-      const chatModel = model || config.chatModel || 'llama3.2';
       try {
-        const resp = await ollamaFetch(`${endpoint}/api/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: chatModel, prompt, stream: true }),
-        });
-        if (!resp.ok) {
-          port.postMessage({ kind: 'error', error: `HTTP ${resp.status}` });
-          return;
-        }
-        const reader = resp.body?.getReader();
-        if (!reader) { port.postMessage({ kind: 'error', error: 'No stream' }); return; }
-        const decoder = new TextDecoder();
-        let buffer = '';
         let fullValue = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const LF = String.fromCharCode(10);
-          const lines = buffer.split(LF);
-          buffer = lines.pop() || '';
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            try {
-              const data = JSON.parse(line);
-              if (data.response) {
-                fullValue += data.response;
-                port.postMessage({ kind: 'chunk', text: data.response });
-              }
-            } catch { /* partial JSON */ }
+        await aiClient.chatStream(
+          [
+            { role: 'system', content: 'You are an intelligent form autofill assistant. Output ONLY the raw field answer, with no extra commentary.' },
+            { role: 'user', content: prompt },
+          ],
+          {
+            model,
+            onChunk: (chunk) => {
+              fullValue += chunk;
+              try { port.postMessage({ kind: 'chunk', text: chunk }); } catch {}
+            },
           }
-        }
+        );
         port.postMessage({ kind: 'done', value: fullValue });
       } catch (err: any) {
         port.postMessage({ kind: 'error', error: err?.message || 'Inference failed' });

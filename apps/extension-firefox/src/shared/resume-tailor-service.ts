@@ -1,13 +1,10 @@
 /**
- * AI resume tailoring service using Ollama.
+ * AI resume tailoring service using AIClient.
  * Takes the user's resume and a job description, produces a tailored version
- * with keyword gap analysis.
+ * with keyword gap analysis across configured online OpenAI-compatible or local AI providers.
  */
 
-import { ollamaFetch } from './ollama-fetch';
-
-const OLLAMA_BASE_URL = 'http://localhost:11434';
-const MODEL = 'llama3.2';
+import { aiClient } from './ai-client';
 
 export interface TailorResult {
   tailoredResume: string;
@@ -69,23 +66,15 @@ export async function tailorResume(
 ): Promise<string> {
   const prompt = buildTailorPrompt(resumeText, jobDescription);
 
-  const response = await ollamaFetch(`${OLLAMA_BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      prompt,
-      stream: false,
-      options: { temperature: 0.3, num_predict: 4096 },
-    }),
-  });
+  const response = await aiClient.chat(
+    [
+      { role: 'system', content: 'You are an expert resume writer. Return only the tailored resume text.' },
+      { role: 'user', content: prompt },
+    ],
+    { temperature: 0.3 }
+  );
 
-  if (!response.ok) {
-    throw new Error(`Ollama error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return (data.response ?? '').trim();
+  return response.trim();
 }
 
 export async function analyzeKeywordGap(
@@ -94,26 +83,19 @@ export async function analyzeKeywordGap(
 ): Promise<KeywordAnalysis> {
   const prompt = buildKeywordPrompt(resumeText, jobDescription);
 
-  const response = await ollamaFetch(`${OLLAMA_BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      prompt,
-      stream: false,
-      options: { temperature: 0.1 },
-    }),
-  });
+  const response = await aiClient.chat(
+    [
+      { role: 'system', content: 'You are an ATS keyword match analyzer. Return only valid JSON.' },
+      { role: 'user', content: prompt },
+    ],
+    { temperature: 0.1 }
+  );
 
-  if (!response.ok) {
-    throw new Error(`Ollama error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const raw = data.response ?? '';
+  const raw = response.trim();
 
   try {
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       return {

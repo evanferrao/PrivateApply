@@ -1,14 +1,12 @@
 /**
- * Cover letter generation service — uses Ollama to produce a tailored cover
+ * Cover letter generation service — uses AIClient to produce a tailored cover
  * letter from the user's profile/resume and the scraped job description.
+ * Works with online OpenAI-compatible providers and local Ollama.
  */
 
 import type { UserProfile } from './profile';
 import type { JobDescription } from './job-description-scraper';
-import { ollamaFetch } from './ollama-fetch';
-
-const OLLAMA_BASE_URL = 'http://localhost:11434';
-const MODEL = 'llama3.2';
+import { aiClient } from './ai-client';
 
 export interface CoverLetterResult {
   text: string;          // the generated letter
@@ -28,49 +26,31 @@ export async function generateCoverLetter(
 
   onChunk?.('Generating cover letter…');
 
-  const response = await ollamaFetch(`${OLLAMA_BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: MODEL, prompt, stream: true }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Ollama error ${response.status}: ${response.statusText}`);
-  }
-
-  let fullText = '';
-  const reader = response.body?.getReader();
-  if (reader) {
-    const decoder = new TextDecoder();
-    let buffer = '';
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const LF = String.fromCharCode(10);
-      const lines = buffer.split(LF);
-      buffer = lines.pop() || '';
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const data = JSON.parse(line);
-          if (data.response) {
-            fullText += data.response;
-            onChunk?.(cleanCoverLetter(fullText));
-          }
-        } catch { /* partial JSON — skip */ }
-      }
+  let accumulated = '';
+  const fullText = await aiClient.chatStream(
+    [
+      {
+        role: 'system',
+        content: 'You are an expert career counselor and professional resume writer. Write tailored, compelling cover letters.',
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    {
+      temperature: 0.7,
+      onChunk: (delta) => {
+        accumulated += delta;
+        onChunk?.(cleanCoverLetter(accumulated));
+      },
     }
-  } else {
-    const data = await response.json();
-    fullText = data.response ?? '';
-    onChunk?.(cleanCoverLetter(fullText));
-  }
+  );
 
-  fullText = cleanCoverLetter(fullText);
+  const cleaned = cleanCoverLetter(fullText || accumulated);
 
   return {
-    text: fullText,
+    text: cleaned,
     jobTitle: job.title,
     company: job.company,
     generatedAt: Date.now(),
@@ -118,143 +98,80 @@ Rules:
 
   onChunk?.('Refining cover letter…');
 
-  const response = await ollamaFetch(`${OLLAMA_BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: MODEL, prompt, stream: true }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Ollama error ${response.status}: ${response.statusText}`);
-  }
-
-  let fullText = '';
-  const reader = response.body?.getReader();
-  if (reader) {
-    const decoder = new TextDecoder();
-    let buffer = '';
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const LF = String.fromCharCode(10);
-      const lines = buffer.split(LF);
-      buffer = lines.pop() || '';
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const data = JSON.parse(line);
-          if (data.response) {
-            fullText += data.response;
-            onChunk?.(cleanCoverLetter(fullText));
-          }
-        } catch { /* partial JSON — skip */ }
-      }
+  let accumulated = '';
+  const fullText = await aiClient.chatStream(
+    [
+      { role: 'system', content: 'You are an expert career counselor. Refine the cover letter precisely as instructed.' },
+      { role: 'user', content: prompt },
+    ],
+    {
+      temperature: 0.7,
+      onChunk: (delta) => {
+        accumulated += delta;
+        onChunk?.(cleanCoverLetter(accumulated));
+      },
     }
-  } else {
-    const data = await response.json();
-    fullText = data.response ?? '';
-    onChunk?.(cleanCoverLetter(fullText));
-  }
+  );
 
-  return cleanCoverLetter(fullText);
+  return cleanCoverLetter(fullText || accumulated);
 }
 
-// ── Prompt builder ──────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildPrompt(profile: UserProfile, job: JobDescription): string {
-  const name = `${profile.personal.firstName} ${profile.personal.lastName}`.trim();
-  const email = profile.personal.email;
-  const phone = profile.personal.phone;
-  const location = profile.personal.location;
+  const candidateName =
+    `${profile.personal.firstName} ${profile.personal.lastName}`.trim() || 'the applicant';
 
-  // Build concise experience summary
-  const experience = profile.work
+  const workExperience = (profile.work ?? [])
     .slice(0, 3)
-    .map(w => `${w.title} at ${w.company} (${w.startDate}–${w.endDate || 'Present'}): ${w.description.slice(0, 200)}`)
+    .map(
+      (w) =>
+        `- ${w.title} at ${w.company} (${w.startDate}–${w.endDate || 'Present'}): ${w.description || ''}`,
+    )
     .join('\n');
 
-  const education = profile.education
+  const skillsList = (profile.skills ?? []).slice(0, 15).join(', ');
+
+  const education = (profile.education ?? [])
     .slice(0, 2)
-    .map(e => `${e.degree} in ${e.field}, ${e.school} (${e.graduationYear})`)
+    .map((e) => `- ${e.degree} in ${e.field} from ${e.school} (${e.graduationYear || ''})`)
     .join('\n');
 
-  const skills = profile.skills.slice(0, 20).join(', ');
-
-  const summary = profile.summary || '';
-
-  // Trim JD to avoid blowing context
-  const jdText = job.description.slice(0, 4000);
-
-  return `You are writing a professional cover letter for a job application.
-
-APPLICANT INFORMATION:
-- Name: ${name}
-- Email: ${email}
-- Phone: ${phone}
-- Location: ${location}
-${summary ? `- Professional Summary: ${summary}` : ''}
-
-WORK EXPERIENCE:
-${experience || 'Not provided'}
-
-EDUCATION:
-${education || 'Not provided'}
-
-KEY SKILLS:
-${skills || 'Not provided'}
+  return `Write a professional, tailored cover letter for ${candidateName} applying for the following role.
 
 JOB DETAILS:
-- Position: ${job.title}
-- Company: ${job.company}
-${job.location ? `- Location: ${job.location}` : ''}
+Title: ${job.title}
+Company: ${job.company}
+Location: ${job.location || 'Not specified'}
+Job Description:
+${job.description.slice(0, 2500)}
 
-JOB DESCRIPTION:
-${jdText}
+APPLICANT PROFILE:
+Summary: ${profile.summary || 'Experienced professional.'}
+Key Skills: ${skillsList || 'Not specified'}
+Recent Experience:
+${workExperience || 'Not specified'}
+Education:
+${education || 'Not specified'}
 
-INSTRUCTIONS:
-Write a compelling, professional cover letter tailored to this specific position.
-
-Rules:
-1. Write in first person.
-2. 3-4 paragraphs, roughly 250-350 words.
-3. Opening: Express genuine interest in the specific role and company.
-4. Body: Highlight 2-3 most relevant experiences/skills from the applicant's background that directly match the job requirements. Use specific examples.
-5. Closing: Express enthusiasm and include a call to action.
-6. Tone: Professional yet personable. Confident but not arrogant.
-7. Do NOT include the date, recipient address, "Dear Hiring Manager" header, or closing signature — just the letter body.
-8. Do NOT include any preamble like "Here is..." or "Sure, here's...".
-9. Do NOT use placeholder text like [Company Name] — use the actual company name.
-10. Output ONLY the cover letter text. Nothing else.`;
+GUIDELINES:
+1. Write 3-4 concise paragraphs (under 350 words).
+2. Paragraph 1: Hook the reader — express enthusiasm for the specific role at ${job.company} and state why you are a strong fit.
+3. Paragraph 2: Highlight 1-2 relevant achievements from your experience that directly match the job requirements. Use concrete details.
+4. Paragraph 3: Explain why ${job.company}'s mission or work appeals to you, and how your skills contribute to their goals.
+5. Paragraph 4: Confident, professional closing with a call to action (look forward to discussing).
+6. Do NOT invent qualifications, companies, or metrics not in the applicant's profile.
+7. Tone: Confident, professional, warm — not overly stiff or generic.
+8. Output ONLY the letter text (start directly with "Dear Hiring Team," or "Dear [Company] Team," and end with "Sincerely,\n${candidateName}").
+9. Do not include placeholder brackets like [Your Name] — use actual values from the profile.`;
 }
 
-// ── Cleanup ─────────────────────────────────────────────────────────────────
-
-function cleanCoverLetter(text: string): string {
-  let cleaned = text.trim();
-
-  // Strip common LLM preambles
-  const preambles = [
-    /^(here\s+(is|are)\s+.*?:\s*)/i,
-    /^(sure[,!]?\s.*?:\s*)/i,
-    /^(of\s+course[,!]?\s.*?:\s*)/i,
-    /^(certainly[,!]?\s.*?:\s*)/i,
-  ];
-  for (const re of preambles) {
-    cleaned = cleaned.replace(re, '');
-  }
-
-  // Remove surrounding quotes
-  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) ||
-      (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
-    cleaned = cleaned.slice(1, -1).trim();
-  }
-
-  // Fix literal \n to actual newlines
-  cleaned = cleaned.replace(/\\n/g, '\n');
-
-  // Normalize excessive blank lines
-  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
-
-  return cleaned.trim();
+function cleanCoverLetter(raw: string): string {
+  return raw
+    .replace(/^here(?:'s| is) (?:a |the |your )?cover letter.*?:?\s*/i, '')
+    .replace(/^certainly!.*?\n/i, '')
+    .replace(/^sure!.*?\n/i, '')
+    .replace(/```(?:markdown)?\s*/g, '')
+    .replace(/```\s*$/g, '')
+    .trim();
 }

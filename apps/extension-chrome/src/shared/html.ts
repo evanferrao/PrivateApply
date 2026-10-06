@@ -27,3 +27,13 @@ export function appendHTML(el: Element, html: string): void {
 export function clearEl(el: Element): void {
   el.replaceChildren();
 }
+
+/** Escape HTML entities for safe template insertion. */
+export function escapeHTML(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}

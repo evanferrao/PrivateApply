@@ -3,6 +3,28 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // Mock browser.storage.local before importing service
 const mockStorage: Record<string, unknown> = {};
 
+vi.mock('../../browser-compat', () => ({
+  default: {
+    storage: {
+      local: {
+        get: vi.fn(async (keys: string[]) => {
+          const result: Record<string, unknown> = {};
+          for (const k of keys) {
+            if (mockStorage[k] !== undefined) result[k] = mockStorage[k];
+          }
+          return result;
+        }),
+        set: vi.fn(async (data: Record<string, unknown>) => {
+          Object.assign(mockStorage, data);
+        }),
+        remove: vi.fn(async (keys: string[]) => {
+          for (const k of keys) delete mockStorage[k];
+        }),
+      },
+    },
+  },
+}));
+
 vi.stubGlobal('browser', {
   storage: {
     local: {
