@@ -1,0 +1,9 @@
+{
+  "name": "com.privateapply.companion",
+  "description": "PrivateApply Linux compilation companion for AI LaTeX resume editor",
+  "path": "/home/box/.local/lib/privateapply/privateapply_companion.py",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://*/"
+  ]
+}

@@ -228,6 +228,70 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
       });
     }
 
+    // ── Native Messaging — PrivateApply LaTeX Compilation Companion ───────────
+    const PRIVATEAPPLY_HOST_ID = 'com.privateapply.companion';
+
+    if ((message as any).kind === 'COMPANION_GET_STATUS') {
+      return new Promise((resolve) => {
+        let resolved = false;
+        const done = (result: any) => { if (!resolved) { resolved = true; resolve(result); } };
+        const timeout = setTimeout(() => {
+          done({ installed: false, error: 'Timeout waiting for PrivateApply companion response' });
+        }, 5000);
+        try {
+          const port = browser.runtime.connectNative(PRIVATEAPPLY_HOST_ID);
+          port.postMessage({ cmd: 'get_status' });
+          port.onMessage.addListener((res: any) => {
+            clearTimeout(timeout);
+            done({
+              installed: Boolean(res.ok),
+              version: res.version,
+              platform: res.platform,
+              texInstalled: res.tex_installed,
+              engines: res.engines,
+            });
+            try { port.disconnect(); } catch {}
+          });
+          port.onDisconnect.addListener(() => {
+            clearTimeout(timeout);
+            const errMsg = (browser.runtime.lastError as any)?.message ?? 'Companion not connected';
+            done({ installed: false, error: errMsg });
+          });
+        } catch (err) {
+          clearTimeout(timeout);
+          done({ installed: false, error: String(err) });
+        }
+      });
+    }
+
+    if ((message as any).kind === 'COMPANION_COMPILE_LATEX') {
+      const payload = (message as any).payload || {};
+      return new Promise((resolve) => {
+        let resolved = false;
+        const done = (result: any) => { if (!resolved) { resolved = true; resolve(result); } };
+        const timeout = setTimeout(() => {
+          done({ ok: false, success: false, errorType: 'TIMEOUT', message: 'Compilation timed out' });
+        }, 60000);
+        try {
+          const port = browser.runtime.connectNative(PRIVATEAPPLY_HOST_ID);
+          port.postMessage(payload);
+          port.onMessage.addListener((res: any) => {
+            clearTimeout(timeout);
+            done(res);
+            try { port.disconnect(); } catch {}
+          });
+          port.onDisconnect.addListener(() => {
+            clearTimeout(timeout);
+            const errMsg = (browser.runtime.lastError as any)?.message ?? 'Companion host disconnected';
+            done({ ok: false, success: false, errorType: 'DISCONNECT', message: errMsg });
+          });
+        } catch (err) {
+          clearTimeout(timeout);
+          done({ ok: false, success: false, errorType: 'EXCEPTION', message: String(err) });
+        }
+      });
+    }
+
     // Handle PARSE_RESUME from onboarding page
     if (message.kind === 'PARSE_RESUME') {
       info('Received PARSE_RESUME request from onboarding');

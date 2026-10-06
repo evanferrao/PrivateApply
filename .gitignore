@@ -64,6 +64,9 @@ mastra/
 # Personal and sensitive information
 .cursor/
 docs/
+!docs/latex-editor-and-companion.md
+__pycache__/
+*.pyc
 CLEANUP_ANALYSIS.md
 REPORT.md
 *.personal.*

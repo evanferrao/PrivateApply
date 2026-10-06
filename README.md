@@ -33,16 +33,21 @@
 
 ## What It Does
 
-Offlyn Apply detects job application forms on sites like Workday, Greenhouse, Lever, and plain HTML forms, then fills them out automatically using your stored profile. Everything runs locally via [Ollama](https://ollama.com) — no cloud, no API keys, no data sent anywhere.
+PrivateApply detects job application forms on sites like Workday, Greenhouse, Lever, and plain HTML forms, then fills them out automatically using your stored profile. It also features a dedicated, privacy-first **AI LaTeX Résumé Editor** with a Linux Native Messaging compilation companion that preserves professional résumé formatting while compiling PDFs locally using your installed TeX distribution. Everything runs locally via [Ollama](https://ollama.com) or optional user-configured providers — with zero data sent to external servers unless explicitly configured.
 
 | Feature | Description |
 |---|---|
+| **AI LaTeX Résumé Editor** | Tailor your existing `.tex` source to job descriptions without breaking formatting or macros |
+| **Linux TeX Companion** | Compiles tailored LaTeX directly into high-fidelity PDFs via Chrome Native Messaging |
+| **Compile-and-Repair Loop** | Automatically catches TeX diagnostics and requests bounded corrective patches from AI |
 | **Smart Auto-Fill** | Detects all form fields and fills them from your profile in seconds |
 | **AI Cover Letters** | Generates tailored cover letters using a local Ollama model |
 | **Application Tracker** | Kanban dashboard to track every application from submitted to offer |
-| **100% Private** | All data in `browser.storage.local` — no backend, no sync, no cloud |
+| **100% Private** | All data in `browser.storage.local` — no backend, no sync, no cloud tracking |
 | **ATS Detection** | Identifies Workday, Greenhouse, Lever, and 50+ other ATS systems |
 | **Learns From You** | Reinforcement learning improves autofill accuracy from your corrections |
+
+See [LaTeX Editor & Companion Documentation](docs/latex-editor-and-companion.md) for architecture, installation, and security specifications.
 
 ---
 

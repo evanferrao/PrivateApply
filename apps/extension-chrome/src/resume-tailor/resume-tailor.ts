@@ -1,11 +1,163 @@
 /**
- * Resume Tailor page logic — loads profile resume, accepts JD input,
- * calls Ollama for tailoring + keyword gap analysis, displays results.
+ * PrivateApply — AI LaTeX Résumé Editor & Compilation Companion
+ * UI controller for LaTeX parsing, patch editing, diff inspection,
+ * TeX compilation, and PDF preview.
  */
 
 import browser from '../shared/browser-compat';
 import { getUserProfile } from '../shared/profile';
+import {
+  getAIProvidersSettings,
+  getActiveAIProvider,
+  setActiveAIProviderId,
+  AIProviderConfig,
+} from '../shared/ai-provider-config';
+import { aiClient } from '../shared/ai-client';
+import { companionClient, CompanionStatus } from '../shared/companion-client';
+import { latexTailorService, LatexTailorResult } from '../shared/latex-tailor-service';
 import { tailorResume, analyzeKeywordGap } from '../shared/resume-tailor-service';
+import { DiffLine, SemanticChange } from '../shared/latex-patch/types';
+
+// DOM Elements
+const tabModeLatex = document.getElementById('tab-mode-latex') as HTMLButtonElement;
+const tabModePlaintext = document.getElementById('tab-mode-plaintext') as HTMLButtonElement;
+
+const aiStatusDot = document.getElementById('ai-status-dot') as HTMLElement;
+const aiProviderSelect = document.getElementById('ai-provider-select') as HTMLSelectElement;
+const remoteDisclosureTag = document.getElementById('remote-disclosure-tag') as HTMLElement;
+
+const companionStatusDot = document.getElementById('companion-status-dot') as HTMLElement;
+const companionStatusText = document.getElementById('companion-status-text') as HTMLElement;
+const btnCompanionGuide = document.getElementById('btn-companion-guide') as HTMLButtonElement;
+const companionGuideBox = document.getElementById('companion-guide-box') as HTMLElement;
+const btnCloseGuide = document.getElementById('btn-close-guide') as HTMLButtonElement;
+
+const texEngineSelect = document.getElementById('tex-engine-select') as HTMLSelectElement;
+const engineSelectGroup = document.getElementById('engine-select-group') as HTMLElement;
+
+const resumePanelTitle = document.getElementById('resume-panel-title') as HTMLElement;
+const resumeEditor = document.getElementById('resume-editor') as HTMLTextAreaElement;
+const jdEditor = document.getElementById('jd-editor') as HTMLTextAreaElement;
+
+const texFileUpload = document.getElementById('tex-file-upload') as HTMLInputElement;
+const btnUploadTex = document.getElementById('btn-upload-tex') as HTMLButtonElement;
+const btnLoadSample = document.getElementById('btn-load-sample') as HTMLButtonElement;
+const btnScrapeJd = document.getElementById('btn-scrape-jd') as HTMLButtonElement;
+
+const btnTailorMain = document.getElementById('btn-tailor-main') as HTMLButtonElement;
+const btnTailorLabel = document.getElementById('btn-tailor-label') as HTMLElement;
+const btnCompileOnly = document.getElementById('btn-compile-only') as HTMLButtonElement;
+const btnDownloadPdf = document.getElementById('btn-download-pdf') as HTMLButtonElement;
+const btnDownloadTex = document.getElementById('btn-download-tex') as HTMLButtonElement;
+const btnRollback = document.getElementById('btn-rollback') as HTMLButtonElement;
+const liveStatusText = document.getElementById('live-status-text') as HTMLElement;
+
+const inspectionContainer = document.getElementById('inspection-container') as HTMLElement;
+const pdfPreviewIframe = document.getElementById('pdf-preview-iframe') as HTMLIFrameElement;
+const diffTableBody = document.getElementById('diff-table-body') as HTMLElement;
+const semanticChangesBox = document.getElementById('semantic-changes-box') as HTMLElement;
+const tailoredSourceView = document.getElementById('tailored-source-view') as HTMLTextAreaElement;
+const diagnosticsSummary = document.getElementById('diagnostics-summary') as HTMLElement;
+const diagnosticsLogText = document.getElementById('diagnostics-log-text') as HTMLElement;
+const keywordsPresentBox = document.getElementById('keywords-present-box') as HTMLElement;
+const keywordsMissingBox = document.getElementById('keywords-missing-box') as HTMLElement;
+
+// App State
+type EditorMode = 'latex' | 'plaintext';
+let currentMode: EditorMode = 'latex';
+let originalTexSource: string = '';
+let currentTailoredTex: string = '';
+let currentPdfBase64: string = '';
+let currentPdfBlobUrl: string = '';
+let sourceTabId: number | null = null;
+
+const SAMPLE_LATEX = `\\documentclass[letterpaper,11pt]{article}
+\\usepackage{latexsym}
+\\usepackage[empty]{fullpage}
+\\usepackage{titlesec}
+\\usepackage{marvosym}
+\\usepackage[usenames,dvipsnames]{color}
+\\usepackage{verbatim}
+\\usepackage{enumitem}
+\\usepackage[hidelinks]{hyperref}
+\\usepackage{fancyhdr}
+
+\\pagestyle{fancy}
+\\fancyhf{}
+\\renewcommand{\\headrulewidth}{0pt}
+\\renewcommand{\\footrulewidth}{0pt}
+
+\\addtolength{\\oddsidemargin}{-0.5in}
+\\addtolength{\\evensidemargin}{-0.5in}
+\\addtolength{\\textwidth}{1in}
+\\addtolength{\\topmargin}{-.5in}
+\\addtolength{\\textheight}{1.0in}
+
+\\urlstyle{same}
+\\raggedbottom
+\\raggedright
+\\setlength{\\tabcolsep}{0in}
+
+\\titleformat{\\section}{
+  \\vspace{-4pt}\\scshape\\raggedright\\large
+}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+
+\\begin{document}
+
+\\begin{center}
+  \\textbf{\\Huge \\scshape Jane Doe} \\\\ \\vspace{1pt}
+  \\small +1 (555) 019-2834 $|$ \\href{mailto:jane.doe@example.com}{\\underline{jane.doe@example.com}} $|$ 
+  \\href{https://linkedin.com/in/janedoe}{\\underline{linkedin.com/in/janedoe}} $|$
+  \\href{https://github.com/janedoe}{\\underline{github.com/janedoe}}
+\\end{center}
+
+\\section{Experience}
+  \\begin{itemize}[leftmargin=0.15in, label={}]
+    \\item
+      \\textbf{Senior Full Stack Engineer} -- CloudScale Inc. \\hfill Jan 2022 -- Present
+      \\begin{itemize}
+        \\item Designed and deployed microservices handling 25M daily requests using TypeScript, Node.js, and Redis.
+        \\item Spearheaded migration of legacy monolith to containerized Docker services orchestrated with Kubernetes.
+        \\item Optimized PostgreSQL relational schema and indexing, cutting p99 query latency by 35\\%.
+        \\item Collaborated closely with cross-functional product and design teams in weekly agile sprints.
+      \\end{itemize}
+    \\item
+      \\textbf{Software Engineer} -- DataPulse Systems \\hfill Jul 2019 -- Dec 2021
+      \\begin{itemize}
+        \\item Developed full-stack features using React, TypeScript, and Python Flask with 99.9\\% SLA uptime.
+        \\item Implemented end-to-end automated testing pipelines with Jest and Playwright, improving test coverage by 25\\%.
+        \\item Mentored junior engineers and conducted peer code reviews adhering to high engineering standards.
+      \\end{itemize}
+  \\end{itemize}
+
+\\section{Projects}
+  \\begin{itemize}[leftmargin=0.15in, label={}]
+    \\item
+      \\textbf{Distributed Task Queue}: High-performance async queue system built with Go and Redis.
+    \\item
+      \\textbf{Telemetry Dashboard}: Real-time metrics visualization platform built using React and WebSockets.
+  \\end{itemize}
+
+\\section{Technical Skills}
+  \\begin{itemize}[leftmargin=0.15in, label={}]
+    \\item \\textbf{Languages}: TypeScript, JavaScript, Python, Go, SQL, HTML/CSS
+    \\item \\textbf{Frameworks \\& Libraries}: React, Next.js, Node.js, Express, Tailwind CSS
+    \\item \\textbf{Infrastructure \\& Tools}: Docker, Kubernetes, AWS (S3, ECS, RDS), Git, Linux, PostgreSQL, Redis
+  \\end{itemize}
+
+\\section{Education}
+  \\begin{itemize}[leftmargin=0.15in, label={}]
+    \\item
+      \\textbf{University of California, Berkeley} \\hfill Aug 2015 -- May 2019\\\\
+      Bachelor of Science in Computer Science
+  \\end{itemize}
+
+\\end{document}
+`;
+
+function setLiveStatus(msg: string): void {
+  if (liveStatusText) liveStatusText.textContent = msg;
+}
 
 function escapeHtml(s: string): string {
   const d = document.createElement('div');
@@ -13,233 +165,517 @@ function escapeHtml(s: string): string {
   return d.innerHTML;
 }
 
-function mdToHtml(md: string): string {
-  let html = escapeHtml(md);
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
-  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-  html = html.replace(/^---$/gm, '<hr>');
-  html = html.replace(/\n{2,}/g, '</p><p>');
-  html = '<p>' + html + '</p>';
-  html = html.replace(/<p>\s*(<h[123]>)/g, '$1');
-  html = html.replace(/(<\/h[123]>)\s*<\/p>/g, '$1');
-  html = html.replace(/<p>\s*(<ul>)/g, '$1');
-  html = html.replace(/(<\/ul>)\s*<\/p>/g, '$1');
-  html = html.replace(/<p>\s*(<hr>)\s*<\/p>/g, '$1');
-  html = html.replace(/<p>\s*<\/p>/g, '');
-  return html;
+// ── Mode Switching ─────────────────────────────────────────────────────────────
+
+function switchMode(mode: EditorMode): void {
+  currentMode = mode;
+  if (mode === 'latex') {
+    tabModeLatex.classList.add('active');
+    tabModePlaintext.classList.remove('active');
+    resumePanelTitle.textContent = 'LaTeX Résumé Source (.tex)';
+    btnUploadTex.style.display = 'inline-flex';
+    btnLoadSample.style.display = 'inline-flex';
+    btnCompileOnly.style.display = 'inline-flex';
+    btnDownloadPdf.style.display = 'inline-flex';
+    btnDownloadTex.style.display = 'inline-flex';
+    engineSelectGroup.style.display = 'inline-flex';
+    btnTailorLabel.textContent = 'Tailor & Compile LaTeX';
+    resumeEditor.placeholder = 'Paste your \\documentclass LaTeX résumé source here, or click "Upload .tex"...';
+    if (!resumeEditor.value.includes('\\documentclass') && originalTexSource) {
+      resumeEditor.value = originalTexSource;
+    }
+  } else {
+    tabModePlaintext.classList.add('active');
+    tabModeLatex.classList.remove('active');
+    resumePanelTitle.textContent = 'Plain Text / Markdown Résumé';
+    btnUploadTex.style.display = 'none';
+    btnLoadSample.style.display = 'none';
+    btnCompileOnly.style.display = 'none';
+    btnDownloadPdf.style.display = 'none';
+    btnDownloadTex.style.display = 'none';
+    engineSelectGroup.style.display = 'none';
+    btnTailorLabel.textContent = 'Tailor Resume';
+    resumeEditor.placeholder = 'Paste your plain text or Markdown résumé here...';
+  }
 }
 
-const resumeTextArea = document.getElementById('resume-text') as HTMLTextAreaElement;
-const jdTextArea = document.getElementById('jd-text') as HTMLTextAreaElement;
-const btnTailor = document.getElementById('btn-tailor') as HTMLButtonElement;
-const btnExport = document.getElementById('btn-export') as HTMLButtonElement;
-const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
-const btnScrape = document.getElementById('btn-scrape') as HTMLButtonElement;
-const statusText = document.getElementById('status-text') as HTMLElement;
-const keywordSection = document.getElementById('keyword-section') as HTMLElement;
-const keywordScoreEl = document.getElementById('keyword-score') as HTMLElement;
-const keywordsPresentEl = document.getElementById('keywords-present') as HTMLElement;
-const keywordsMissingEl = document.getElementById('keywords-missing') as HTMLElement;
-const resultPanel = document.getElementById('result-panel') as HTMLElement;
-const resultText = document.getElementById('result-text') as HTMLElement;
+// ── AI Provider Management ─────────────────────────────────────────────────────
 
-let tailoredResult = '';
-let sourceTabId: number | null = null;
+async function loadAIProviders(): Promise<void> {
+  try {
+    const settings = await getAIProvidersSettings();
+    const active = await getActiveAIProvider();
 
-// Wire up "Got it" dismiss for the PDF instructions banner
-document.getElementById('pdf-instructions-close')?.addEventListener('click', () => {
-  const el = document.getElementById('pdf-instructions');
-  if (el) el.classList.remove('visible');
+    aiProviderSelect.innerHTML = '';
+    for (const prov of settings.providers) {
+      if (!prov.enabled) continue;
+      const opt = document.createElement('option');
+      opt.value = prov.id;
+      opt.textContent = `${prov.nickname} (${prov.chatModel})`;
+      if (active && prov.id === active.id) {
+        opt.selected = true;
+      }
+      aiProviderSelect.appendChild(opt);
+    }
+
+    updateProviderDisclosure(active);
+  } catch (err) {
+    console.warn('Failed to load AI providers:', err);
+  }
+}
+
+function updateProviderDisclosure(provider: AIProviderConfig | null): void {
+  if (!provider) {
+    aiStatusDot.className = 'status-dot disconnected';
+    remoteDisclosureTag.style.display = 'none';
+    return;
+  }
+
+  aiStatusDot.className = 'status-dot connected';
+  const isRemote = provider.protocol === 'openai' || !provider.baseUrl.includes('localhost') && !provider.baseUrl.includes('127.0.0.1');
+
+  if (isRemote) {
+    remoteDisclosureTag.style.display = 'inline-block';
+    remoteDisclosureTag.title = `Notice: Tailoring queries will be sent to remote provider: ${provider.nickname} (${provider.baseUrl})`;
+  } else {
+    remoteDisclosureTag.style.display = 'none';
+  }
+}
+
+aiProviderSelect?.addEventListener('change', async () => {
+  const selectedId = aiProviderSelect.value;
+  await setActiveAIProviderId(selectedId);
+  const active = await getActiveAIProvider();
+  updateProviderDisclosure(active);
+  setLiveStatus(`Switched AI provider to ${active?.nickname || selectedId}`);
 });
 
-const OLLAMA_URL = 'http://localhost:11434';
+// ── Linux Companion Detection ──────────────────────────────────────────────────
 
-async function checkOllamaStatus(): Promise<boolean> {
-  const indicatorEl = document.getElementById('ollama-indicator');
-  const statusLabelEl = document.getElementById('ollama-status-label');
+async function checkCompanion(): Promise<void> {
+  companionStatusDot.className = 'status-dot';
+  companionStatusText.textContent = 'Checking native companion...';
+
   try {
-    const res = await fetch(`${OLLAMA_URL}/api/version`, { method: 'GET', signal: AbortSignal.timeout(3000) });
-    if (res.ok) {
-      if (indicatorEl) { indicatorEl.className = 'ollama-indicator connected'; }
-      if (statusLabelEl) { statusLabelEl.textContent = 'Ollama Connected'; }
-      if (btnTailor) btnTailor.disabled = false;
-      return true;
+    const status: CompanionStatus = await companionClient.getStatus();
+    if (status.installed) {
+      if (status.texInstalled) {
+        companionStatusDot.className = 'status-dot connected';
+        const engines = Object.keys(status.engines || {}).filter(k => status.engines?.[k]?.available);
+        companionStatusText.textContent = `Ready (${engines.join(', ') || 'TeX detected'})`;
+      } else {
+        companionStatusDot.className = 'status-dot warning';
+        companionStatusText.textContent = 'Connected (TeX engines missing on host)';
+      }
+    } else {
+      companionStatusDot.className = 'status-dot disconnected';
+      companionStatusText.textContent = 'Not installed (Compilation skipped)';
     }
-  } catch { /* offline */ }
-  if (indicatorEl) { indicatorEl.className = 'ollama-indicator disconnected'; }
-  if (statusLabelEl) {
-    statusLabelEl.innerHTML = 'Ollama Offline — <a href="https://ollama.com/download" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Download</a> &amp; run <code style="font-size:11px;background:rgba(0,0,0,0.06);padding:1px 4px;border-radius:3px;">ollama serve</code>';
+  } catch {
+    companionStatusDot.className = 'status-dot disconnected';
+    companionStatusText.textContent = 'Not installed';
   }
-  if (btnTailor) { btnTailor.disabled = true; btnTailor.title = 'Ollama must be running to tailor your resume'; }
-  return false;
 }
 
-async function loadProfileResume(): Promise<void> {
-  const profile = await getUserProfile();
-  if (profile?.resumeText) {
-    resumeTextArea.value = profile.resumeText;
-    statusText.textContent = 'Resume loaded from active profile.';
+btnCompanionGuide?.addEventListener('click', () => {
+  companionGuideBox.classList.toggle('visible');
+});
+
+btnCloseGuide?.addEventListener('click', () => {
+  companionGuideBox.classList.remove('visible');
+});
+
+// ── File Upload and Sample Loading ─────────────────────────────────────────────
+
+btnUploadTex?.addEventListener('click', () => {
+  texFileUpload.click();
+});
+
+texFileUpload?.addEventListener('change', () => {
+  const file = texFileUpload.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target?.result as string;
+    if (content) {
+      resumeEditor.value = content;
+      originalTexSource = content;
+      setLiveStatus(`Uploaded "${file.name}" (${(file.size / 1024).toFixed(1)} KB)`);
+    }
+  };
+  reader.readAsText(file);
+});
+
+btnLoadSample?.addEventListener('click', () => {
+  resumeEditor.value = SAMPLE_LATEX;
+  originalTexSource = SAMPLE_LATEX;
+  setLiveStatus('Loaded sample professional LaTeX résumé.');
+});
+
+// ── Inspection Tabs ────────────────────────────────────────────────────────────
+
+function setupInspectTabs(): void {
+  const tabs = document.querySelectorAll('.inspect-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const targetId = `content-${tab.getAttribute('data-tab')}`;
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const targetContent = document.getElementById(targetId);
+      if (targetContent) targetContent.classList.add('active');
+    });
+  });
+}
+
+function switchInspectTab(tabKey: 'tab-pdf' | 'tab-diff' | 'tab-source' | 'tab-diagnostics' | 'tab-keywords'): void {
+  const tabBtn = document.querySelector(`.inspect-tab[data-tab="${tabKey}"]`) as HTMLButtonElement;
+  if (tabBtn) tabBtn.click();
+}
+
+// ── Rendering Results ──────────────────────────────────────────────────────────
+
+function renderDiff(diffLines: DiffLine[]): void {
+  diffTableBody.innerHTML = '';
+  diffLines.forEach(line => {
+    const tr = document.createElement('tr');
+    tr.className = line.type;
+
+    const tdOld = document.createElement('td');
+    tdOld.className = 'line-num';
+    tdOld.textContent = line.oldLineNumber ? String(line.oldLineNumber) : '';
+
+    const tdNew = document.createElement('td');
+    tdNew.className = 'line-num';
+    tdNew.textContent = line.newLineNumber ? String(line.newLineNumber) : '';
+
+    const tdSign = document.createElement('td');
+    tdSign.className = 'sign';
+    tdSign.textContent = line.type === 'added' ? '+' : line.type === 'removed' ? '-' : ' ';
+
+    const tdContent = document.createElement('td');
+    tdContent.textContent = line.content;
+
+    tr.appendChild(tdOld);
+    tr.appendChild(tdNew);
+    tr.appendChild(tdSign);
+    tr.appendChild(tdContent);
+    diffTableBody.appendChild(tr);
+  });
+}
+
+function renderSemanticChanges(changes: SemanticChange[]): void {
+  semanticChangesBox.innerHTML = '';
+  if (!changes || changes.length === 0) {
+    semanticChangesBox.innerHTML = '<p style="color:var(--gray-600);font-size:13px;">No bullet points modified.</p>';
+    return;
+  }
+
+  changes.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'semantic-card';
+    card.innerHTML = `
+      <div class="semantic-card-header">
+        <span class="badge-info">${escapeHtml(c.section || 'Section')}</span>
+        <span style="font-weight:600;">${c.type.replace('_', ' ').toUpperCase()}</span>
+      </div>
+      ${c.reason ? `<div style="color:var(--purple);font-size:12px;margin-bottom:4px;"><strong>Goal:</strong> ${escapeHtml(c.reason)}</div>` : ''}
+      ${c.original ? `<div style="color:#b91c1c;font-size:12px;"><s>${escapeHtml(c.original)}</s></div>` : ''}
+      ${c.updated ? `<div style="color:#15803d;font-size:12px;margin-top:2px;"><strong>+</strong> ${escapeHtml(c.updated)}</div>` : ''}
+    `;
+    semanticChangesBox.appendChild(card);
+  });
+}
+
+function renderDiagnostics(diagnostics?: any, exitCode?: number, durationMs?: number, engine?: string): void {
+  diagnosticsSummary.innerHTML = '';
+  if (!diagnostics) {
+    diagnosticsLogText.textContent = 'No compilation diagnostics available.';
+    return;
+  }
+
+  const headerHtml = `
+    <div style="display:flex;gap:12px;margin-bottom:10px;font-size:13px;flex-wrap:wrap;">
+      <span><strong>Engine:</strong> ${escapeHtml(engine || 'auto')}</span>
+      <span><strong>Exit Code:</strong> ${exitCode ?? 0}</span>
+      <span><strong>Duration:</strong> ${durationMs ? durationMs + 'ms' : 'N/A'}</span>
+    </div>
+  `;
+  diagnosticsSummary.innerHTML = headerHtml;
+
+  if (diagnostics.missingPackages && diagnostics.missingPackages.length > 0) {
+    const pkgWarn = document.createElement('div');
+    pkgWarn.className = 'diagnostic-error-item';
+    pkgWarn.innerHTML = `<strong>Missing LaTeX Packages:</strong> ${diagnostics.missingPackages.join(', ')}<br/><small>Install these packages via your distribution package manager (e.g. texlive-scheme-full or dnf/apt).</small>`;
+    diagnosticsSummary.appendChild(pkgWarn);
+  }
+
+  if (diagnostics.errors && diagnostics.errors.length > 0) {
+    diagnostics.errors.forEach((err: any) => {
+      const errEl = document.createElement('div');
+      errEl.className = 'diagnostic-error-item';
+      errEl.innerHTML = `<strong>Line ${err.line ?? '?'}:</strong> ${escapeHtml(err.message)} ${err.context ? `<br/><small><code>${escapeHtml(err.context)}</code></small>` : ''}`;
+      diagnosticsSummary.appendChild(errEl);
+    });
+  }
+
+  diagnosticsLogText.textContent = diagnostics.logExcerpt || 'Compiler ran cleanly with no output logs.';
+}
+
+function updatePdfPreview(base64Data: string): void {
+  currentPdfBase64 = base64Data;
+  if (currentPdfBlobUrl) {
+    URL.revokeObjectURL(currentPdfBlobUrl);
+  }
+
+  try {
+    const byteChars = atob(base64Data);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    currentPdfBlobUrl = URL.createObjectURL(blob);
+    pdfPreviewIframe.src = currentPdfBlobUrl;
+    btnDownloadPdf.disabled = false;
+  } catch (err) {
+    console.error('Failed to render PDF preview blob:', err);
+    pdfPreviewIframe.src = `data:application/pdf;base64,${base64Data}`;
+    btnDownloadPdf.disabled = false;
+  }
+}
+
+// ── Actions ────────────────────────────────────────────────────────────────────
+
+btnTailorMain?.addEventListener('click', async () => {
+  const resumeText = resumeEditor.value.trim();
+  const jdText = jdEditor.value.trim();
+
+  if (!resumeText) {
+    setLiveStatus('Please provide your résumé source.');
+    return;
+  }
+  if (!jdText) {
+    setLiveStatus('Please provide a target job description.');
+    return;
+  }
+
+  btnTailorMain.disabled = true;
+  btnCompileOnly.disabled = true;
+  setLiveStatus('Starting AI tailoring...');
+  inspectionContainer.classList.add('visible');
+
+  if (currentMode === 'latex') {
+    if (!originalTexSource) {
+      originalTexSource = resumeText;
+    }
+
+    try {
+      const selectedEngine = texEngineSelect.value as any;
+      const result: LatexTailorResult = await latexTailorService.tailorAndCompile(
+        resumeText,
+        jdText,
+        {
+          engine: selectedEngine,
+          onProgress: (_stage, message) => setLiveStatus(message),
+        }
+      );
+
+      currentTailoredTex = result.finalSource;
+      tailoredSourceView.value = result.finalSource;
+      btnDownloadTex.disabled = false;
+      btnRollback.disabled = false;
+
+      renderDiff(result.diffLines);
+      renderSemanticChanges(result.semanticChanges);
+      renderDiagnostics(result.compileDiagnostics, 0, 0, result.engineUsed);
+
+      if (result.compileSuccess && result.pdfBase64) {
+        updatePdfPreview(result.pdfBase64);
+        switchInspectTab('tab-pdf');
+        setLiveStatus(`Compilation succeeded (${(result.pdfSize || 0) / 1024 | 0} KB PDF generated).`);
+      } else {
+        switchInspectTab('tab-diff');
+        setLiveStatus(result.error || 'Tailoring applied. Companion compilation incomplete.');
+      }
+
+      // Keyword analysis in parallel
+      analyzeKeywordGap(resumeText, jdText).then(gap => {
+        keywordsPresentBox.innerHTML = gap.present.map(k => `<span class="keyword-badge present">${escapeHtml(k)}</span>`).join('');
+        keywordsMissingBox.innerHTML = gap.missing.map(k => `<span class="keyword-badge missing">${escapeHtml(k)}</span>`).join('');
+      }).catch(() => {});
+
+    } catch (err) {
+      console.error('Tailor LaTeX error:', err);
+      setLiveStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      btnTailorMain.disabled = false;
+      btnCompileOnly.disabled = false;
+    }
   } else {
-    statusText.textContent = 'No resume found. Paste your resume text.';
+    // Plain text / Markdown mode
+    try {
+      setLiveStatus('Tailoring markdown résumé...');
+      const tailored = await tailorResume(resumeText, jdText);
+      tailoredSourceView.value = tailored;
+      switchInspectTab('tab-source');
+      setLiveStatus('Plain text résumé tailored successfully.');
+    } catch (err) {
+      setLiveStatus(`Tailor failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      btnTailorMain.disabled = false;
+      btnCompileOnly.disabled = false;
+    }
   }
-}
+});
 
-async function loadPendingJD(): Promise<void> {
+btnCompileOnly?.addEventListener('click', async () => {
+  const source = resumeEditor.value.trim();
+  if (!source) {
+    setLiveStatus('No LaTeX source to compile.');
+    return;
+  }
+
+  btnCompileOnly.disabled = true;
+  setLiveStatus('Sending LaTeX source to native companion compiler...');
+  inspectionContainer.classList.add('visible');
+
+  try {
+    const selectedEngine = texEngineSelect.value as any;
+    const resp = await companionClient.compileLatex({
+      source,
+      engine: selectedEngine,
+    });
+
+    renderDiagnostics(resp.diagnostics, resp.exitCode, resp.durationMs, resp.engineUsed);
+
+    if (resp.success && resp.pdfBase64) {
+      updatePdfPreview(resp.pdfBase64);
+      switchInspectTab('tab-pdf');
+      setLiveStatus(`Compilation succeeded in ${resp.durationMs}ms.`);
+    } else {
+      switchInspectTab('tab-diagnostics');
+      setLiveStatus(`Compilation failed (exit code ${resp.exitCode ?? '?'}). See diagnostics.`);
+    }
+  } catch (err) {
+    setLiveStatus(`Compiler error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    btnCompileOnly.disabled = false;
+  }
+});
+
+btnDownloadPdf?.addEventListener('click', () => {
+  if (!currentPdfBlobUrl) return;
+  const a = document.createElement('a');
+  a.href = currentPdfBlobUrl;
+  a.download = 'tailored_resume.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+btnDownloadTex?.addEventListener('click', () => {
+  const content = tailoredSourceView.value || currentTailoredTex || resumeEditor.value;
+  if (!content) return;
+  const blob = new Blob([content], { type: 'text/x-tex;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tailored_resume.tex';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+btnRollback?.addEventListener('click', () => {
+  if (originalTexSource) {
+    resumeEditor.value = originalTexSource;
+    tailoredSourceView.value = originalTexSource;
+    btnRollback.disabled = true;
+    setLiveStatus('Rolled back to original résumé source.');
+  }
+});
+
+btnScrapeJd?.addEventListener('click', async () => {
+  setLiveStatus('Scraping job description from active tab...');
+  try {
+    const msg: any = { kind: 'SCRAPE_JOB_DESCRIPTION' };
+    if (sourceTabId) msg.sourceTabId = sourceTabId;
+    const response = await browser.runtime.sendMessage(msg);
+    if (response?.text) {
+      jdEditor.value = response.text;
+      setLiveStatus('Job description scraped successfully.');
+    } else {
+      setLiveStatus('Could not extract job description from active tab. Please paste manually.');
+    }
+  } catch {
+    setLiveStatus('Scrape request failed. Please paste the job description.');
+  }
+});
+
+// Mode tab clicks
+tabModeLatex?.addEventListener('click', () => switchMode('latex'));
+tabModePlaintext?.addEventListener('click', () => switchMode('plaintext'));
+
+// ── Initialization ─────────────────────────────────────────────────────────────
+
+async function init(): Promise<void> {
+  setupInspectTabs();
+  switchMode('latex');
+
+  // Load profile resume if available
+  try {
+    const profile = await getUserProfile();
+    if (profile?.resumeText) {
+      if (profile.resumeText.includes('\\documentclass')) {
+        resumeEditor.value = profile.resumeText;
+        originalTexSource = profile.resumeText;
+        setLiveStatus('Loaded LaTeX résumé from your active profile.');
+      } else {
+        // Plain text resume
+        resumeEditor.value = SAMPLE_LATEX; // Default to rich sample for LaTeX mode
+        originalTexSource = SAMPLE_LATEX;
+        setLiveStatus('Ready. Loaded sample LaTeX résumé template.');
+      }
+    } else {
+      resumeEditor.value = SAMPLE_LATEX;
+      originalTexSource = SAMPLE_LATEX;
+      setLiveStatus('Ready. Loaded sample LaTeX résumé.');
+    }
+  } catch {
+    resumeEditor.value = SAMPLE_LATEX;
+    originalTexSource = SAMPLE_LATEX;
+  }
+
+  // Load pending job description if opened from a job posting tab
   try {
     const data = await browser.storage.local.get([
       'pending_tailor_jd', 'pending_tailor_title', 'pending_tailor_company',
-      'pending_tailor_url', 'pending_tailor_source_tab',
+      'pending_tailor_source_tab',
     ]);
     if (data.pending_tailor_jd && typeof data.pending_tailor_jd === 'string' && data.pending_tailor_jd.length > 10) {
-      jdTextArea.value = data.pending_tailor_jd;
+      jdEditor.value = data.pending_tailor_jd;
       const parts: string[] = [];
       if (data.pending_tailor_title) parts.push(data.pending_tailor_title);
       if (data.pending_tailor_company) parts.push(`at ${data.pending_tailor_company}`);
-      statusText.textContent = parts.length
-        ? `Job description loaded: ${parts.join(' ')}`
-        : 'Job description loaded from previous page.';
+      setLiveStatus(`Target job loaded: ${parts.join(' ') || 'from job posting'}`);
     }
     if (data.pending_tailor_source_tab && typeof data.pending_tailor_source_tab === 'number') {
       sourceTabId = data.pending_tailor_source_tab;
     }
     await browser.storage.local.remove([
-      'pending_tailor_jd', 'pending_tailor_title', 'pending_tailor_company',
-      'pending_tailor_url', 'pending_tailor_source_tab',
+      'pending_tailor_jd', 'pending_tailor_title', 'pending_tailor_company', 'pending_tailor_source_tab'
     ]);
-  } catch (err) {
-    console.warn('Failed to load pending JD:', err);
+  } catch {
+    // Ignore storage errors
   }
+
+  await loadAIProviders();
+  await checkCompanion();
 }
 
-btnScrape?.addEventListener('click', async () => {
-  try {
-    statusText.textContent = 'Scraping job description...';
-    const msg: any = { kind: 'SCRAPE_JOB_DESCRIPTION' };
-    if (sourceTabId) msg.sourceTabId = sourceTabId;
-    const response = await browser.runtime.sendMessage(msg);
-    if (response?.text) {
-      jdTextArea.value = response.text;
-      statusText.textContent = 'Job description scraped successfully.';
-    } else {
-      statusText.textContent = 'Could not extract job description. Paste it manually.';
-    }
-  } catch (err) {
-    console.error('Scrape failed:', err);
-    statusText.textContent = 'Scrape failed. Paste the job description manually.';
-  }
-});
-
-btnTailor?.addEventListener('click', async () => {
-  const resume = resumeTextArea.value.trim();
-  const jd = jdTextArea.value.trim();
-
-  if (!resume) {
-    statusText.textContent = 'Please provide your resume text.';
-    return;
-  }
-  if (!jd) {
-    statusText.textContent = 'Please provide a job description.';
-    return;
-  }
-
-  btnTailor.disabled = true;
-  statusText.textContent = 'Tailoring resume with AI...';
-  resultPanel.classList.add('visible');
-  resultText.innerHTML = '<p style="color:#6b7280;">Generating tailored resume...</p>';
-  tailoredResult = '';
-
-  try {
-    const [tailored, keywords] = await Promise.all([
-      tailorResume(resume, jd),
-      analyzeKeywordGap(resume, jd),
-    ]);
-
-    tailoredResult = tailored;
-    resultText.innerHTML = mdToHtml(tailoredResult);
-
-    // Keyword gap UI
-    keywordSection.classList.add('visible');
-    const scoreClass = keywords.score >= 70 ? 'high' : keywords.score >= 40 ? 'medium' : 'low';
-    keywordScoreEl.textContent = `${keywords.score}%`;
-    keywordScoreEl.className = `keyword-score ${scoreClass}`;
-
-    keywordsPresentEl.innerHTML = keywords.present
-      .map(k => `<span class="keyword-badge present">${escapeHtml(k)}</span>`)
-      .join('');
-    keywordsMissingEl.innerHTML = keywords.missing
-      .map(k => `<span class="keyword-badge missing">${escapeHtml(k)}</span>`)
-      .join('');
-
-    btnExport.disabled = false;
-    btnCopy.disabled = false;
-    statusText.textContent = 'Resume tailored successfully.';
-  } catch (err) {
-    console.error('Tailor failed:', err);
-    statusText.textContent = `Error: ${err instanceof Error ? err.message : 'Tailoring failed'}. Is Ollama running?`;
-  } finally {
-    btnTailor.disabled = false;
-  }
-});
-
-btnCopy?.addEventListener('click', async () => {
-  if (!tailoredResult) return;
-  await navigator.clipboard.writeText(tailoredResult);
-  const orig = btnCopy.textContent;
-  btnCopy.textContent = 'Copied!';
-  setTimeout(() => { btnCopy.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`; }, 1500);
-});
-
-btnExport?.addEventListener('click', async () => {
-  if (!tailoredResult) return;
-
-  // Show the step-by-step instructions banner immediately
-  const instrEl = document.getElementById('pdf-instructions');
-  if (instrEl) instrEl.classList.add('visible');
-
-  statusText.textContent = 'Opening print window — set Destination → "Save as PDF" then click Save.';
-
-  try {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      statusText.textContent = 'Please allow popups to export PDF.';
-      return;
-    }
-
-    const resumeHtml = mdToHtml(tailoredResult);
-    printWindow.document.write(`
-      <!DOCTYPE html><html><head>
-      <title>Tailored Resume</title>
-      <style>
-        body { font-family: Georgia, 'Times New Roman', serif; font-size: 11pt; line-height: 1.6; margin: 1in; color: #000; }
-        h1 { font-size: 18pt; margin: 0 0 4pt; }
-        h2 { font-size: 14pt; margin: 12pt 0 4pt; border-bottom: 1px solid #ccc; padding-bottom: 2pt; }
-        h3 { font-size: 12pt; margin: 8pt 0 2pt; }
-        ul { margin: 4pt 0; padding-left: 18pt; }
-        li { margin-bottom: 2pt; }
-        p { margin: 4pt 0; }
-        hr { border: none; border-top: 1px solid #999; margin: 10pt 0; }
-        @media print { body { margin: 0.5in; } }
-      </style>
-      </head><body>
-      ${resumeHtml}
-      <script>setTimeout(function() { window.print(); }, 400);<\/script>
-      </body></html>
-    `);
-    printWindow.document.close();
-  } catch (err) {
-    statusText.textContent = 'PDF export failed.';
-    console.error('PDF export failed:', err);
-  }
-});
-
-async function init(): Promise<void> {
-  await loadProfileResume();
-  await loadPendingJD();
-  await checkOllamaStatus();
-}
 init();
