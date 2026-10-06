@@ -1,5 +1,5 @@
 /**
- * Offlyn Apply — Shared Dark Mode Manager
+ * Private Apply — Shared Dark Mode Manager
  * - Auto-detects night time (before 7am or after 8pm) as default
  * - Persists user preference to localStorage
  * - Wires up any element with id="dark-mode-toggle"
@@ -64,5 +64,5 @@
     init();
   }
 
-  window.offlynDarkMode = { applyTheme: applyTheme, getPref: getPref, setPref: setPref };
+  window.privateapplyDarkMode = { applyTheme: applyTheme, getPref: getPref, setPref: setPref };
 })();

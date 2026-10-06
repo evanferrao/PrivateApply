@@ -303,7 +303,7 @@ async function init(): Promise<void> {
       const date = new Date().toISOString().slice(0, 10);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `offlyn-data-${date}.json`;
+      a.download = `privateapply-data-${date}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();

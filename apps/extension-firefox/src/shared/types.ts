@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the Offlyn Apply extension
+ * Shared type definitions for the Private Apply extension
  */
 
 export interface JobMeta {

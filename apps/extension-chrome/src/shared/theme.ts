@@ -1,5 +1,5 @@
 /**
- * Offlyn Apply Design System - Color Theme
+ * Private Apply Design System - Color Theme
  * 
  * Centralized color constants for consistent branding across all UI surfaces.
  * DO NOT use inline hex values - always import from this file.
@@ -113,7 +113,7 @@ export function getCSSVariables(): string {
  * Helper function to inject CSS variables into a style element
  */
 export function injectThemeCSS(): void {
-  const styleId = 'offlyn-apply-theme';
+  const styleId = 'privateapply-theme';
   
   // Remove existing theme if present
   document.getElementById(styleId)?.remove();

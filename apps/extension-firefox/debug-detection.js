@@ -41,4 +41,4 @@ indicators.forEach(ind => {
 });
 
 // Check if extension is loaded
-console.log('\nExtension loaded?', typeof window.offlyn !== 'undefined' || document.querySelector('[id*="offlyn"]') !== null);
+console.log('\nExtension loaded?', typeof window.privateapply !== 'undefined' || document.querySelector('[id*="privateapply"]') !== null);

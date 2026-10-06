@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const NATIVE_HOST_NAME = 'ai.offlyn.helper';
+const NATIVE_HOST_NAME = 'ai.privateapply.helper';
 const LAUNCHER_PATH = path.resolve(__dirname, 'launcher.sh');
 
 /**
@@ -46,7 +46,7 @@ function getManifestDir() {
 function createManifest(extensionId) {
   return {
     name: NATIVE_HOST_NAME,
-    description: 'Offlyn Apply desktop bridge for job application automation via Ollama',
+    description: 'Private Apply desktop bridge for job application automation via Ollama',
     type: 'stdio',
     path: LAUNCHER_PATH,
     allowed_extensions: [extensionId],
@@ -57,7 +57,7 @@ function createManifest(extensionId) {
  * Main installation
  */
 function install() {
-  console.log('Offlyn Apply Native Host Installer\n');
+  console.log('Private Apply Native Host Installer\n');
   
   // Check if launcher exists
   if (!fs.existsSync(LAUNCHER_PATH)) {
@@ -79,7 +79,7 @@ function install() {
   console.log('   1. Open Firefox');
   console.log('   2. Go to about:debugging');
   console.log('   3. Click "This Firefox"');
-  console.log('   4. Find "Offlyn Apply" extension');
+  console.log('   4. Find "Private Apply" extension');
   console.log('   5. Copy the Internal UUID (e.g., {12345678-1234-1234-1234-123456789abc})');
   console.log('');
   

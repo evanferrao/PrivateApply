@@ -1,4 +1,4 @@
-# Contributing to Offlyn Apply
+# Contributing to Private Apply
 
 Thanks for your interest in contributing. This document covers how to set up a local dev environment, the PR process, and coding conventions.
 
@@ -27,16 +27,16 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 1. **Fork** the repo and clone your fork:
    ```bash
-   git clone https://github.com/<your-username>/offlyn-apply.git
+   git clone https://github.com/<your-username>/private-apply.git
    ```
 
 2. **Navigate to the extension you want to work on:**
    ```bash
    # For Chrome
-   cd offlyn-apply/apps/extension-chrome
+   cd private-apply/apps/extension-chrome
 
    # For Firefox
-   cd offlyn-apply/apps/extension-firefox
+   cd private-apply/apps/extension-firefox
    ```
 
 3. **Install dependencies:**

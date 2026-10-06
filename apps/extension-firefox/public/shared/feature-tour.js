@@ -1,5 +1,5 @@
 /**
- * Offlyn Apply — Lightweight Feature Tour
+ * Private Apply — Lightweight Feature Tour
  * Shows a step-by-step tour highlighting UI elements with a backdrop cutout.
  * Persists completion to localStorage so it only shows once.
  */
@@ -150,7 +150,7 @@
     return true;
   }
 
-  window.offlynTour = {
+  window.privateapplyTour = {
     start: startTour,
     end: endTour,
     isDone: isDone,

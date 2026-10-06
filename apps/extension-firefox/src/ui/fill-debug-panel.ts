@@ -2,13 +2,13 @@
  * Fill Debug Panel — "Why was this filled?"
  *
  * A floating panel anchored near a right-clicked field that explains
- * why Offlyn filled it with a particular value.
+ * why Private Apply filled it with a particular value.
  * Triggered via the context menu → "Why was this filled?" option.
  */
 
 import type { FillProvenanceRecord } from '../shared/graph/types';
 
-const PANEL_ID = 'offlyn-fill-debug-panel';
+const PANEL_ID = 'privateapply-fill-debug-panel';
 const Z_INDEX = 2147483640;
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ function buildPanel(label: string, provenance: FillProvenanceRecord | null): HTM
   panel.innerHTML = buildContent(label, provenance);
 
   // Wire dismiss button
-  panel.querySelector('.offlyn-debug-dismiss')?.addEventListener('click', () => {
+  panel.querySelector('.privateapply-debug-dismiss')?.addEventListener('click', () => {
     removeFillDebugPanel();
   });
 
@@ -95,9 +95,9 @@ function buildContent(label: string, provenance: FillProvenanceRecord | null): s
   const header = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <span style="font-weight:600;color:#89b4fa;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">
-        Offlyn — Why was this filled?
+        Private Apply — Why was this filled?
       </span>
-      <button class="offlyn-debug-dismiss" style="background:none;border:none;color:#6c7086;cursor:pointer;font-size:16px;line-height:1;padding:0 2px;" title="Dismiss">×</button>
+      <button class="privateapply-debug-dismiss" style="background:none;border:none;color:#6c7086;cursor:pointer;font-size:16px;line-height:1;padding:0 2px;" title="Dismiss">×</button>
     </div>
     <div style="color:#585b70;font-size:11px;margin-bottom:8px;font-style:italic;">${escHtml(truncatedLabel)}</div>
   `;
@@ -109,7 +109,7 @@ function buildContent(label: string, provenance: FillProvenanceRecord | null): s
 
 function renderProvenance(p: FillProvenanceRecord | null): string {
   if (!p || !p.source) {
-    return row('Status', '<span style="color:#f38ba8">Not filled by Offlyn</span>');
+    return row('Status', '<span style="color:#f38ba8">Not filled by Private Apply</span>');
   }
 
   const rows: string[] = [];

@@ -1,5 +1,5 @@
 /**
- * Inline Placeholder Hints - injects "Right-click → Offlyn Fill" placeholder
+ * Inline Placeholder Hints - injects "Right-click → Private Apply Fill" placeholder
  * text into empty text fields so users discover the right-click context menu.
  *
  * Replaces the previous floating AI fill tile overlay which required Ollama
@@ -23,7 +23,7 @@ interface PlaceholderEntry {
 
 const managedFields = new Map<string, PlaceholderEntry>();
 
-const HINT_TEXT = 'Right-click → Offlyn Fill';
+const HINT_TEXT = 'Right-click → Private Apply Fill';
 
 /** Fields where we've already restored the original placeholder */
 const restoredFields = new Set<string>();

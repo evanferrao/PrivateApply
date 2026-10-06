@@ -40,7 +40,7 @@ async function runTests() {
     console.log('1. Testing Field Summary Display...');
     
     // Wait for field summary to appear
-    const fieldSummary = await waitForElement('#offlyn-field-summary');
+    const fieldSummary = await waitForElement('#privateapply-field-summary');
     if (fieldSummary) {
       console.log('   [OK] Field summary panel appeared');
       results.fieldSummaryDisplay = true;
@@ -68,16 +68,16 @@ async function runTests() {
       
       // Wait for cover letter panel
       try {
-        const coverLetterPanel = await waitForElement('#offlyn-cover-letter-panel', 3000);
+        const coverLetterPanel = await waitForElement('#privateapply-cover-letter-panel', 3000);
         console.log('   [OK] Cover letter panel opened');
         results.coverLetterGeneration = true;
         
         // Test duplicate prevention
         console.log('3. Testing Duplicate Prevention...');
-        const initialPanelCount = document.querySelectorAll('#offlyn-cover-letter-panel').length;
+        const initialPanelCount = document.querySelectorAll('#privateapply-cover-letter-panel').length;
         coverLetterBtn.click(); // Click again
         await sleep(500);
-        const finalPanelCount = document.querySelectorAll('#offlyn-cover-letter-panel').length;
+        const finalPanelCount = document.querySelectorAll('#privateapply-cover-letter-panel').length;
         
         if (initialPanelCount === finalPanelCount) {
           console.log('   [OK] Duplicate prevention working');
@@ -94,7 +94,7 @@ async function runTests() {
           await sleep(500);
           
           // Check if field summary is expanded and not auto-minimizing
-          const fieldSummaryAfterBack = document.querySelector('#offlyn-field-summary');
+          const fieldSummaryAfterBack = document.querySelector('#privateapply-field-summary');
           if (fieldSummaryAfterBack && !fieldSummaryAfterBack.classList.contains('minimized')) {
             console.log('   [OK] Back button navigation working');
             results.backButtonNavigation = true;

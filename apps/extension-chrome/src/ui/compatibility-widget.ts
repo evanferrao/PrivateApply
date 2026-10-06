@@ -94,7 +94,7 @@ export function showCompatibilityWidget(
   lastCompatData = data;
 
   host = document.createElement('div');
-  host.id = 'offlyn-widget-host';
+  host.id = 'privateapply-widget-host';
   setStyles(host, {
     position: 'fixed',
     top:      '24px',
@@ -271,7 +271,7 @@ export function enterFillMode(total: number): void {
     overlay.addEventListener('click', (e) => {
       e.stopPropagation();
       // Dispatch toggle event that progress-indicator listens for
-      window.dispatchEvent(new CustomEvent('offlyn-toggle-fill-pause'));
+      window.dispatchEvent(new CustomEvent('privateapply-toggle-fill-pause'));
     });
 
     fillPillRef.style.position = 'relative';
@@ -298,7 +298,7 @@ export function enterFillMode(total: number): void {
       }
     }
   }) as EventListener;
-  window.addEventListener('offlyn-fill-pause-state', pauseHandler);
+  window.addEventListener('privateapply-fill-pause-state', pauseHandler);
 
   updateFillProgress(0, total);
 }
@@ -503,7 +503,7 @@ function buildPill(data: CompatData): HTMLElement {
   const dotColor = scoreDot(data.overall);
 
   const pill = el('button');
-  pill.title = 'Offlyn Apply — click to open';
+  pill.title = 'Private Apply — click to open';
   setStyles(pill, {
     position:       'relative',
     width:          '60px',
@@ -526,7 +526,7 @@ function buildPill(data: CompatData): HTMLElement {
   if (logoUrl) {
     const img = document.createElement('img');
     img.src = logoUrl;
-    img.alt = 'Offlyn Apply';
+    img.alt = 'Private Apply';
     setStyles(img as unknown as HTMLElement, {
       width:     '100%',
       height:    '100%',
@@ -771,7 +771,7 @@ function buildPanelHeader(panel: HTMLElement): HTMLElement {
   if (headerLogoUrl) {
     const logoImg = document.createElement('img');
     logoImg.src = headerLogoUrl;
-    logoImg.alt = 'Offlyn Apply';
+    logoImg.alt = 'Private Apply';
     setStyles(logoImg as unknown as HTMLElement, {
       width: '100%', height: '100%', objectFit: 'contain', display: 'block', pointerEvents: 'none',
     });
@@ -782,7 +782,7 @@ function buildPanelHeader(panel: HTMLElement): HTMLElement {
 
   const hdrTitle = el('p');
   setStyles(hdrTitle, { fontSize: '13px', fontWeight: '600', color: '#fff', margin: '0', padding: '0', lineHeight: '1.3' });
-  hdrTitle.textContent = 'Offlyn Apply';
+  hdrTitle.textContent = 'Private Apply';
   hdrLeft.appendChild(logoBadge);
   hdrLeft.appendChild(hdrTitle);
 
@@ -822,7 +822,7 @@ function buildHeroCard(): HTMLElement {
 
   const sub = el('p');
   setStyles(sub, { fontSize: '11px', opacity: '0.85', margin: '0 0 12px', lineHeight: '1.4' });
-  sub.textContent = 'Information is pulled from your Offlyn profile';
+  sub.textContent = 'Information is pulled from your Private Apply profile';
   wrap.appendChild(sub);
 
   const btn = el('button');
@@ -836,7 +836,7 @@ function buildHeroCard(): HTMLElement {
   btn.addEventListener('mouseenter', () => { btn.style.background = '#edf6f1'; });
   btn.addEventListener('mouseleave', () => { btn.style.background = '#fff'; });
   btn.addEventListener('click', () => {
-    window.dispatchEvent(new CustomEvent('offlyn-manual-autofill'));
+    window.dispatchEvent(new CustomEvent('privateapply-manual-autofill'));
   });
 
   // Status line (shown after fill attempt)
@@ -844,7 +844,7 @@ function buildHeroCard(): HTMLElement {
   statusEl.id = 'ow-status';
   setStyles(statusEl, { fontSize: '11px', minHeight: '0', marginTop: '6px', color: 'rgba(255,255,255,0.8)', textAlign: 'center' });
 
-  window.addEventListener('offlyn-autofill-done', ((e: CustomEvent) => {
+  window.addEventListener('privateapply-autofill-done', ((e: CustomEvent) => {
     const { success, filled, total, message } = e.detail ?? {};
     if (success && filled > 0) {
       statusEl.textContent = message || `Filled ${filled}/${total} fields`;
@@ -933,7 +933,7 @@ function buildProfileSection(): HTMLElement {
   manageBtn.textContent = 'Manage';
   manageBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    window.dispatchEvent(new CustomEvent('offlyn-open-profiles'));
+    window.dispatchEvent(new CustomEvent('privateapply-open-profiles'));
   });
   headerRow.appendChild(manageBtn);
 
@@ -1028,7 +1028,7 @@ function buildProfileSection(): HTMLElement {
       if (!isActive) {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
-          window.dispatchEvent(new CustomEvent('offlyn-switch-profile', { detail: { profileId: p.id } }));
+          window.dispatchEvent(new CustomEvent('privateapply-switch-profile', { detail: { profileId: p.id } }));
           dropdownEl!.style.display = 'none';
           dropOpen = false;
           arrow!.style.transform = 'rotate(0deg)';
@@ -1048,7 +1048,7 @@ function buildProfileSection(): HTMLElement {
     newProfileBtn.textContent = '+ New profile';
     newProfileBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.dispatchEvent(new CustomEvent('offlyn-open-profiles'));
+      window.dispatchEvent(new CustomEvent('privateapply-open-profiles'));
     });
     dropdownEl.appendChild(newProfileBtn);
 
@@ -1134,8 +1134,8 @@ function buildResumeAccordion(data: CompatData): HTMLElement {
   tailorBtn.addEventListener('mouseleave', () => { tailorBtn.style.background = '#16a34a'; });
   tailorBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    window.dispatchEvent(new CustomEvent('offlyn-tailor-resume'));
-    window.dispatchEvent(new CustomEvent('offlyn-open-resume-tailor'));
+    window.dispatchEvent(new CustomEvent('privateapply-tailor-resume'));
+    window.dispatchEvent(new CustomEvent('privateapply-open-resume-tailor'));
   });
   body.appendChild(tailorBtn);
 
@@ -1187,7 +1187,7 @@ function buildCoverLetterAccordion(coverLetterFields: FieldSchema[]): HTMLElemen
   genBtn.addEventListener('mouseleave', () => { genBtn.style.background = '#ea580c'; });
   genBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    window.dispatchEvent(new CustomEvent('offlyn-generate-cover-letter'));
+    window.dispatchEvent(new CustomEvent('privateapply-generate-cover-letter'));
   });
   body.appendChild(genBtn);
 

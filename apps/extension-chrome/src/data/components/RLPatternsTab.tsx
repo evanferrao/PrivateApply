@@ -48,7 +48,7 @@ export function RLPatternsTab({ patterns, corrections }: RLPatternsTabProps) {
         <EmptyState
           icon={<TrendingUp size={18} />}
           title="No RL patterns yet"
-          description="Patterns are learned as Offlyn fills forms and you confirm or correct the values."
+          description="Patterns are learned as Private Apply fills forms and you confirm or correct the values."
         />
       </div>
     );

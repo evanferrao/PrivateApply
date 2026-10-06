@@ -307,7 +307,7 @@ function renderJobCard(job: JobListing, score: number): string {
             ? `<img class="job-card-logo" src="${escapeHtml(logoUrl)}" alt="" data-fallback="1">`
             : ''}
           <div class="job-card-logo-fallback" ${logoUrl ? 'style="display:none"' : ''}>
-            <img src="${escapeHtml(monogramUrl)}" alt="Offlyn" class="job-card-logo-monogram">
+            <img src="${escapeHtml(monogramUrl)}" alt="Private Apply" class="job-card-logo-monogram">
           </div>
         </div>
         <div class="job-card-info">

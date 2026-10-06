@@ -75,7 +75,7 @@
 
     function checkExtensionLoaded() {
       // Check if field summary exists
-      const fieldSummary = document.getElementById('offlyn-field-summary');
+      const fieldSummary = document.getElementById('privateapply-field-summary');
       if (fieldSummary) {
         testResults.extensionLoaded = true;
         testResults.fieldSummaryVisible = true;
@@ -99,7 +99,7 @@
         
         // Check if panel opens
         setTimeout(() => {
-          const panel = document.getElementById('offlyn-cover-letter-panel');
+          const panel = document.getElementById('privateapply-cover-letter-panel');
           if (panel) {
             testResults.coverLetterPanelOpens = true;
             
@@ -109,7 +109,7 @@
               setTimeout(() => {
                 backBtn.click();
                 setTimeout(() => {
-                  const fieldSummary = document.getElementById('offlyn-field-summary');
+                  const fieldSummary = document.getElementById('privateapply-field-summary');
                   if (fieldSummary && !fieldSummary.classList.contains('minimized')) {
                     testResults.backButtonWorks = true;
                   }

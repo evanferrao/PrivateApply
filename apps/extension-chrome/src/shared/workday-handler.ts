@@ -1114,9 +1114,9 @@ const EDU_FORM_LABEL = /school|university|college|institution|degree|field of st
 
 function wdLog(msg: string): void {
   console.log(msg);
-  const el = document.getElementById('__offlyn_diag') || (() => {
+  const el = document.getElementById('__privateapply_diag') || (() => {
     const d = document.createElement('div');
-    d.id = '__offlyn_diag';
+    d.id = '__privateapply_diag';
     d.style.display = 'none';
     document.body.appendChild(d);
     return d;

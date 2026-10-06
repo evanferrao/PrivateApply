@@ -85,7 +85,7 @@ function render(): void {
   panelEl?.remove();
 
   const panel = document.createElement('div');
-  panel.id = 'offlyn-suggestion-panel';
+  panel.id = 'privateapply-suggestion-panel';
 
   // Build HTML
   const enabledCount = [...state.enabled.values()].filter(Boolean).length;
@@ -364,7 +364,7 @@ function injectStyles(): void {
   s.id = 'osp-styles';
   s.textContent = `
 /* ── Panel container ── */
-#offlyn-suggestion-panel {
+#privateapply-suggestion-panel {
   position: fixed;
   top: 0; right: 0;
   width: 380px;
@@ -380,7 +380,7 @@ function injectStyles(): void {
   transform: translateX(100%);
   transition: transform .3s cubic-bezier(.4,0,.2,1);
 }
-#offlyn-suggestion-panel.osp--open {
+#privateapply-suggestion-panel.osp--open {
   transform: translateX(0);
 }
 

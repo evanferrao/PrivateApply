@@ -1,5 +1,5 @@
 {
-  "name": "offlyn-firefox-extension",
+  "name": "private-apply-firefox-extension",
   "version": "0.9.0",
   "description": "AI-powered Firefox extension for job application auto-fill, compatibility analysis, and cover letter generation",
   "type": "module",

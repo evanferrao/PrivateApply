@@ -43,7 +43,7 @@ export function showMissingInfoQuestionnaire(
   ensureStyles();
 
   activeDrawer = document.createElement('div');
-  activeDrawer.id = 'offlyn-missing-info-drawer';
+  activeDrawer.id = 'privateapply-missing-info-drawer';
 
   const items: MissingFieldItem[] = eligibleFields.map(field => {
     const rawLabel = (field.label || field.name || field.id || 'Unknown Field').trim();
@@ -220,11 +220,11 @@ function escapeHtml(s: string): string {
 }
 
 function ensureStyles(): void {
-  if (document.getElementById('offlyn-missing-info-styles')) return;
+  if (document.getElementById('privateapply-missing-info-styles')) return;
   const style = document.createElement('style');
-  style.id = 'offlyn-missing-info-styles';
+  style.id = 'privateapply-missing-info-styles';
   style.textContent = `
-    #offlyn-missing-info-drawer {
+    #privateapply-missing-info-drawer {
       position: fixed;
       bottom: 24px;
       right: 24px;
@@ -237,7 +237,7 @@ function ensureStyles(): void {
       pointer-events: none;
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
     }
-    #offlyn-missing-info-drawer.open {
+    #privateapply-missing-info-drawer.open {
       transform: translateY(0);
       opacity: 1;
       pointer-events: auto;

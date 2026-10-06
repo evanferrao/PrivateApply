@@ -31,4 +31,4 @@ Closes #<!-- issue number -->
 - [ ] TypeScript types are correct (no `any` added without justification)
 - [ ] If this touches autofill logic — tested on at least one React-controlled form
 
-— [Joel Nishanth](https://offlyn.ai) · [offlyn.AI](https://offlyn.ai)
+— [Joel Nishanth](https://github.com/joelnishanth/private-apply) · [Private Apply](https://github.com/joelnishanth/private-apply)

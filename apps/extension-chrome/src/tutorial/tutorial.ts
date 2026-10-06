@@ -46,8 +46,8 @@ const MOCK_FILL_DATA: Record<string, string> = {
   'field-email': 'alex.johnson@email.com',
   'field-phone': '+1 (555) 123-4567',
   'field-linkedin': 'https://linkedin.com/in/alexjohnson',
-  'field-coverletter': 'Dear Hiring Manager,\n\nI am excited to apply for the Senior Software Engineer position at Offlyn Technologies. With 6 years of experience building modern web applications using TypeScript, React, and Node.js, I am confident I can contribute to your mission of building AI-powered job application tools.\n\nBest regards,\nAlex Johnson',
-  'field-interest': 'I\'m passionate about developer tools and AI integration. Offlyn\'s approach to local-first AI for job applications aligns perfectly with my interests in privacy-respecting technology and browser extension development.',
+  'field-coverletter': 'Dear Hiring Manager,\n\nI am excited to apply for the Senior Software Engineer position at Private Apply Technologies. With 6 years of experience building modern web applications using TypeScript, React, and Node.js, I am confident I can contribute to your mission of building AI-powered job application tools.\n\nBest regards,\nAlex Johnson',
+  'field-interest': 'I\'m passionate about developer tools and AI integration. Private Apply\'s approach to local-first AI for job applications aligns perfectly with my interests in privacy-respecting technology and browser extension development.',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ let tooltipEl: HTMLElement | null = null;
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getWidgetShadow(): ShadowRoot | null {
-  const host = document.getElementById('offlyn-widget-host');
+  const host = document.getElementById('privateapply-widget-host');
   return host?.shadowRoot ?? null;
 }
 
@@ -282,7 +282,7 @@ async function mockAutofill(): Promise<void> {
     await new Promise(r => setTimeout(r, 120));
   }
 
-  window.dispatchEvent(new CustomEvent('offlyn-autofill-done', {
+  window.dispatchEvent(new CustomEvent('privateapply-autofill-done', {
     detail: { success: true, filled, total: ids.length, message: `Filled ${filled}/${ids.length} fields` },
   }));
 
@@ -295,13 +295,13 @@ async function mockAutofill(): Promise<void> {
 
 const MOCK_COVER_LETTER = `Dear Hiring Manager,
 
-I am writing to express my strong interest in the Senior Software Engineer position at Offlyn Technologies. With over 6 years of experience in full-stack development, specializing in TypeScript, React, and Node.js, I am confident in my ability to contribute to your team's mission of building AI-powered job application tools.
+I am writing to express my strong interest in the Senior Software Engineer position at Private Apply Technologies. With over 6 years of experience in full-stack development, specializing in TypeScript, React, and Node.js, I am confident in my ability to contribute to your team's mission of building AI-powered job application tools.
 
 In my current role at TechCorp, I have led the development of several high-impact projects involving browser extensions, real-time data processing, and cloud infrastructure on AWS. My experience with Docker, GraphQL, and Python aligns well with your technical requirements.
 
-What excites me most about Offlyn is your commitment to local-first AI and privacy-respecting technology. I am passionate about building tools that empower users while keeping their data secure.
+What excites me most about Private Apply is your commitment to local-first AI and privacy-respecting technology. I am passionate about building tools that empower users while keeping their data secure.
 
-I would welcome the opportunity to discuss how my skills and experience can contribute to Offlyn's continued success.
+I would welcome the opportunity to discuss how my skills and experience can contribute to Private Apply's continued success.
 
 Best regards,
 Alex Johnson`;
@@ -332,7 +332,7 @@ async function mockTailorResume(): Promise<void> {
     await chrome.storage.local.set({
       pending_tailor_jd: FAKE_JOB_TEXT.slice(0, 2000),
       pending_tailor_title: 'Senior Software Engineer',
-      pending_tailor_company: 'Offlyn Technologies',
+      pending_tailor_company: 'Private Apply Technologies',
       pending_tailor_url: window.location.href,
     });
   } catch { /* storage may not be available */ }
@@ -357,10 +357,10 @@ async function init(): Promise<void> {
 
   // Mock handlers: the widget dispatches these events but there's no content
   // script on extension pages, so we handle them here with demo behavior
-  window.addEventListener('offlyn-manual-autofill', () => mockAutofill());
-  window.addEventListener('offlyn-generate-cover-letter', () => mockGenerateCoverLetter());
-  window.addEventListener('offlyn-tailor-resume', () => mockTailorResume());
-  window.addEventListener('offlyn-open-resume-tailor', () => mockTailorResume());
+  window.addEventListener('privateapply-manual-autofill', () => mockAutofill());
+  window.addEventListener('privateapply-generate-cover-letter', () => mockGenerateCoverLetter());
+  window.addEventListener('privateapply-tailor-resume', () => mockTailorResume());
+  window.addEventListener('privateapply-open-resume-tailor', () => mockTailorResume());
 
   // Resolve logo URLs (extension page has access to chrome.runtime)
   let monogramUrl = '';
@@ -374,7 +374,7 @@ async function init(): Promise<void> {
   showCompatibilityWidget(
     MOCK_PROFILE,
     'Senior Software Engineer',
-    'Offlyn Technologies',
+    'Private Apply Technologies',
     FAKE_JOB_TEXT,
     MOCK_FIELDS,
     monogramUrl,

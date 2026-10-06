@@ -217,10 +217,10 @@ export function showFieldLabel(selector: string, text: string, duration: number 
  * Add animation CSS if not already present
  */
 function addAnimationStyles(): void {
-  if (document.getElementById('offlyn-highlighter-styles')) return;
+  if (document.getElementById('privateapply-highlighter-styles')) return;
   
   const style = document.createElement('style');
-  style.id = 'offlyn-highlighter-styles';
+  style.id = 'privateapply-highlighter-styles';
   style.textContent = `
     @keyframes slideInDown {
       from {

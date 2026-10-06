@@ -1,4 +1,4 @@
-# Offlyn Apply — Source Code Build Instructions
+# Private Apply — Source Code Build Instructions
 
 ## Overview
 

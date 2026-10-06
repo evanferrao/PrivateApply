@@ -66,7 +66,7 @@ export function Header({
         </a>
         <div className="de-title-group">
           <div className="de-title">Data Explorer</div>
-          <div className="de-subtitle">Offlyn Apply</div>
+          <div className="de-subtitle">Private Apply</div>
         </div>
       </div>
 

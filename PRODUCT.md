@@ -12,11 +12,11 @@ Tech and engineering job seekers applying to roles across diverse Applicant Trac
 
 ## Product Purpose
 
-Offlyn Apply eliminates repetitive job application workflows by automatically detecting form fields, analyzing job compatibility, generating tailored cover letters, and patching LaTeX resumes—all while running local AI inference. Success means enabling candidates to submit accurate, high-fidelity applications rapidly while guaranteeing zero personal data leakage.
+Private Apply eliminates repetitive job application workflows by automatically detecting form fields, analyzing job compatibility, generating tailored cover letters, and patching LaTeX resumes—all while running local AI inference. Success means enabling candidates to submit accurate, high-fidelity applications rapidly while guaranteeing zero personal data leakage.
 
 ## Positioning
 
-A truly privacy-first, zero-cloud job application assistant. Unlike conventional application automation extensions that send resumes and personal history to third-party servers, Offlyn Apply executes all AI generation locally via Ollama (or user-managed endpoints), stores all profile and history data exclusively in local browser storage (`browser.storage.local`), and uniquely integrates with a native desktop TeX companion for offline high-fidelity resume compilation.
+A truly privacy-first, zero-cloud job application assistant. Unlike conventional application automation extensions that send resumes and personal history to third-party servers, Private Apply executes all AI generation locally via Ollama (or user-managed endpoints), stores all profile and history data exclusively in local browser storage (`browser.storage.local`), and uniquely integrates with a native desktop TeX companion for offline high-fidelity resume compilation.
 
 ## Operating Context
 
@@ -37,7 +37,7 @@ A truly privacy-first, zero-cloud job application assistant. Unlike conventional
 
 ## Brand Commitments
 
-- **Name:** Offlyn Apply (associated with Offlyn AI and PrivateApply legacy marks).
+- **Name:** Private Apply.
 - **Voice:** Direct, technical, transparent, and trustworthy; prioritizes utility and clarity over marketing hyperbole.
 - **Identity Assets:** Official logomarks, typography references, and badges located in `Brandkit/`, `assets/`, and `apps/extension-chrome/public/icons/`.
 

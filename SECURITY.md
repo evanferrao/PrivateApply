@@ -11,7 +11,7 @@
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-If you discover a security vulnerability, email **hi@offlyn.ai** with:
+If you discover a security vulnerability, email **security@privateapply.local** or open a private security advisory on GitHub with:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce or a proof-of-concept (if applicable)
@@ -38,7 +38,7 @@ The following are **out of scope**:
 
 ## Privacy Architecture
 
-Offlyn Apply is designed to keep all data local:
+Private Apply is designed to keep all data local:
 
 - Profile data is stored in `browser.storage.local` — never synced to the cloud
 - All AI inference runs through a local Ollama instance

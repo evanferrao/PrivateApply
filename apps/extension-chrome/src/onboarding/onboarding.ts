@@ -124,7 +124,7 @@ const TIP_MESSAGES: Array<{ svg: string; text: string }> = [
   },
   {
     svg: `<svg ${svgAttrs}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
-    text: 'Offlyn Apply uses on-device AI so your resume stays 100% private.',
+    text: 'Private Apply uses on-device AI so your resume stays 100% private.',
   },
   {
     svg: `<svg ${svgAttrs}><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`,
@@ -498,7 +498,7 @@ async function runAIValidation(): Promise<void> {
 
   if (!genResp?.ok) {
     const hint = genResp?.status === 403
-      ? 'CORS blocked — please run the Offlyn AI Setup installer again.'
+      ? 'CORS blocked — please run the Private Apply Setup installer again.'
       : `Generate test failed (${genResp?.error || genResp?.status || 'unknown'})`;
     throw new Error(hint);
   }
@@ -690,11 +690,11 @@ async function checkOllamaConnection(): Promise<void> {
 // ── Native Messaging helpers ──────────────────────────────────────────────
 
 const HELPER_INSTALL_BASE =
-  'https://raw.githubusercontent.com/joelnishanth/offlyn-apply/main/scripts/native-host';
+  'https://raw.githubusercontent.com/joelnishanth/private-apply/main/scripts/native-host';
 const HELPER_PKG_URL =
-  'https://github.com/joelnishanth/offlyn-apply/releases/download/v0.7.8/offlyn-helper-signed.pkg';
+  'https://github.com/joelnishanth/private-apply/releases/download/v0.7.8/privateapply-helper-signed.pkg';
 const HELPER_WIN_BAT_URL =
-  'https://github.com/joelnishanth/offlyn-apply/releases/download/v0.7.8/offlyn-windows-installer.bat';
+  'https://github.com/joelnishanth/private-apply/releases/download/v0.7.8/privateapply-windows-installer.bat';
 
 function detectOS(): 'mac' | 'windows' | 'linux' {
   const ua = navigator.userAgent.toLowerCase();
@@ -706,7 +706,7 @@ function detectOS(): 'mac' | 'windows' | 'linux' {
 function getHelperInstallCommand(): string {
   const os = detectOS();
   if (os === 'windows') {
-    return `irm ${HELPER_INSTALL_BASE}/install-win.bat -OutFile $env:TEMP\\offlyn-install.bat; & $env:TEMP\\offlyn-install.bat`;
+    return `irm ${HELPER_INSTALL_BASE}/install-win.bat -OutFile $env:TEMP\\privateapply-install.bat; & $env:TEMP\\privateapply-install.bat`;
   }
   return `curl -fsSL ${HELPER_INSTALL_BASE}/install-mac-linux.sh | bash`;
 }
@@ -845,7 +845,7 @@ function updateHelperSubstate(helperInstalled: boolean): void {
 
 function getOllamaDownloadUrl(): string {
   const os = detectOS();
-  if (os === 'mac') return 'https://github.com/joelnishanth/offlyn-apply/releases/latest/download/Offlyn-AI-Setup.dmg';
+  if (os === 'mac') return 'https://github.com/joelnishanth/private-apply/releases/latest/download/Private-Apply-Setup.dmg';
   if (os === 'windows') return 'https://ollama.com/download/OllamaSetup.exe';
   return ''; // Linux uses terminal command
 }

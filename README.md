@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="apps/extension-chrome/public/icons/logo-full-400w.png" alt="Offlyn Apply" width="320" />
+  <img src="apps/extension-chrome/public/icons/logo-full-400w.png" alt="Private Apply" width="320" />
   <h3>Privacy-first job application assistant for Chrome & Firefox</h3>
   <p>Auto-fill forms · AI cover letters · Local Ollama · Zero cloud · Zero tracking</p>
 
   <p>
-    <a href="https://github.com/joelnishanth/offlyn-apply/blob/main/LICENSE">
+    <a href="https://github.com/joelnishanth/private-apply/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" />
     </a>
     <img src="https://img.shields.io/badge/version-0.2.4-22c55e.svg" alt="Version 0.2.4" />
@@ -15,17 +15,17 @@
   </p>
 
   <p>
-    <a href="https://chromewebstore.google.com/detail/offlyn-apply-job-applicat/bjllpojjllhfghiemokcoknfmhpmfbph"><strong>Get for Chrome</strong></a> ·
-    <a href="https://addons.mozilla.org/en-US/firefox/addon/offlyn-apply/"><strong>Get for Firefox</strong></a> ·
-    <a href="https://joelnishanth.github.io/offlyn-apply"><strong>Website</strong></a> ·
+    <a href="https://chromewebstore.google.com/detail/private-apply-job-applicat/bjllpojjllhfghiemokcoknfmhpmfbph"><strong>Get for Chrome</strong></a> ·
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/private-apply/"><strong>Get for Firefox</strong></a> ·
+    <a href="https://joelnishanth.github.io/private-apply"><strong>Website</strong></a> ·
     <a href="#getting-started"><strong>Quick Start</strong></a> ·
     <a href="CONTRIBUTING.md"><strong>Contributing</strong></a> ·
-    <a href="https://github.com/joelnishanth/offlyn-apply/issues/new/choose"><strong>Report a Bug</strong></a>
+    <a href="https://github.com/joelnishanth/private-apply/issues/new/choose"><strong>Report a Bug</strong></a>
   </p>
 
   <br/>
 
-  <img src="assets/ss4.png" alt="Offlyn Apply — Extension Home & Dashboard" width="800" style="border-radius:12px" />
+  <img src="assets/ss4.png" alt="Private Apply — Extension Home & Dashboard" width="800" style="border-radius:12px" />
 
 </div>
 
@@ -87,8 +87,8 @@ See [LaTeX Editor & Companion Documentation](docs/latex-editor-and-companion.md)
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/joelnishanth/offlyn-apply.git
-cd offlyn-apply/apps/extension-firefox
+git clone https://github.com/joelnishanth/private-apply.git
+cd private-apply/apps/extension-firefox
 ```
 
 ### 2. Install dependencies
@@ -123,7 +123,7 @@ Or load manually: open `about:debugging` → "This Firefox" → "Load Temporary 
 ## Project Structure
 
 ```
-offlyn-apply/
+private-apply/
 ├── apps/
 │   ├── extension-chrome/         # Chrome extension (Manifest V3)
 │   │   ├── src/
@@ -183,7 +183,7 @@ No external servers. No analytics. No telemetry.
 
 Contributions are welcome — bug fixes, new ATS integrations, better form detection, UI improvements. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-**Good first issues:** look for the [`good first issue`](https://github.com/joelnishanth/offlyn-apply/labels/good%20first%20issue) label.
+**Good first issues:** look for the [`good first issue`](https://github.com/joelnishanth/private-apply/labels/good%20first%20issue) label.
 
 ---
 
@@ -195,4 +195,4 @@ If you discover a security vulnerability, please follow the responsible disclosu
 
 ## License
 
-[MIT](LICENSE) — © 2026 [Offlyn Apply](https://offlyn.ai)
+[MIT](LICENSE) — © 2026 [Private Apply](https://github.com/joelnishanth/private-apply)

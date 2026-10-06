@@ -1,9 +1,9 @@
-# Quick Export List - Offlyn Apply
+# Quick Export List - Private Apply
 
 ## Your Source Files
-- `Offlyn_Apply_Monogram.png` (340x280) - OA monogram
-- `Offlyn_Apply_Primary_Logo.png` (658x368) - Full logo with robot
-- `offlyn-logo-3d.png` (886x1266) - 3D version
+- `Private_Apply_Monogram.png` (340x280) - PA monogram
+- `Private_Apply_Primary_Logo.png` (658x368) - Full logo with robot
+- `privateapply-logo-3d.png` (886x1266) - 3D version
 
 ---
 
@@ -13,14 +13,14 @@ Create a folder: `Brandkit/exports/` and export these files:
 
 ### MUST HAVE (Do these first)
 
-**From Monogram** (`Offlyn_Apply_Monogram.png`):
+**From Monogram** (`Private_Apply_Monogram.png`):
 ```
 ✓ icon-48.png          → 48 x 48 pixels
 ✓ icon-96.png          → 96 x 96 pixels  
 ✓ icon-128.png         → 128 x 128 pixels
 ```
 
-**From Full Logo** (`Offlyn_Apply_Primary_Logo.png`):
+**From Full Logo** (`Private_Apply_Primary_Logo.png`):
 ```
 ✓ logo-full-400w.png   → 400 pixels wide (maintain ratio)
 ```
@@ -56,14 +56,14 @@ Create a folder: `Brandkit/exports/` and export these files:
 - **Quality**: Maximum (no compression)
 
 ### For Icons (48, 96, 128, 256):
-- Start with `Offlyn_Apply_Monogram.png`
+- Start with `Private_Apply_Monogram.png`
 - Resize to EXACT square dimensions
 - Keep padding: minimum 10% on all sides
 - Center the OA letters
 - Make sure it's readable at small sizes
 
 ### For Full Logo (400w, 600w):
-- Start with `Offlyn_Apply_Primary_Logo.png`
+- Start with `Private_Apply_Primary_Logo.png`
 - Resize to specified width
 - Maintain aspect ratio (height auto)
 - Keep all details crisp
@@ -79,7 +79,7 @@ Create a folder: `Brandkit/exports/` and export these files:
 ## Quick Export Steps (Using Your Design Tool)
 
 ### Option 1: Photoshop
-1. Open `Offlyn_Apply_Monogram.png`
+1. Open `Private_Apply_Monogram.png`
 2. Image → Image Size
 3. Set width/height (keep constrain proportions ON)
 4. Add canvas padding if needed (Image → Canvas Size)
@@ -104,19 +104,19 @@ cd Brandkit
 mkdir -p exports
 
 # Monogram to icons
-sips -z 48 48 Offlyn_Apply_Monogram.png --out exports/icon-48.png
-sips -z 96 96 Offlyn_Apply_Monogram.png --out exports/icon-96.png
-sips -z 128 128 Offlyn_Apply_Monogram.png --out exports/icon-128.png
-sips -z 256 256 Offlyn_Apply_Monogram.png --out exports/icon-256.png
+sips -z 48 48 Private_Apply_Monogram.png --out exports/icon-48.png
+sips -z 96 96 Private_Apply_Monogram.png --out exports/icon-96.png
+sips -z 128 128 Private_Apply_Monogram.png --out exports/icon-128.png
+sips -z 256 256 Private_Apply_Monogram.png --out exports/icon-256.png
 
 # Headers
-sips -z 24 24 Offlyn_Apply_Monogram.png --out exports/header-icon-24.png
-sips -z 32 32 Offlyn_Apply_Monogram.png --out exports/header-icon-32.png
-sips -z 64 64 Offlyn_Apply_Monogram.png --out exports/cube-64.png
+sips -z 24 24 Private_Apply_Monogram.png --out exports/header-icon-24.png
+sips -z 32 32 Private_Apply_Monogram.png --out exports/header-icon-32.png
+sips -z 64 64 Private_Apply_Monogram.png --out exports/cube-64.png
 
 # Full logo
-sips -Z 400 Offlyn_Apply_Primary_Logo.png --out exports/logo-full-400w.png
-sips -Z 600 Offlyn_Apply_Primary_Logo.png --out exports/logo-full-600w.png
+sips -Z 400 Private_Apply_Primary_Logo.png --out exports/logo-full-400w.png
+sips -Z 600 Private_Apply_Primary_Logo.png --out exports/logo-full-600w.png
 ```
 
 ---
@@ -145,9 +145,9 @@ Once done, your folder should look like:
 
 ```
 Brandkit/
-├── Offlyn_Apply_Monogram.png
-├── Offlyn_Apply_Primary_Logo.png
-├── offlyn-logo-3d.png
+├── Private_Apply_Monogram.png
+├── Private_Apply_Primary_Logo.png
+├── privateapply-logo-3d.png
 └── exports/
     ├── icon-48.png ✓
     ├── icon-96.png ✓

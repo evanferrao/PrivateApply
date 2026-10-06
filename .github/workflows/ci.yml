@@ -230,7 +230,7 @@ jobs:
             const badge = (n) => n === '0' ? ':white_check_mark: 0' : `:warning: ${n}`;
 
             const body = [
-              '<!-- offlyn-ci-report -->',
+              '<!-- privateapply-ci-report -->',
               '## CI Improvement Report',
               '',
               '| Check | Firefox |',
@@ -255,7 +255,7 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            const existing = comments.find(c => c.body && c.body.includes('<!-- offlyn-ci-report -->'));
+            const existing = comments.find(c => c.body && c.body.includes('<!-- privateapply-ci-report -->'));
 
             if (existing) {
               await github.rest.issues.updateComment({

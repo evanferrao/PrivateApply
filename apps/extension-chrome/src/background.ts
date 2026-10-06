@@ -171,7 +171,7 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
     // These must live inside the async listener (not a separate one) because
     // Chrome MV3 treats Promise<undefined> returned by an async listener as a
     // final response, closing the channel before any subsequent listener fires.
-    const NATIVE_HOST_ID = 'ai.offlyn.helper';
+    const NATIVE_HOST_ID = 'ai.privateapply.helper';
 
     if ((message as any).kind === 'CHECK_NATIVE_HELPER') {
       return new Promise((resolve) => {
@@ -1174,10 +1174,10 @@ ${profileContext}`;
 
     if (message.kind === 'TEST_NOTIFICATION') {
       try {
-        chrome.notifications.create(`offlyn-test-${Date.now()}`, {
+        chrome.notifications.create(`privateapply-test-${Date.now()}`, {
           type: 'basic',
           iconUrl: chrome.runtime.getURL('icons/monogram-icon.png'),
-          title: 'Offlyn Apply — Test',
+          title: 'Private Apply — Test',
           message: 'Notifications are working! You will see alerts when new jobs match your profile.',
           priority: 1,
         });
@@ -1592,7 +1592,7 @@ chrome.runtime.onConnect.addListener((port) => {
 
 // ── Scheduled Job Search (chrome.alarms) ────────────────────────────────────
 
-const ALARM_NAME = 'offlyn-job-search';
+const ALARM_NAME = 'privateapply-job-search';
 
 async function setupScheduledSearch(): Promise<void> {
   try {
@@ -1689,10 +1689,10 @@ async function runScheduledSearch(): Promise<void> {
           const jobSummary = newJobs.length === 1
             ? newJobs[0].title
             : `${newJobs[0].title} and ${newJobs.length - 1} more`;
-          chrome.notifications.create(`offlyn-jobs-${Date.now()}`, {
+          chrome.notifications.create(`privateapply-jobs-${Date.now()}`, {
             type: 'basic',
             iconUrl: chrome.runtime.getURL('icons/monogram-icon.png'),
-            title: `Offlyn Apply — ${newJobs.length} New Job${newJobs.length > 1 ? 's' : ''}`,
+            title: `Private Apply — ${newJobs.length} New Job${newJobs.length > 1 ? 's' : ''}`,
             message: jobSummary,
             priority: 1,
           });
@@ -1739,57 +1739,57 @@ function createContextMenus(): void {
 
   // Parent menu
   browser.contextMenus.create({
-    id: 'offlyn-text-transform',
-    title: 'Offlyn Apply',
+    id: 'privateapply-text-transform',
+    title: 'Private Apply',
     contexts: ['editable'],
   });
 
   // Sub-items — Smart Fill first (primary action)
   browser.contextMenus.create({
-    id: 'offlyn-smart-fill',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-smart-fill',
+    parentId: 'privateapply-text-transform',
     title: 'Smart Fill this field',
     contexts: ['editable'],
   });
 
   browser.contextMenus.create({
-    id: 'offlyn-smart-fill-separator',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-smart-fill-separator',
+    parentId: 'privateapply-text-transform',
     type: 'separator',
     contexts: ['editable'],
   });
 
   browser.contextMenus.create({
-    id: 'offlyn-professional-fix',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-professional-fix',
+    parentId: 'privateapply-text-transform',
     title: 'Professional Fix',
     contexts: ['editable'],
   });
 
   browser.contextMenus.create({
-    id: 'offlyn-expand',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-expand',
+    parentId: 'privateapply-text-transform',
     title: 'Expand',
     contexts: ['editable'],
   });
 
   browser.contextMenus.create({
-    id: 'offlyn-shorten',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-shorten',
+    parentId: 'privateapply-text-transform',
     title: 'Shorten',
     contexts: ['editable'],
   });
 
   browser.contextMenus.create({
-    id: 'offlyn-debug-separator',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-debug-separator',
+    parentId: 'privateapply-text-transform',
     type: 'separator',
     contexts: ['editable'],
   });
 
   browser.contextMenus.create({
-    id: 'offlyn-debug-fill',
-    parentId: 'offlyn-text-transform',
+    id: 'privateapply-debug-fill',
+    parentId: 'privateapply-text-transform',
     title: 'Why was this filled?',
     contexts: ['editable'],
   });
@@ -1807,9 +1807,9 @@ browser.contextMenus.onClicked.addListener(async (menuInfo, tab) => {
   await ensureContentScript(tab.id);
 
   const actionMap: Record<string, string> = {
-    'offlyn-professional-fix': 'professional-fix',
-    'offlyn-expand': 'expand',
-    'offlyn-shorten': 'shorten',
+    'privateapply-professional-fix': 'professional-fix',
+    'privateapply-expand': 'expand',
+    'privateapply-shorten': 'shorten',
   };
 
   const action = actionMap[menuInfo.menuItemId as string];
@@ -1822,7 +1822,7 @@ browser.contextMenus.onClicked.addListener(async (menuInfo, tab) => {
     return;
   }
 
-  if (menuInfo.menuItemId === 'offlyn-smart-fill') {
+  if (menuInfo.menuItemId === 'privateapply-smart-fill') {
     info(`Context menu: "smart-fill" on tab ${tab.id}`);
     browser.tabs.sendMessage(
       tab.id,
@@ -1832,7 +1832,7 @@ browser.contextMenus.onClicked.addListener(async (menuInfo, tab) => {
     return;
   }
 
-  if (menuInfo.menuItemId === 'offlyn-debug-fill') {
+  if (menuInfo.menuItemId === 'privateapply-debug-fill') {
     info(`Context menu: "debug-fill" on tab ${tab.id}`);
     browser.tabs.sendMessage(
       tab.id,

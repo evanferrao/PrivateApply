@@ -1,7 +1,7 @@
 # Manual Test Script for Cover Letter Functionality
 
 ## Test Environment
-- Firefox with Offlyn extension loaded
+- Firefox with Private Apply extension loaded
 - Test file: test-workauth.html
 
 ## Test Cases

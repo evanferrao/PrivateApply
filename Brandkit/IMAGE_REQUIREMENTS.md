@@ -1,9 +1,9 @@
-# Offlyn Apply - Image Asset Requirements
+# Private Apply - Image Asset Requirements
 
 ## Current Files in Brandkit/
-- Offlyn_Apply_Monogram.png (OA monogram)
-- Offlyn_Apply_Primary_Logo.png (Full logo with robot)
-- offlyn-logo-3d.png (3D version)
+- Private_Apply_Monogram.png (PA monogram)
+- Private_Apply_Primary_Logo.png (Full logo with robot)
+- privateapply-logo-3d.png (3D version)
 
 ---
 
@@ -11,7 +11,7 @@
 
 ### 1. MONOGRAM ICONS (OA) - For Extension & Browser
 
-**Source**: Use `Offlyn_Apply_Monogram.png`
+**Source**: Use `Private_Apply_Monogram.png`
 
 **Required Sizes**:
 ```
@@ -25,7 +25,7 @@ Brandkit/exports/icon-256.png      (256 x 256 pixels) - optional, for high-DPI
 - Format: PNG
 - Background: Transparent
 - Style: Clean, readable at small sizes
-- Content: OA monogram centered and well-padded
+- Content: PA monogram centered and well-padded
 
 **Usage**:
 - Browser toolbar icon
@@ -37,7 +37,7 @@ Brandkit/exports/icon-256.png      (256 x 256 pixels) - optional, for high-DPI
 
 ### 2. FULL LOGO - For Headers & Onboarding
 
-**Source**: Use `Offlyn_Apply_Primary_Logo.png`
+**Source**: Use `Private_Apply_Primary_Logo.png`
 
 **Required Sizes**:
 ```
@@ -50,7 +50,7 @@ Brandkit/exports/logo-full.svg         (Vector - if you have it)
 - Format: PNG (and SVG if possible)
 - Background: Transparent
 - Aspect Ratio: Approximately 2:1 (width:height)
-- Content: Full "Offlyn Apply" text + robot
+- Content: Full "Private Apply" text + robot
 
 **Usage**:
 - Onboarding page header
@@ -62,7 +62,7 @@ Brandkit/exports/logo-full.svg         (Vector - if you have it)
 
 ### 3. FAVICON - For Web Pages
 
-**Source**: Use `Offlyn_Apply_Monogram.png`
+**Source**: Use `Private_Apply_Monogram.png`
 
 **Required Sizes**:
 ```
@@ -74,7 +74,7 @@ Brandkit/exports/favicon-32x32.png     (32 x 32 pixels)
 **Specifications**:
 - Format: ICO (multi-resolution) or PNG
 - Background: Transparent or solid color
-- Content: OA monogram (simplified for 16x16)
+- Content: PA monogram (simplified for 16x16)
 
 **Usage**:
 - Dashboard page tab icon
@@ -84,7 +84,7 @@ Brandkit/exports/favicon-32x32.png     (32 x 32 pixels)
 
 ### 4. CUBE LOGO - For Minimized In-Page Panel
 
-**Source**: Use `Offlyn_Apply_Monogram.png`
+**Source**: Use `Private_Apply_Monogram.png`
 
 **Required Sizes**:
 ```
@@ -96,7 +96,7 @@ Brandkit/exports/cube-48.png           (48 x 48 pixels)
 - Format: PNG
 - Background: Can have subtle shadow or glow for depth
 - Style: Should look good on any webpage background
-- Content: OA monogram, slightly stylized for 3D effect (optional)
+- Content: PA monogram, slightly stylized for 3D effect (optional)
 
 **Usage**:
 - Minimized field summary panel (floating cube on job sites)
@@ -105,7 +105,7 @@ Brandkit/exports/cube-48.png           (48 x 48 pixels)
 
 ### 5. HEADER ICONS - For Popup & Panels
 
-**Source**: Use `Offlyn_Apply_Monogram.png`
+**Source**: Use `Private_Apply_Monogram.png`
 
 **Required Sizes**:
 ```
@@ -116,7 +116,7 @@ Brandkit/exports/header-icon-32.png    (32 x 32 pixels)
 **Specifications**:
 - Format: PNG
 - Background: Transparent
-- Content: OA monogram, clean and simple
+- Content: PA monogram, clean and simple
 
 **Usage**:
 - Popup header
@@ -155,7 +155,7 @@ From Brandkit folder, export these to `Brandkit/exports/`:
 ## Export Guidelines
 
 ### For Monogram Icons (48, 96, 128, 256)
-1. Start with `Offlyn_Apply_Monogram.png`
+1. Start with `Private_Apply_Monogram.png`
 2. Resize to exact dimensions (maintain aspect ratio, add padding if needed)
 3. Ensure OA letters are centered
 4. Keep plenty of padding around edges (at least 10% on all sides)
@@ -163,7 +163,7 @@ From Brandkit folder, export these to `Brandkit/exports/`:
 6. Test: Should be readable at 48x48 on both light and dark backgrounds
 
 ### For Full Logo (400w, 600w)
-1. Start with `Offlyn_Apply_Primary_Logo.png`
+1. Start with `Private_Apply_Primary_Logo.png`
 2. Resize maintaining aspect ratio
 3. Export as PNG with transparency
 4. Ensure text is crisp and readable
@@ -189,9 +189,9 @@ From Brandkit folder, export these to `Brandkit/exports/`:
 
 ```
 Brandkit/
-├── Offlyn_Apply_Monogram.png        (Your source file)
-├── Offlyn_Apply_Primary_Logo.png    (Your source file)
-├── offlyn-logo-3d.png                (Your source file)
+├── Private_Apply_Monogram.png        (Your source file)
+├── Private_Apply_Primary_Logo.png    (Your source file)
+├── privateapply-logo-3d.png                (Your source file)
 └── exports/                          (Create this folder)
     ├── icon-48.png
     ├── icon-96.png

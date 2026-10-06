@@ -79,7 +79,7 @@ REPORT.md
 # Daily tracking dashboard (local only, not committed to git)
 .dashboard/
 /UImockupfiles
-/screenshots/Mockup Pages for Offlyn Apply
+/screenshots/Mockup Pages for Private Apply
 /chrome-store-assets
 /datasets
 /debug-logs

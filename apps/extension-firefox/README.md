@@ -1,4 +1,4 @@
-# Offlyn - Job Application Assistant
+# Private Apply - Job Application Assistant
 
 Browser extension that detects job application forms, extracts your resume data, and auto-fills forms automatically.
 
@@ -245,7 +245,7 @@ node install-manifest.js
 
 To get your extension ID:
 1. Go to `about:debugging` in Firefox
-2. Find "Offlyn" extension
+2. Find "Private Apply" extension
 3. Copy the Internal UUID
 
 ### Verify Connection

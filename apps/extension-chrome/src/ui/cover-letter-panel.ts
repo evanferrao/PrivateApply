@@ -118,7 +118,7 @@ function render(): void {
   panelEl?.remove();
 
   const panel = document.createElement('div');
-  panel.id = 'offlyn-cover-letter-panel';
+  panel.id = 'privateapply-cover-letter-panel';
 
   const hasAutoApply = !!state.onAutoApply;
 
@@ -181,7 +181,7 @@ function render(): void {
   // Back button — close panel, signal content.ts to expand field summary
   panel.querySelector('.ocl-back')?.addEventListener('click', () => {
     hideCoverLetterPanel();
-    window.dispatchEvent(new CustomEvent('offlyn-cover-letter-back'));
+    window.dispatchEvent(new CustomEvent('privateapply-cover-letter-back'));
   });
 
   // Close button — just close, no back navigation
@@ -231,7 +231,7 @@ function render(): void {
   // Regenerate
   panel.querySelector('.ocl-btn-regen')?.addEventListener('click', () => {
     resetToGenerating();
-    window.dispatchEvent(new CustomEvent('offlyn-regenerate-cover-letter'));
+    window.dispatchEvent(new CustomEvent('privateapply-regenerate-cover-letter'));
   });
 
   // Refinement buttons
@@ -254,7 +254,7 @@ function render(): void {
       });
 
       // Dispatch event for content.ts to handle
-      window.dispatchEvent(new CustomEvent('offlyn-refine-cover-letter', {
+      window.dispatchEvent(new CustomEvent('privateapply-refine-cover-letter', {
         detail: { action, currentText },
       }));
     });
@@ -318,7 +318,7 @@ function injectStyles(): void {
   s.id = 'ocl-styles';
   s.textContent = `
 /* ── Panel container ── */
-#offlyn-cover-letter-panel {
+#privateapply-cover-letter-panel {
   position: fixed;
   top: 0; right: 0;
   width: 440px;
@@ -334,7 +334,7 @@ function injectStyles(): void {
   transform: translateX(100%);
   transition: transform .3s cubic-bezier(.4,0,.2,1);
 }
-#offlyn-cover-letter-panel.ocl--open {
+#privateapply-cover-letter-panel.ocl--open {
   transform: translateX(0);
 }
 

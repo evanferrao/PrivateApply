@@ -27,7 +27,7 @@ Details:
    ATS: Workday
 
 ---
-Sent via Offlyn Extension"
+Sent via Private Apply Extension"
 
 # Check if target number provided
 if [ -z "$1" ]; then

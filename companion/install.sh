@@ -106,7 +106,7 @@ ALLOWED_EXTENSIONS_JSON="["
 if [ -n "$EXTENSION_ID" ]; then
   ALLOWED_EXTENSIONS_JSON+="\"$EXTENSION_ID\""
 else
-  ALLOWED_EXTENSIONS_JSON+="\"privateapply@local\", \"offlyn-apply@local\""
+  ALLOWED_EXTENSIONS_JSON+="\"privateapply@local\""
 fi
 ALLOWED_EXTENSIONS_JSON+="]"
 

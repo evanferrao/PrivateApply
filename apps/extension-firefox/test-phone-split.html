@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phone Number Split Fields Test - Offlyn</title>
+  <title>Phone Number Split Fields Test - Private Apply</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -116,7 +116,7 @@
 <body>
   <h1>Phone Number Split Fields Test</h1>
   <div class="description">
-    <strong>Test Purpose:</strong> Verify that the Offlyn extension correctly detects and fills phone numbers when split into separate country code and phone number fields.
+    <strong>Test Purpose:</strong> Verify that the Private Apply extension correctly detects and fills phone numbers when split into separate country code and phone number fields.
     <br><br>
     <strong>Setup:</strong> Make sure your profile has a phone number like <code>+12432349871</code> or <code>+919876543210</code>
     <br><br>
@@ -289,7 +289,7 @@
     
     <ol style="line-height: 1.8;">
       <li><strong>Setup Profile:</strong> Make sure your profile in the extension has a phone number like <code>+12432349871</code></li>
-      <li><strong>Load Extension:</strong> Ensure Offlyn extension is loaded in Firefox</li>
+      <li><strong>Load Extension:</strong> Ensure Private Apply extension is loaded in Firefox</li>
       <li><strong>Visit This Page:</strong> The extension should detect all these forms</li>
       <li><strong>Check Auto-fill:</strong> Fields should be automatically filled based on the patterns above</li>
       <li><strong>Verify Splits:</strong> 
@@ -303,11 +303,11 @@
     </ol>
 
     <h3 style="margin-top: 30px;">Expected Console Logs:</h3>
-    <pre style="background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px;">[Offlyn] Detected job application page
-[Offlyn] Detected 14 form fields
-[Offlyn] ✓ Filled country code field with: +1
-[Offlyn] ✓ Filled phone number field with: 2432349871
-[Offlyn] ✓ Filled full phone field with: +12432349871
+    <pre style="background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px;">[Private Apply] Detected job application page
+[Private Apply] Detected 14 form fields
+[Private Apply] ✓ Filled country code field with: +1
+[Private Apply] ✓ Filled phone number field with: 2432349871
+[Private Apply] ✓ Filled full phone field with: +12432349871
 ...</pre>
 
     <h3 style="margin-top: 30px;">Common Phone Formats Supported:</h3>
@@ -338,7 +338,7 @@
 
     // Log when page is loaded
     console.log('Phone Split Fields Test Page Loaded');
-    console.log('Waiting for Offlyn extension to detect and fill fields...');
+    console.log('Waiting for Private Apply extension to detect and fill fields...');
   </script>
 </body>
 </html>

@@ -73,7 +73,7 @@ export function setReactInputValue(
     // if they match, the synthetic onChange is suppressed.
     const tracker = (element as any)._valueTracker;
     if (tracker) {
-      tracker.setValue(value === '' ? '__offlyn_reset__' : '');
+      tracker.setValue(value === '' ? '__privateapply_reset__' : '');
     }
 
     // Dispatch events that React listens to (in order of importance)

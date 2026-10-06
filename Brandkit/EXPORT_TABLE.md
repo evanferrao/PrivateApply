@@ -1,4 +1,4 @@
-# Offlyn Apply - Export Table
+# Private Apply - Export Table
 
 ## Simple Export Guide
 
@@ -28,17 +28,17 @@ cd Brandkit
 mkdir -p exports
 
 # Required files
-sips -z 48 48 Offlyn_Apply_Monogram.png --out exports/icon-48.png
-sips -z 96 96 Offlyn_Apply_Monogram.png --out exports/icon-96.png
-sips -z 128 128 Offlyn_Apply_Monogram.png --out exports/icon-128.png
-sips -Z 400 Offlyn_Apply_Primary_Logo.png --out exports/logo-full-400w.png
+sips -z 48 48 Private_Apply_Monogram.png --out exports/icon-48.png
+sips -z 96 96 Private_Apply_Monogram.png --out exports/icon-96.png
+sips -z 128 128 Private_Apply_Monogram.png --out exports/icon-128.png
+sips -Z 400 Private_Apply_Primary_Logo.png --out exports/logo-full-400w.png
 
 # Recommended files
-sips -z 256 256 Offlyn_Apply_Monogram.png --out exports/icon-256.png
-sips -Z 600 Offlyn_Apply_Primary_Logo.png --out exports/logo-full-600w.png
-sips -z 24 24 Offlyn_Apply_Monogram.png --out exports/header-icon-24.png
-sips -z 32 32 Offlyn_Apply_Monogram.png --out exports/header-icon-32.png
-sips -z 64 64 Offlyn_Apply_Monogram.png --out exports/cube-64.png
+sips -z 256 256 Private_Apply_Monogram.png --out exports/icon-256.png
+sips -Z 600 Private_Apply_Primary_Logo.png --out exports/logo-full-600w.png
+sips -z 24 24 Private_Apply_Monogram.png --out exports/header-icon-24.png
+sips -z 32 32 Private_Apply_Monogram.png --out exports/header-icon-32.png
+sips -z 64 64 Private_Apply_Monogram.png --out exports/cube-64.png
 
 # For favicon, use online tool or:
 convert exports/icon-48.png -define icon:auto-resize=48,32,16 exports/favicon.ico
@@ -50,7 +50,7 @@ convert exports/icon-48.png -define icon:auto-resize=48,32,16 exports/favicon.ic
 
 ### Step 1: Resize Images
 1. Go to: https://www.iloveimg.com/resize-image
-2. Upload `Offlyn_Apply_Monogram.png`
+2. Upload `Private_Apply_Monogram.png`
 3. Choose "By Pixels"
 4. Enter dimensions (48x48, 96x96, etc.)
 5. Download

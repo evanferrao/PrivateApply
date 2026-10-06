@@ -1,7 +1,7 @@
 /**
  * Fetch wrapper for Ollama API calls.
  *
- * CORS is handled at install time by the Offlyn AI Setup installer, which
+ * CORS is handled at install time by the Private Apply Setup installer, which
  * configures OLLAMA_ORIGINS to accept the extension's origin. All requests
  * (GET and POST) go through fetch() directly.
  *

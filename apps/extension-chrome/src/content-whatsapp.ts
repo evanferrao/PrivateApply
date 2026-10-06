@@ -6,11 +6,11 @@
 import { isJobURL } from './shared/ats-domains';
 import { chromeCompat } from './shared/browser-compat';
 
-const PROCESSED_ATTR = 'data-offlyn-processed';
-const BUTTON_CLASS = 'offlyn-wa-apply';
+const PROCESSED_ATTR = 'data-privateapply-processed';
+const BUTTON_CLASS = 'privateapply-wa-apply';
 
-// Simplified SVG robot head matching the Offlyn monogram silhouette
-const ROBOT_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="4" r="2"/><rect x="10" y="5" width="2" height="3" rx="1"/><rect x="3" y="8" width="16" height="12" rx="6"/><circle cx="8.5" cy="14" r="2.5" fill="#25D366"/><circle cx="15" cy="14" r="2.5" fill="#25D366"/></svg>`;
+// Shield icon representing Private Apply
+const SHIELD_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`;
 
 function createApplyButton(url: string): HTMLElement {
   const host = document.createElement('span');
@@ -44,8 +44,8 @@ function createApplyButton(url: string): HTMLElement {
   `;
 
   const btn = document.createElement('button');
-  btn.innerHTML = ROBOT_SVG + ' Apply';
-  btn.title = 'Open in Offlyn Apply and auto-fill';
+  btn.innerHTML = SHIELD_SVG + ' Apply';
+  btn.title = 'Open in Private Apply and auto-fill';
 
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -97,4 +97,4 @@ observer.observe(document.body, {
   subtree: true,
 });
 
-console.log('[Offlyn] WhatsApp Web content script loaded — scanning for job links');
+console.log('[Private Apply] WhatsApp Web content script loaded — scanning for job links');

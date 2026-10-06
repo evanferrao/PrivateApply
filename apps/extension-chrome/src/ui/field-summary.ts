@@ -47,12 +47,12 @@ export function showFieldSummary(fields: FieldSchema[], jobTitle?: string, compa
     return;
   }
 
-  document.getElementById('offlyn-field-summary')?.remove();
+  document.getElementById('privateapply-field-summary')?.remove();
 
   addStyles();
 
   summaryPanel = document.createElement('div');
-  summaryPanel.id = 'offlyn-field-summary';
+  summaryPanel.id = 'privateapply-field-summary';
   setHTML(summaryPanel, buildPanelHTML(fields, jobTitle, company));
 
   document.body.appendChild(summaryPanel);
@@ -227,13 +227,13 @@ function buildPanelHTML(fields: FieldSchema[], jobTitle?: string, company?: stri
 
   return `
     <!-- Minimized cube (hidden initially) -->
-    <div class="ofl-cube" style="display:none;" title="Click to expand Offlyn Apply">
-      <img class="ofl-cube-logo" src="${cubeIconUrl}" alt="Offlyn Apply">
+    <div class="ofl-cube" style="display:none;" title="Click to expand Private Apply">
+      <img class="ofl-cube-logo" src="${cubeIconUrl}" alt="Private Apply">
     </div>
 
     <!-- Edge-docked tab (hidden initially) -->
-    <div class="ofl-edge-tab" style="display:none;" title="Click to expand Offlyn Apply">
-      <img class="ofl-edge-tab-logo" src="${cubeIconUrl}" alt="Offlyn Apply">
+    <div class="ofl-edge-tab" style="display:none;" title="Click to expand Private Apply">
+      <img class="ofl-edge-tab-logo" src="${cubeIconUrl}" alt="Private Apply">
     </div>
 
     <!-- Expanded view -->
@@ -242,8 +242,8 @@ function buildPanelHTML(fields: FieldSchema[], jobTitle?: string, company?: stri
         <span class="ofl-grip-dots">⠿</span>
       </div>
       <div class="ofl-brand">
-        <img class="ofl-logo" src="${headerIconUrl}" alt="Offlyn Apply">
-        <span class="ofl-title">Offlyn Apply</span>
+        <img class="ofl-logo" src="${headerIconUrl}" alt="Private Apply">
+        <span class="ofl-title">Private Apply</span>
       </div>
       <div class="ofl-header-actions">
         <button class="ofl-minimize-btn" title="Minimize">&#8722;</button>
@@ -326,12 +326,12 @@ function attachListeners(panel: HTMLElement): void {
 
   panel.querySelector('#ofl-autofill-btn')?.addEventListener('click', () => {
     setStatus('Filling...', 'info');
-    window.dispatchEvent(new CustomEvent('offlyn-manual-autofill'));
+    window.dispatchEvent(new CustomEvent('privateapply-manual-autofill'));
   });
 
   panel.querySelector('#ofl-cover-letter-btn')?.addEventListener('click', () => {
     setStatus('Generating cover letter...', 'info');
-    window.dispatchEvent(new CustomEvent('offlyn-generate-cover-letter'));
+    window.dispatchEvent(new CustomEvent('privateapply-generate-cover-letter'));
   });
 
   panel.querySelector('#ofl-refresh-btn')?.addEventListener('click', () => {
@@ -341,7 +341,7 @@ function attachListeners(panel: HTMLElement): void {
       btn.disabled = true;
       setTimeout(() => { btn.textContent = '⟳ Refresh'; btn.disabled = false; }, 2000);
     }
-    window.dispatchEvent(new CustomEvent('offlyn-refresh-scan'));
+    window.dispatchEvent(new CustomEvent('privateapply-refresh-scan'));
   });
 
   panel.querySelector('#ofl-details-btn')?.addEventListener('click', () => {
@@ -524,13 +524,13 @@ function escapeHtml(text: string): string {
 // ── Styles ─────────────────────────────────────────────────────────────────
 
 function addStyles(): void {
-  if (document.getElementById('offlyn-field-summary-styles')) return;
+  if (document.getElementById('privateapply-field-summary-styles')) return;
 
   const style = document.createElement('style');
-  style.id = 'offlyn-field-summary-styles';
+  style.id = 'privateapply-field-summary-styles';
   style.textContent = `
     /* ─── Container ─── */
-    #offlyn-field-summary {
+    #privateapply-field-summary {
       position: fixed;
       top: 20px;
       right: 20px;
@@ -548,12 +548,12 @@ function addStyles(): void {
                   border-radius .35s cubic-bezier(.4,0,.2,1),
                   box-shadow .2s;
     }
-    #offlyn-field-summary:hover {
+    #privateapply-field-summary:hover {
       box-shadow: 0 12px 40px rgba(0,0,0,.22), 0 4px 12px rgba(0,0,0,.10);
     }
 
     /* ─── Minimized cube state ─── */
-    #offlyn-field-summary.ofl-minimized {
+    #privateapply-field-summary.ofl-minimized {
       width: 48px;
       height: 48px !important;
       border-radius: 14px;
@@ -561,12 +561,12 @@ function addStyles(): void {
       overflow: hidden;
       box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
     }
-    #offlyn-field-summary.ofl-minimized:hover {
+    #privateapply-field-summary.ofl-minimized:hover {
       box-shadow: 0 6px 24px rgba(30, 42, 58, 0.25);
     }
 
     /* ─── Edge-folded state — 88×88 semi-circle tab protruding from viewport edge ─── */
-    #offlyn-field-summary.ofl-edge-folded {
+    #privateapply-field-summary.ofl-edge-folded {
       width: 88px !important;
       height: 88px !important;
       cursor: pointer;
@@ -575,38 +575,38 @@ function addStyles(): void {
       transition: transform .18s ease, box-shadow .18s ease;
     }
     /* Right edge: left half-circle visible, right half off-screen */
-    #offlyn-field-summary.ofl-edge-right {
+    #privateapply-field-summary.ofl-edge-right {
       border-radius: 50% 0 0 50%;
       box-shadow: -4px 0 20px rgba(0,0,0,.30);
     }
-    #offlyn-field-summary.ofl-edge-right:hover {
+    #privateapply-field-summary.ofl-edge-right:hover {
       transform: translateX(-6px);
       box-shadow: -8px 0 28px rgba(39, 227, 141, 0.45);
     }
     /* Left edge: right half-circle visible, left half off-screen */
-    #offlyn-field-summary.ofl-edge-left {
+    #privateapply-field-summary.ofl-edge-left {
       border-radius: 0 50% 50% 0;
       box-shadow: 4px 0 20px rgba(0,0,0,.30);
     }
-    #offlyn-field-summary.ofl-edge-left:hover {
+    #privateapply-field-summary.ofl-edge-left:hover {
       transform: translateX(6px);
       box-shadow: 8px 0 28px rgba(39, 227, 141, 0.45);
     }
     /* Top edge: bottom half-circle visible, top half off-screen */
-    #offlyn-field-summary.ofl-edge-top {
+    #privateapply-field-summary.ofl-edge-top {
       border-radius: 0 0 50% 50%;
       box-shadow: 0 4px 20px rgba(0,0,0,.30);
     }
-    #offlyn-field-summary.ofl-edge-top:hover {
+    #privateapply-field-summary.ofl-edge-top:hover {
       transform: translateY(6px);
       box-shadow: 0 8px 28px rgba(39, 227, 141, 0.45);
     }
     /* Bottom edge: top half-circle visible, bottom half off-screen */
-    #offlyn-field-summary.ofl-edge-bottom {
+    #privateapply-field-summary.ofl-edge-bottom {
       border-radius: 50% 50% 0 0;
       box-shadow: 0 -4px 20px rgba(0,0,0,.30);
     }
-    #offlyn-field-summary.ofl-edge-bottom:hover {
+    #privateapply-field-summary.ofl-edge-bottom:hover {
       transform: translateY(-6px);
       box-shadow: 0 -8px 28px rgba(39, 227, 141, 0.45);
     }

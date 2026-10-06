@@ -2,13 +2,13 @@
 
 echo ""
 echo "=========================================="
-echo "Offlyn Apply Native Host Diagnostic"
+echo "Private Apply Native Host Diagnostic"
 echo "=========================================="
 echo ""
 
 # Check 1: Manifest
 echo "1. Checking manifest..."
-MANIFEST="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/ai.offlyn.desktop.json"
+MANIFEST="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/ai.privateapply.desktop.json"
 if [ -f "$MANIFEST" ]; then
     echo "✓ Manifest exists"
     echo ""
@@ -125,7 +125,7 @@ echo "Firefox should be able to connect."
 echo ""
 echo "NEXT STEPS:"
 echo "1. In Firefox, go to: about:debugging#/runtime/this-firefox"
-echo "2. Find 'Offlyn Apply' extension"
+echo "2. Find 'Private Apply' extension"
 echo "3. Click 'Inspect' button (opens background console)"
 echo "4. In the background console, look for lines with [OA]"
 echo "5. Look for: 'Native host disconnected with error'"

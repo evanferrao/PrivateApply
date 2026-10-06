@@ -54,7 +54,7 @@ function ImportModal({ onClose, onImported }: ImportModalProps) {
     if (!fileData) return;
     let parsed: any;
     try { parsed = JSON.parse(fileData); } catch { showToast('Invalid JSON', 'error'); return; }
-    if (!parsed.version || !parsed.exportedAt) { showToast('Not a valid Offlyn export file', 'error'); return; }
+    if (!parsed.version || !parsed.exportedAt) { showToast('Not a valid Private Apply export file', 'error'); return; }
 
     const writes: Record<string, unknown> = {};
     if (opts.graph && parsed.graph) {
@@ -94,7 +94,7 @@ function ImportModal({ onClose, onImported }: ImportModalProps) {
         </div>
         <div className="modal-body">
           <p className="modal-desc">
-            Import a previously exported Offlyn JSON file to restore your graph, profile, and RL patterns.
+            Import a previously exported Private Apply JSON file to restore your graph, profile, and RL patterns.
           </p>
 
           <div className="modal-opts">
@@ -215,7 +215,7 @@ async function exportJSON() {
       corrections: stored[STORAGE.rlCorrections] ?? [],
     },
   };
-  downloadFile(JSON.stringify(payload, null, 2), `offlyn-data-${datestamp()}.json`, 'application/json');
+  downloadFile(JSON.stringify(payload, null, 2), `privateapply-data-${datestamp()}.json`, 'application/json');
   showToast('✓ Full export downloaded', 'success');
 }
 
@@ -236,7 +236,7 @@ async function exportAnswersCSV() {
       new Date(n.createdAt).toISOString(),
     );
   });
-  downloadFile([header, ...rows].join('\n'), `offlyn-graph-nodes-${datestamp()}.csv`, 'text/csv');
+  downloadFile([header, ...rows].join('\n'), `privateapply-graph-nodes-${datestamp()}.csv`, 'text/csv');
   showToast(`✓ ${nodes.length} nodes exported`, 'success');
 }
 
@@ -254,7 +254,7 @@ async function exportPatternsCSV() {
 
   downloadFile(
     ['# RL LEARNED PATTERNS', pHeader, ...pRows, '', '# RL CORRECTION EVENTS', cHeader, ...cRows].join('\n'),
-    `offlyn-rl-patterns-${datestamp()}.csv`,
+    `privateapply-rl-patterns-${datestamp()}.csv`,
     'text/csv'
   );
   showToast(`✓ ${patterns.length} patterns + ${corrections.length} corrections exported`, 'success');

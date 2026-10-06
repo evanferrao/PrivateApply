@@ -63,9 +63,9 @@ const ICON_PLAY  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="curren
 function updatePauseUI(isPaused: boolean): void {
   // Update standalone card button
   if (progressElement) {
-    const btn = progressElement.querySelector('#offlyn-pause-btn') as HTMLElement;
-    const title = progressElement.querySelector('.offlyn-progress-title') as HTMLElement;
-    const spinner = progressElement.querySelector('.offlyn-spinner') as HTMLElement;
+    const btn = progressElement.querySelector('#privateapply-pause-btn') as HTMLElement;
+    const title = progressElement.querySelector('.privateapply-progress-title') as HTMLElement;
+    const spinner = progressElement.querySelector('.privateapply-spinner') as HTMLElement;
     if (btn) {
       setHTML(btn, isPaused ? ICON_PLAY : ICON_PAUSE);
       btn.title = isPaused ? 'Resume filling' : 'Pause filling';
@@ -79,7 +79,7 @@ function updatePauseUI(isPaused: boolean): void {
   }
 
   // Update widget overlay
-  window.dispatchEvent(new CustomEvent('offlyn-fill-pause-state', {
+  window.dispatchEvent(new CustomEvent('privateapply-fill-pause-state', {
     detail: { paused: isPaused },
   }));
 }
@@ -102,7 +102,7 @@ export function showProgress(total: number): void {
   ensureProgressStyles();
 
   const container = document.createElement('div');
-  container.id = 'offlyn-progress-indicator';
+  container.id = 'privateapply-progress-indicator';
   container.style.cssText = `
     position: fixed;
     top: 20px;
@@ -116,26 +116,26 @@ export function showProgress(total: number): void {
     max-width: 380px;
     border-left: 4px solid #0a0a0a;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    animation: offlyn-progress-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
+    animation: privateapply-progress-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
   `;
 
   setHTML(container, `
     <div style="display:flex;align-items:flex-start;gap:10px;">
-      <div class="offlyn-spinner" style="
+      <div class="privateapply-spinner" style="
         flex-shrink:0;
         margin-top:2px;
         width:18px;height:18px;
         border:2.5px solid #e5e3dc;
         border-top-color:#1e5e41;
         border-radius:50%;
-        animation:offlyn-spin 0.7s linear infinite;
+        animation:privateapply-spin 0.7s linear infinite;
       "></div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="offlyn-progress-title" style="
+          <div class="privateapply-progress-title" style="
             font-weight:600;font-size:13px;color:#0a0a0a;line-height:1.3;
           ">Auto-filling form…</div>
-          <button id="offlyn-pause-btn" title="Pause filling" style="
+          <button id="privateapply-pause-btn" title="Pause filling" style="
             display:flex;align-items:center;justify-content:center;
             width:26px;height:26px;border-radius:50%;
             border:1px solid #e2e8f0;background:#f8fafc;
@@ -146,14 +146,14 @@ export function showProgress(total: number): void {
         <div style="
           background:#f4f3ee;height:5px;border-radius:3px;overflow:hidden;
         ">
-          <div id="offlyn-progress-bar" style="
+          <div id="privateapply-progress-bar" style="
             background:#1e5e41;
             height:100%;width:0%;
             border-radius:3px;
             transition:width 0.25s ease;
           "></div>
         </div>
-        <div id="offlyn-progress-text" style="
+        <div id="privateapply-progress-text" style="
           font-size:11px;color:#64748b;margin-top:5px;
         ">0 / ${total} fields</div>
       </div>
@@ -161,7 +161,7 @@ export function showProgress(total: number): void {
   `);
 
   // Wire pause button
-  const pauseBtn = container.querySelector('#offlyn-pause-btn') as HTMLElement;
+  const pauseBtn = container.querySelector('#privateapply-pause-btn') as HTMLElement;
   if (pauseBtn) {
     pauseBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -192,8 +192,8 @@ export function updateProgress(current: number, total: number, fieldName?: strin
 
   if (!progressElement) return;
 
-  const bar = progressElement.querySelector('#offlyn-progress-bar') as HTMLElement;
-  const text = progressElement.querySelector('#offlyn-progress-text') as HTMLElement;
+  const bar = progressElement.querySelector('#privateapply-progress-bar') as HTMLElement;
+  const text = progressElement.querySelector('#privateapply-progress-text') as HTMLElement;
 
   if (bar) bar.style.width = `${Math.round((current / total) * 100)}%`;
   if (text) text.textContent = fieldName
@@ -216,7 +216,7 @@ export function hideProgress(delay: number = 1000): void {
   if (!progressElement) return;
   const el = progressElement;
   setTimeout(() => {
-    el.style.animation = 'offlyn-progress-out 0.2s ease forwards';
+    el.style.animation = 'privateapply-progress-out 0.2s ease forwards';
     setTimeout(() => el.remove(), 200);
   }, delay);
   progressElement = null;
@@ -237,10 +237,10 @@ export function showProgressComplete(success: boolean, filled: number, total: nu
 
   if (!progressElement) return;
 
-  const spinner = progressElement.querySelector('.offlyn-spinner') as HTMLElement;
-  const title = progressElement.querySelector('.offlyn-progress-title') as HTMLElement;
-  const bar = progressElement.querySelector('#offlyn-progress-bar') as HTMLElement;
-  const pauseBtn = progressElement.querySelector('#offlyn-pause-btn') as HTMLElement;
+  const spinner = progressElement.querySelector('.privateapply-spinner') as HTMLElement;
+  const title = progressElement.querySelector('.privateapply-progress-title') as HTMLElement;
+  const bar = progressElement.querySelector('#privateapply-progress-bar') as HTMLElement;
+  const pauseBtn = progressElement.querySelector('#privateapply-pause-btn') as HTMLElement;
 
   if (pauseBtn) pauseBtn.style.display = 'none';
 
@@ -272,18 +272,18 @@ export function showProgressComplete(success: boolean, filled: number, total: nu
  * Inject keyframes once
  */
 function ensureProgressStyles(): void {
-  if (document.getElementById('offlyn-progress-styles')) return;
+  if (document.getElementById('privateapply-progress-styles')) return;
   const style = document.createElement('style');
-  style.id = 'offlyn-progress-styles';
+  style.id = 'privateapply-progress-styles';
   style.textContent = `
-    @keyframes offlyn-spin {
+    @keyframes privateapply-spin {
       to { transform: rotate(360deg); }
     }
-    @keyframes offlyn-progress-in {
+    @keyframes privateapply-progress-in {
       from { opacity:0; transform:translateX(24px); }
       to   { opacity:1; transform:translateX(0); }
     }
-    @keyframes offlyn-progress-out {
+    @keyframes privateapply-progress-out {
       from { opacity:1; transform:translateX(0); }
       to   { opacity:0; transform:translateX(24px); }
     }

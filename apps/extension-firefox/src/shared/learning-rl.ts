@@ -1,5 +1,5 @@
 /**
- * Reinforcement Learning System for Offlyn Apply
+ * Reinforcement Learning System for Private Apply
  *
  * Learns from user corrections and successes to improve autofill accuracy.
  *

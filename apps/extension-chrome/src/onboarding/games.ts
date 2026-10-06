@@ -698,7 +698,7 @@ export function mountDinoRunner(container: HTMLElement): void {
     ctx.lineTo(W, GROUND_Y + 1);
     ctx.stroke();
 
-    // Player — Offlyn monogram logo (falls back to a rectangle if image not loaded)
+    // Player — Private Apply monogram logo (falls back to a rectangle if image not loaded)
     const px = 50, ph = 20, pw = 16;
     const py = playerY - ph;
     if (logoImg && logoLoaded) {

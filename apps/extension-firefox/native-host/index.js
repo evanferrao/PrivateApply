@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Offlyn Apply Native Host - Firefox Native Messaging Bridge
+ * Private Apply Native Host - Firefox Native Messaging Bridge
  * 
  * Connects Firefox extension to Ollama for:
  * - Resume parsing

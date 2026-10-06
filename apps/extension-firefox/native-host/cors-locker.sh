@@ -3,7 +3,7 @@
 # Receives a JSON message via stdin (4-byte LE length header + body),
 # updates OLLAMA_ORIGINS, restarts Ollama, and responds.
 
-LOG="/tmp/offlyn-cors-locker.log"
+LOG="/tmp/privateapply-cors-locker.log"
 echo "$(date -u +%FT%TZ) === cors-locker started ===" >> "$LOG"
 
 # Read 4-byte little-endian length from stdin

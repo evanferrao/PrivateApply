@@ -157,7 +157,7 @@
     }
     .job-card-detected { display: flex; align-items: flex-start; gap: 10px; }
     .job-dot {
-      width: 8px; height: 8px; background: #22c55e;
+      width: 8px; height: 8px; background: #4ade80;
       border-radius: 50%; margin-top: 4px; flex-shrink: 0;
       position: relative;
       box-shadow: 0 0 0 2px var(--accent-subtle);
@@ -165,7 +165,7 @@
     .job-dot::before {
       content: ''; position: absolute; top: 50%; left: 50%;
       width: 100%; height: 100%; border-radius: 50%;
-      background: #22c55e; opacity: .7;
+      background: #4ade80; opacity: .7;
       animation: job-dot-ping 1.4s ease-out infinite;
     }
     @keyframes job-dot-ping {

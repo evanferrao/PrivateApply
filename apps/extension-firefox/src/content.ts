@@ -271,7 +271,7 @@ function detectPage(): void {
       // Avoid double-recording if we already fired for this exact URL.
       // This also guards against the form-submit handler having already recorded
       // the same (company + title) pair milliseconds earlier.
-      const confirmationKey = `offlyn_confirmed_${window.location.href}`;
+      const confirmationKey = `privateapply_confirmed_${window.location.href}`;
       if (sessionStorage.getItem(confirmationKey)) {
         console.log('[OA] Confirmation already recorded this session, skipping');
         return;
@@ -282,7 +282,7 @@ function detectPage(): void {
       // so we get the real job title instead of "Confirmation" from the thank-you heading.
       let jobMeta = extractJobMetadata();
       try {
-        const stored = sessionStorage.getItem('offlyn_last_job_meta');
+        const stored = sessionStorage.getItem('privateapply_last_job_meta');
         if (stored) {
           const parsed = JSON.parse(stored) as typeof jobMeta;
           // Use stored values only when they are more informative than what we just scraped
@@ -343,7 +343,7 @@ function detectPage(): void {
     const jobMeta = extractJobMetadata();
 
     // If a trusted ATS iframe is handling the form, skip parent-page field scan.
-    // The iframe's own content script will report its fields via OFFLYN_IFRAME_FIELDS.
+    // The iframe's own content script will report its fields via PRIVATEAPPLY_IFRAME_FIELDS.
     if (classification.parentFillSuppressed) {
       console.log('[OA] Trusted ATS iframe detected — suppressing parent-page field scan');
       showTrackingBadge(jobMeta.jobTitle, jobMeta.company);
@@ -459,7 +459,7 @@ function detectPage(): void {
       // loads as a fresh script context in the same iframe) can retrieve the real
       // job title instead of scraping "Confirmation" from the thank-you heading.
       try {
-        sessionStorage.setItem('offlyn_last_job_meta', JSON.stringify(jobMeta));
+        sessionStorage.setItem('privateapply_last_job_meta', JSON.stringify(jobMeta));
       } catch (_) { /* storage unavailable — ignore */ }
 
       // Show subtle tracking badge so user knows this application will be recorded
@@ -493,7 +493,7 @@ function detectPage(): void {
       if (!IS_TOP_FRAME) {
         try {
           window.parent.postMessage({
-            type: 'OFFLYN_IFRAME_FIELDS',
+            type: 'PRIVATEAPPLY_IFRAME_FIELDS',
             fields: uniqueFields,
             url: window.location.href,
           }, '*');
@@ -544,7 +544,7 @@ function detectPage(): void {
  */
 async function tryAutoFill(schema: ReturnType<typeof extractFormSchema>): Promise<void> {
   const dispatchDone = (success: boolean, filled: number, total: number, message?: string) => {
-    window.dispatchEvent(new CustomEvent('offlyn-autofill-done', {
+    window.dispatchEvent(new CustomEvent('privateapply-autofill-done', {
       detail: { success, filled, total, message },
     }));
   };
@@ -1035,19 +1035,19 @@ async function handleInlineTileClick(field: FieldSchema, selector: string): Prom
 /**
  * Listen for refresh scan events from the UI
  */
-window.addEventListener('offlyn-refresh-scan', () => {
+window.addEventListener('privateapply-refresh-scan', () => {
   removeAllTiles();
   detectPage();
 });
 
-window.addEventListener('offlyn-open-jobs', () => {
+window.addEventListener('privateapply-open-jobs', () => {
   browser.runtime.sendMessage({ kind: 'OPEN_JOBS_PAGE' }).catch(() => {
     const url = browser.runtime.getURL('jobs/jobs.html');
     window.open(url, '_blank');
   });
 });
 
-window.addEventListener('offlyn-tailor-resume', async () => {
+window.addEventListener('privateapply-tailor-resume', async () => {
   try {
     const jobDesc = scrapeJobDescription(lastJobMeta?.jobTitle, lastJobMeta?.company);
     await browser.storage.local.set({
@@ -1056,20 +1056,20 @@ window.addEventListener('offlyn-tailor-resume', async () => {
       pending_tailor_company: jobDesc.company || lastJobMeta?.company || '',
       pending_tailor_url: window.location.href,
     });
-    window.dispatchEvent(new CustomEvent('offlyn-show-tailor-panel'));
+    window.dispatchEvent(new CustomEvent('privateapply-show-tailor-panel'));
   } catch (e) {
-    console.error('[Offlyn] Failed to scrape JD for tailor:', e);
+    console.error('[Private Apply] Failed to scrape JD for tailor:', e);
   }
 });
 
-window.addEventListener('offlyn-open-resume-tailor', () => {
+window.addEventListener('privateapply-open-resume-tailor', () => {
   browser.runtime.sendMessage({ kind: 'OPEN_RESUME_TAILOR' }).catch(() => {
     const url = browser.runtime.getURL('resume-tailor/resume-tailor.html');
     window.open(url, '_blank');
   });
 });
 
-window.addEventListener('offlyn-browser-use-fill', () => {
+window.addEventListener('privateapply-browser-use-fill', () => {
   if (allDetectedFields.length > 0) {
     tryBrowserUseFill(allDetectedFields);
   } else {
@@ -1087,7 +1087,7 @@ let lastCoverLetterAutoApplySelector: string | null = null;
  * If a letter was already generated, just re-open the panel with the cached result.
  * If generation is already in progress, just re-show the panel (no duplicate work).
  */
-window.addEventListener('offlyn-generate-cover-letter', () => {
+window.addEventListener('privateapply-generate-cover-letter', () => {
   if (coverLetterGenerating) {
     // Already generating — just make sure panel is visible
     if (!isCoverLetterPanelVisible()) {
@@ -1114,7 +1114,7 @@ window.addEventListener('offlyn-generate-cover-letter', () => {
  * Listen for cover letter regeneration (from the panel's "Regenerate" button).
  * Always forces a fresh generation, clearing the cache.
  */
-window.addEventListener('offlyn-regenerate-cover-letter', () => {
+window.addEventListener('privateapply-regenerate-cover-letter', () => {
   lastCoverLetterResult = null;
   triggerCoverLetterGeneration();
 });
@@ -1123,7 +1123,7 @@ window.addEventListener('offlyn-regenerate-cover-letter', () => {
  * When user presses back from cover letter panel, expand the field summary
  * and keep it expanded (no auto-minimize).
  */
-window.addEventListener('offlyn-cover-letter-back', () => {
+window.addEventListener('privateapply-cover-letter-back', () => {
   ensureFieldSummaryExpanded();
 });
 
@@ -1131,7 +1131,7 @@ window.addEventListener('offlyn-cover-letter-back', () => {
  * Listen for cover letter refinement (shorten / lengthen / more impactful).
  * Routes through background script for reliable Ollama access.
  */
-window.addEventListener('offlyn-refine-cover-letter', async (e: Event) => {
+window.addEventListener('privateapply-refine-cover-letter', async (e: Event) => {
   const detail = (e as CustomEvent).detail as { action: string; currentText: string } | undefined;
   if (!detail) return;
 
@@ -1351,9 +1351,9 @@ function applyCoverLetterToField(selector: string, text: string): void {
  * Listen for manual autofill trigger
  */
 // Widget pause button dispatches this event
-window.addEventListener('offlyn-toggle-fill-pause', () => { togglePause(); });
+window.addEventListener('privateapply-toggle-fill-pause', () => { togglePause(); });
 
-window.addEventListener('offlyn-manual-autofill', async () => {
+window.addEventListener('privateapply-manual-autofill', async () => {
   if (allDetectedFields.length > 0) {
     info('Manual trigger: starting autofill with highlighting');
     await tryAutoFill(allDetectedFields);
@@ -1372,7 +1372,7 @@ window.addEventListener('offlyn-manual-autofill', async () => {
         continue;
       }
       try {
-        iframe.contentWindow?.postMessage({ type: 'OFFLYN_TRIGGER_AUTOFILL' }, '*');
+        iframe.contentWindow?.postMessage({ type: 'PRIVATEAPPLY_TRIGGER_AUTOFILL' }, '*');
         info(`[Autofill] Forwarded autofill trigger to trusted ATS iframe: ${iframe.src}`);
       } catch (_) {
         // Cross-origin — content script in that frame handles its own autofill
@@ -1384,7 +1384,7 @@ window.addEventListener('offlyn-manual-autofill', async () => {
 /**
  * Profile switching from the in-page widget
  */
-window.addEventListener('offlyn-switch-profile', async (e) => {
+window.addEventListener('privateapply-switch-profile', async (e) => {
   const profileId = (e as CustomEvent).detail?.profileId as string | undefined;
   if (!profileId) return;
   profileSwitchInProgress = true;
@@ -1410,7 +1410,7 @@ window.addEventListener('offlyn-switch-profile', async (e) => {
 /**
  * Open profiles management page from the in-page widget
  */
-window.addEventListener('offlyn-open-profiles', () => {
+window.addEventListener('privateapply-open-profiles', () => {
   browser.runtime.sendMessage({ kind: 'OPEN_PROFILES_PAGE' }).catch(() => {});
 });
 
@@ -1420,7 +1420,7 @@ window.addEventListener('offlyn-open-profiles', () => {
 window.addEventListener('message', async (event) => {
   if (!event.data || !event.data.type) return;
   
-  if (event.data.type === 'OFFLYN_TRIGGER_AUTOFILL') {
+  if (event.data.type === 'PRIVATEAPPLY_TRIGGER_AUTOFILL') {
     info('[Autofill] Received autofill trigger from parent frame');
     if (allDetectedFields.length > 0) {
       info(`[Autofill] Iframe has ${allDetectedFields.length} fields, starting autofill...`);
@@ -1428,7 +1428,7 @@ window.addEventListener('message', async (event) => {
     } else {
       warn('[Autofill] Iframe has no detected fields');
     }
-  } else if (event.data.type === 'OFFLYN_TRIGGER_SUGGESTIONS') {
+  } else if (event.data.type === 'PRIVATEAPPLY_TRIGGER_SUGGESTIONS') {
     info('[Suggestions] Received suggestions trigger from parent frame');
     if (allDetectedFields.length > 0) {
       info(`[Suggestions] Iframe has ${allDetectedFields.length} fields, showing suggestions...`);
@@ -1436,7 +1436,7 @@ window.addEventListener('message', async (event) => {
     } else {
       warn('[Suggestions] Iframe has no detected fields');
     }
-  } else if (event.data.type === 'OFFLYN_IFRAME_FIELDS' && IS_TOP_FRAME) {
+  } else if (event.data.type === 'PRIVATEAPPLY_IFRAME_FIELDS' && IS_TOP_FRAME) {
     // A child iframe detected a job application form and reported its fields.
     // If the iframe has more fields than what we see in the parent page, update
     // the widget so the user sees the real form's field count.
@@ -3942,7 +3942,7 @@ async function handleTextTransform(action: string): Promise<void> {
   inputEl.style.boxShadow = '0 0 0 2px rgba(30, 42, 58, 0.3)';
 
   // Show a small toast
-  showNotification('Offlyn Apply', `Applying "${action}"...`, 'info', 3000);
+  showNotification('Private Apply', `Applying "${action}"...`, 'info', 3000);
 
   try {
     const { transformText } = await import('./shared/text-transform-service');
@@ -4072,7 +4072,7 @@ browser.runtime.onMessage.addListener((message: unknown) => {
           const originalBoxShadow = el.style.boxShadow;
           el.style.transition = 'box-shadow 0.2s ease';
           el.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.35)';
-          el.setAttribute('data-offlyn-loading', 'true');
+          el.setAttribute('data-privateapply-loading', 'true');
 
           showInfo('Smart Fill', `Generating answer for "${label || 'this field'}"…`);
 
@@ -4124,7 +4124,7 @@ browser.runtime.onMessage.addListener((message: unknown) => {
           } finally {
             autofillInProgress = false;
             el.style.boxShadow = originalBoxShadow;
-            el.removeAttribute('data-offlyn-loading');
+            el.removeAttribute('data-privateapply-loading');
           }
         })();
       }
@@ -4139,8 +4139,8 @@ browser.runtime.onMessage.addListener((message: unknown) => {
  * Initialize content script
  */
 async function init(): Promise<void> {
-  if ((window as any).__offlyn_content_loaded) return;
-  (window as any).__offlyn_content_loaded = true;
+  if ((window as any).__privateapply_content_loaded) return;
+  (window as any).__privateapply_content_loaded = true;
 
   // Initialize RL learning system
   try {
@@ -4180,8 +4180,8 @@ async function init(): Promise<void> {
   }
   
   // Add global function for manual triggering
-  (window as any).offlyn_detectPage = detectPage;
-  console.log('[OA] Manual trigger available: window.offlyn_detectPage()');
+  (window as any).privateapply_detectPage = detectPage;
+  console.log('[OA] Manual trigger available: window.privateapply_detectPage()');
   
   // Listen for form submissions
   document.addEventListener('submit', (e) => {
@@ -4194,7 +4194,7 @@ async function init(): Promise<void> {
     const clicked = e.target as HTMLElement;
 
     // Skip clicks inside our own UI panels
-    if (clicked.closest('#offlyn-suggestion-panel')) return;
+    if (clicked.closest('#privateapply-suggestion-panel')) return;
 
     // Walk up to the nearest interactive element
     const target = clicked.closest('button, a, [role="button"], input[type="submit"], input[type="button"]') as HTMLElement | null;

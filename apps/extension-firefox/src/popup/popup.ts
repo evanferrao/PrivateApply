@@ -464,7 +464,7 @@ async function init(): Promise<void> {
   // ── Auto-Fill ──
   document.getElementById('manual-autofill-btn')?.addEventListener('click', async () => {
     try {
-      await dispatchCustomEventOnActiveTab('offlyn-manual-autofill');
+      await dispatchCustomEventOnActiveTab('privateapply-manual-autofill');
       window.close();
     } catch (err) { error('Autofill trigger failed:', err); }
   });
@@ -472,7 +472,7 @@ async function init(): Promise<void> {
   // ── Cover Letter ──
   document.getElementById('cover-letter-btn')?.addEventListener('click', async () => {
     try {
-      await dispatchCustomEventOnActiveTab('offlyn-generate-cover-letter');
+      await dispatchCustomEventOnActiveTab('privateapply-generate-cover-letter');
       window.close();
     } catch (err) { error('Cover letter trigger failed:', err); }
   });
@@ -612,8 +612,8 @@ async function init(): Promise<void> {
 
   // Feature tour — show on first launch after onboarding
   setTimeout(() => {
-    if (typeof (window as any).offlynTour !== 'undefined') {
-      const tour = (window as any).offlynTour;
+    if (typeof (window as any).privateapplyTour !== 'undefined') {
+      const tour = (window as any).privateapplyTour;
       if (tour.isPending() || !tour.isDone('popup-intro')) {
         tour.start('popup-intro', [
           { selector: '#manual-autofill-btn', title: 'Auto-Fill Applications', body: 'One click fills the entire job application from your profile.' },

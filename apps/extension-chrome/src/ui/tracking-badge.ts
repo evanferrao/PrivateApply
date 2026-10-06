@@ -4,8 +4,8 @@
  * Stays visible for the session; can be dismissed by the user.
  */
 
-const BADGE_ID = 'offlyn-tracking-badge';
-const STYLE_ID = 'offlyn-tracking-badge-styles';
+const BADGE_ID = 'privateapply-tracking-badge';
+const STYLE_ID = 'privateapply-tracking-badge-styles';
 
 /**
  * Show (or update) the tracking badge with the detected job title / company.
@@ -28,7 +28,7 @@ export function showTrackingBadge(jobTitle: string | null, company: string | nul
   const label = buildLabel(jobTitle, company);
 
   const icon = document.createElement('span');
-  icon.className = 'offlyn-tb-icon';
+  icon.className = 'privateapply-tb-icon';
   icon.setAttribute('aria-hidden', 'true');
   const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   iconSvg.setAttribute('width', '12'); iconSvg.setAttribute('height', '12');
@@ -41,11 +41,11 @@ export function showTrackingBadge(jobTitle: string | null, company: string | nul
   icon.appendChild(iconSvg);
 
   const text = document.createElement('span');
-  text.className = 'offlyn-tb-text';
+  text.className = 'privateapply-tb-text';
   text.textContent = label;
 
   const dismissBtn = document.createElement('button');
-  dismissBtn.className = 'offlyn-tb-dismiss';
+  dismissBtn.className = 'privateapply-tb-dismiss';
   dismissBtn.title = 'Dismiss';
   dismissBtn.setAttribute('aria-label', 'Dismiss tracking badge');
   const dismissSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -72,7 +72,7 @@ export function showTrackingBadge(jobTitle: string | null, company: string | nul
   // Trigger entrance animation on next frame
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      badge.classList.add('offlyn-tb-visible');
+      badge.classList.add('privateapply-tb-visible');
     });
   });
 }
@@ -84,18 +84,18 @@ export function hideTrackingBadge(): void {
   const badge = document.getElementById(BADGE_ID);
   if (!badge) return;
 
-  badge.classList.remove('offlyn-tb-visible');
-  badge.classList.add('offlyn-tb-hidden');
+  badge.classList.remove('privateapply-tb-visible');
+  badge.classList.add('privateapply-tb-hidden');
   setTimeout(() => badge.remove(), 300);
 }
 
 // ─── Internals ────────────────────────────────────────────────────────────────
 
 function buildLabel(jobTitle: string | null, company: string | null): string {
-  if (jobTitle && company) return `Offlyn · ${truncate(jobTitle, 30)} @ ${truncate(company, 22)}`;
-  if (jobTitle) return `Offlyn · ${truncate(jobTitle, 40)}`;
-  if (company) return `Offlyn · ${truncate(company, 40)}`;
-  return 'Offlyn · Application page detected';
+  if (jobTitle && company) return `Private Apply · ${truncate(jobTitle, 30)} @ ${truncate(company, 22)}`;
+  if (jobTitle) return `Private Apply · ${truncate(jobTitle, 40)}`;
+  if (company) return `Private Apply · ${truncate(company, 40)}`;
+  return 'Private Apply · Application page detected';
 }
 
 function truncate(text: string, max: number): string {
@@ -103,7 +103,7 @@ function truncate(text: string, max: number): string {
 }
 
 function updateBadgeText(badge: HTMLElement, jobTitle: string | null, company: string | null): void {
-  const textEl = badge.querySelector('.offlyn-tb-text');
+  const textEl = badge.querySelector('.privateapply-tb-text');
   if (textEl) textEl.textContent = buildLabel(jobTitle, company);
 }
 
@@ -142,31 +142,31 @@ function ensureBadgeStyles(): void {
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
     }
 
-    #${BADGE_ID}.offlyn-tb-visible {
+    #${BADGE_ID}.privateapply-tb-visible {
       opacity: 1;
       transform: translateY(0);
     }
 
-    #${BADGE_ID}.offlyn-tb-hidden {
+    #${BADGE_ID}.privateapply-tb-hidden {
       opacity: 0;
       transform: translateY(8px);
     }
 
-    .offlyn-tb-icon {
+    .privateapply-tb-icon {
       display: flex;
       align-items: center;
       color: #4ade80;
       flex-shrink: 0;
     }
 
-    .offlyn-tb-text {
+    .privateapply-tb-text {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 320px;
     }
 
-    .offlyn-tb-dismiss {
+    .privateapply-tb-dismiss {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -183,7 +183,7 @@ function ensureBadgeStyles(): void {
       transition: color 0.15s, background 0.15s;
     }
 
-    .offlyn-tb-dismiss:hover {
+    .privateapply-tb-dismiss:hover {
       color: rgba(255, 255, 255, 0.90);
       background: rgba(255, 255, 255, 0.12);
     }

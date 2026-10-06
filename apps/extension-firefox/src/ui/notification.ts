@@ -31,10 +31,10 @@ export function showNotification(
   const id = `notification_${Date.now()}`;
 
   // Create container if it doesn't exist
-  let container = document.getElementById('offlyn-notifications-container');
+  let container = document.getElementById('privateapply-notifications-container');
   if (!container) {
     container = document.createElement('div');
-    container.id = 'offlyn-notifications-container';
+    container.id = 'privateapply-notifications-container';
     Object.assign(container.style, {
       position: 'fixed',
       top: '20px',
@@ -52,7 +52,7 @@ export function showNotification(
 
   const el = document.createElement('div');
   el.id = id;
-  el.className = 'offlyn-toast offlyn-toast-enter';
+  el.className = 'privateapply-toast privateapply-toast-enter';
   el.setAttribute('data-type', type);
   el.style.cssText = `
     background: #fff;
@@ -64,7 +64,7 @@ export function showNotification(
     pointer-events: auto;
     border-left: 4px solid ${accent};
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    animation: offlyn-slide-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
+    animation: privateapply-slide-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
   `;
 
   setHTML(el, `
@@ -74,7 +74,7 @@ export function showNotification(
         <div style="font-weight:600;font-size:13px;color:#0a0a0a;line-height:1.3;margin-bottom:3px;">${escapeHtml(title)}</div>
         <div style="font-size:12px;color:#64748b;line-height:1.4;">${escapeHtml(message)}</div>
       </div>
-      <button class="offlyn-toast-close"
+      <button class="privateapply-toast-close"
         style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;line-height:1;padding:0;width:18px;height:18px;flex-shrink:0;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:background 0.15s,color 0.15s;"
         title="Dismiss"
       >
@@ -83,7 +83,7 @@ export function showNotification(
     </div>
   `);
 
-  const closeBtn = el.querySelector('.offlyn-toast-close') as HTMLButtonElement | null;
+  const closeBtn = el.querySelector('.privateapply-toast-close') as HTMLButtonElement | null;
   if (closeBtn) {
     closeBtn.addEventListener('mouseover', () => { closeBtn.style.background = '#f1f5f9'; closeBtn.style.color = '#334155'; });
     closeBtn.addEventListener('mouseout', () => { closeBtn.style.background = 'none'; closeBtn.style.color = '#94a3b8'; });
@@ -105,11 +105,11 @@ function removeNotification(id: string): void {
   const el = activeNotifications.get(id);
   if (!el) return;
 
-  el.style.animation = 'offlyn-slide-out 0.2s ease forwards';
+  el.style.animation = 'privateapply-slide-out 0.2s ease forwards';
   setTimeout(() => {
     el.remove();
     activeNotifications.delete(id);
-    const container = document.getElementById('offlyn-notifications-container');
+    const container = document.getElementById('privateapply-notifications-container');
     if (container && container.children.length === 0) container.remove();
   }, 200);
 }
@@ -161,16 +161,16 @@ function escapeHtml(text: string): string {
  * Inject keyframe animations once
  */
 function ensureStyles(): void {
-  if (document.getElementById('offlyn-notification-styles')) return;
+  if (document.getElementById('privateapply-notification-styles')) return;
 
   const style = document.createElement('style');
-  style.id = 'offlyn-notification-styles';
+  style.id = 'privateapply-notification-styles';
   style.textContent = `
-    @keyframes offlyn-slide-in {
+    @keyframes privateapply-slide-in {
       from { opacity: 0; transform: translateX(24px); }
       to   { opacity: 1; transform: translateX(0); }
     }
-    @keyframes offlyn-slide-out {
+    @keyframes privateapply-slide-out {
       from { opacity: 1; transform: translateX(0); }
       to   { opacity: 0; transform: translateX(24px); }
     }
@@ -202,26 +202,26 @@ export function showInfo(title: string, message: string, duration?: number): voi
 /**
  * Show a sticky bottom-center beta warning banner for Workday pages.
  * Only shows once per browser session (keyed by sessionStorage).
- * @param logoUrl - URL to the Offlyn monogram icon (pass via browser.runtime.getURL)
+ * @param logoUrl - URL to the Private Apply monogram icon (pass via browser.runtime.getURL)
  */
 export function showWorkdayBetaBanner(logoUrl?: string): void {
-  if (document.getElementById('offlyn-workday-beta-banner')) return;
+  if (document.getElementById('privateapply-workday-beta-banner')) return;
 
   ensureStyles();
   ensureBetaBannerStyles();
 
   const logoHtml = logoUrl
-    ? `<img src="${logoUrl}" width="22" height="22" alt="Offlyn" style="border-radius:50%;flex-shrink:0;display:block;" />`
+    ? `<img src="${logoUrl}" width="22" height="22" alt="Private Apply" style="border-radius:50%;flex-shrink:0;display:block;" />`
     : `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="flex-shrink:0;"><circle cx="11" cy="11" r="11" fill="#0a0a0a"/><text x="11" y="15.5" text-anchor="middle" font-size="11" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" fill="#fff">O</text></svg>`;
 
   const banner = document.createElement('div');
-  banner.id = 'offlyn-workday-beta-banner';
+  banner.id = 'privateapply-workday-beta-banner';
   setHTML(banner, `
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
       ${logoHtml}
       <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:12px;font-weight:700;color:#0a0a0a;letter-spacing:0.3px;line-height:1;">offlyn</span>
+          <span style="font-size:12px;font-weight:700;color:#0a0a0a;letter-spacing:0.3px;line-height:1;">Private Apply</span>
           <span style="font-size:10px;font-weight:600;color:#fff;background:#f59e0b;border-radius:4px;padding:1px 5px;line-height:1.4;letter-spacing:0.4px;">BETA</span>
           <span style="font-size:11px;color:#64748b;font-weight:400;">· Workday</span>
         </div>
@@ -230,7 +230,7 @@ export function showWorkdayBetaBanner(logoUrl?: string): void {
         </div>
       </div>
     </div>
-    <button id="offlyn-workday-beta-dismiss"
+    <button id="privateapply-workday-beta-dismiss"
       style="background:none;border:none;cursor:pointer;color:#94a3b8;padding:2px;margin-left:10px;flex-shrink:0;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background 0.15s,color 0.15s;"
       title="Dismiss"
       aria-label="Dismiss Workday beta notice"
@@ -241,7 +241,7 @@ export function showWorkdayBetaBanner(logoUrl?: string): void {
 
   document.body.appendChild(banner);
 
-  const dismiss = document.getElementById('offlyn-workday-beta-dismiss');
+  const dismiss = document.getElementById('privateapply-workday-beta-dismiss');
   if (dismiss) {
     dismiss.addEventListener('mouseover', () => {
       (dismiss as HTMLElement).style.background = '#f1f5f9';
@@ -252,18 +252,18 @@ export function showWorkdayBetaBanner(logoUrl?: string): void {
       (dismiss as HTMLElement).style.color = '#94a3b8';
     });
     dismiss.addEventListener('click', () => {
-      banner.style.animation = 'offlyn-beta-banner-out 0.2s ease forwards';
+      banner.style.animation = 'privateapply-beta-banner-out 0.2s ease forwards';
       setTimeout(() => banner.remove(), 220);
     });
   }
 }
 
 function ensureBetaBannerStyles(): void {
-  if (document.getElementById('offlyn-beta-banner-styles')) return;
+  if (document.getElementById('privateapply-beta-banner-styles')) return;
   const style = document.createElement('style');
-  style.id = 'offlyn-beta-banner-styles';
+  style.id = 'privateapply-beta-banner-styles';
   style.textContent = `
-    #offlyn-workday-beta-banner {
+    #privateapply-workday-beta-banner {
       position: fixed;
       bottom: 16px;
       left: 50%;
@@ -282,19 +282,19 @@ function ensureBetaBannerStyles(): void {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       pointer-events: auto;
       animation:
-        offlyn-beta-banner-in 0.3s cubic-bezier(0.16,1,0.3,1) forwards,
-        offlyn-beta-banner-pulse 1.8s ease-out 0.4s 3;
+        privateapply-beta-banner-in 0.3s cubic-bezier(0.16,1,0.3,1) forwards,
+        privateapply-beta-banner-pulse 1.8s ease-out 0.4s 3;
     }
-    @keyframes offlyn-beta-banner-in {
+    @keyframes privateapply-beta-banner-in {
       from { opacity: 0; transform: translateX(-50%) translateY(12px); }
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
-    @keyframes offlyn-beta-banner-pulse {
+    @keyframes privateapply-beta-banner-pulse {
       0%   { box-shadow: 0 4px 20px rgba(30,41,59,0.12), 0 0 0 0   rgba(30,41,59,0.35); }
       60%  { box-shadow: 0 4px 20px rgba(30,41,59,0.12), 0 0 0 10px rgba(30,41,59,0); }
       100% { box-shadow: 0 4px 20px rgba(30,41,59,0.12), 0 0 0 0   rgba(30,41,59,0); }
     }
-    @keyframes offlyn-beta-banner-out {
+    @keyframes privateapply-beta-banner-out {
       from { opacity: 1; transform: translateX(-50%) translateY(0); }
       to   { opacity: 0; transform: translateX(-50%) translateY(12px); }
     }

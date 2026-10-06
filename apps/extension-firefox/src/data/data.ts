@@ -1054,7 +1054,7 @@ async function exportAllJSON(): Promise<void> {
 
   downloadFile(
     JSON.stringify(payload, null, 2),
-    `offlyn-data-${datestamp()}.json`,
+    `privateapply-data-${datestamp()}.json`,
     'application/json'
   );
   showToast('✓ Full export downloaded', 'success');
@@ -1118,7 +1118,7 @@ async function exportNodesCSV(): Promise<void> {
 
   downloadFile(
     [header, ...rows].join('\n'),
-    `offlyn-graph-nodes-${datestamp()}.csv`,
+    `privateapply-graph-nodes-${datestamp()}.csv`,
     'text/csv'
   );
   showToast(`✓ ${nodes.length} nodes exported`, 'success');
@@ -1166,7 +1166,7 @@ async function exportEdgesCSV(): Promise<void> {
 
   downloadFile(
     [header, ...rows].join('\n'),
-    `offlyn-graph-edges-${datestamp()}.csv`,
+    `privateapply-graph-edges-${datestamp()}.csv`,
     'text/csv'
   );
   showToast(`✓ ${edges.length} edges exported`, 'success');
@@ -1220,7 +1220,7 @@ async function exportRLCSV(): Promise<void> {
 
   downloadFile(
     combined,
-    `offlyn-rl-patterns-${datestamp()}.csv`,
+    `privateapply-rl-patterns-${datestamp()}.csv`,
     'text/csv'
   );
   showToast(`✓ ${patterns.length} patterns + ${corrections.length} corrections exported`, 'success');
@@ -1270,7 +1270,7 @@ async function confirmImport(): Promise<void> {
   }
 
   if (!parsed.version || !parsed.exportedAt) {
-    showToast('Not a valid Offlyn export file', 'error');
+    showToast('Not a valid Private Apply export file', 'error');
     return;
   }
 
