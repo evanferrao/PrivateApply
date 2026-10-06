@@ -100,6 +100,14 @@ function setupEventListeners() {
   // Export button
   const exportBtn = document.getElementById('exportBtn');
   exportBtn?.addEventListener('click', handleExport);
+
+  // Import button
+  const importBtn = document.getElementById('importBtn');
+  const importFileInput = document.getElementById('importFileInput') as HTMLInputElement | null;
+  importBtn?.addEventListener('click', () => {
+    importFileInput?.click();
+  });
+  importFileInput?.addEventListener('change', handleImport);
   
   // Edit form
   const editForm = document.getElementById('editForm');
@@ -664,6 +672,228 @@ function downloadCSV(csv: string, filename: string) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Handle CSV or JSON application import
+ */
+async function handleImport(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    let importedApps: JobApplication[] = [];
+
+    if (file.name.endsWith('.json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+      importedApps = parseApplicationsJSON(text);
+    } else {
+      importedApps = parseApplicationsCSV(text);
+    }
+
+    if (importedApps.length === 0) {
+      alert('No valid applications found in the selected file.');
+      return;
+    }
+
+    // Group applications by YYYY-MM-DD date key
+    const appsByDate: Record<string, JobApplication[]> = {};
+    for (const app of importedApps) {
+      const dateKey = new Date(app.timestamp).toISOString().split('T')[0];
+      if (!appsByDate[dateKey]) {
+        appsByDate[dateKey] = [];
+      }
+      appsByDate[dateKey].push(app);
+    }
+
+    // Read existing data for all target date keys
+    const targetKeys = Object.keys(appsByDate).map(d => `dailySummary_${d}`);
+    const existingData = await browser.storage.local.get(targetKeys);
+
+    const storageUpdates: Record<string, any> = {};
+    for (const [dateStr, newApps] of Object.entries(appsByDate)) {
+      const key = `dailySummary_${dateStr}`;
+      const summary = existingData[key] || {
+        date: dateStr,
+        applications: [],
+        lastSentAt: null,
+      };
+
+      const existingList: JobApplication[] = Array.isArray(summary.applications) ? summary.applications : [];
+      for (const newApp of newApps) {
+        const isDuplicate = existingList.some(
+          a => (a.id && a.id === newApp.id) || (a.url === newApp.url && a.jobTitle === newApp.jobTitle)
+        );
+        if (!isDuplicate) {
+          existingList.push(newApp);
+        }
+      }
+      summary.applications = existingList;
+      storageUpdates[key] = summary;
+    }
+
+    await browser.storage.local.set(storageUpdates);
+    alert(`Successfully imported ${importedApps.length} application(s).`);
+
+    // Reload and refresh dashboard view
+    await loadDashboardData();
+  } catch (err) {
+    console.error('Failed to import applications:', err);
+    alert('Failed to import applications: ' + (err instanceof Error ? err.message : String(err)));
+  } finally {
+    if (input) input.value = '';
+  }
+}
+
+/**
+ * Standard CSV parser handling quotes and escaped commas
+ */
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentCell = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (insideQuotes) {
+      if (char === '"' && nextChar === '"') {
+        currentCell += '"';
+        i++;
+      } else if (char === '"') {
+        insideQuotes = false;
+      } else {
+        currentCell += char;
+      }
+    } else {
+      if (char === '"') {
+        insideQuotes = true;
+      } else if (char === ',') {
+        currentRow.push(currentCell.trim());
+        currentCell = '';
+      } else if (char === '\r') {
+        // skip carriage return
+      } else if (char === '\n') {
+        currentRow.push(currentCell.trim());
+        if (currentRow.some(c => c.length > 0)) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentCell = '';
+      } else {
+        currentCell += char;
+      }
+    }
+  }
+
+  if (currentCell.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentCell.trim());
+    if (currentRow.some(c => c.length > 0)) {
+      rows.push(currentRow);
+    }
+  }
+
+  return rows;
+}
+
+/**
+ * Parse JobApplication items from CSV rows
+ */
+function parseApplicationsCSV(text: string): JobApplication[] {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+  const dateIdx = headers.indexOf('date');
+  const timeIdx = headers.indexOf('time');
+  const titleIdx = headers.findIndex(h => h.includes('title') || h.includes('position') || h.includes('role'));
+  const companyIdx = headers.findIndex(h => h.includes('company') || h.includes('organization'));
+  const statusIdx = headers.indexOf('status');
+  const atsIdx = headers.indexOf('ats');
+  const notesIdx = headers.indexOf('notes');
+  const urlIdx = headers.findIndex(h => h.includes('url') || h.includes('link'));
+
+  const validStatuses = new Set(['detected', 'submitted', 'interviewing', 'rejected', 'accepted', 'withdrawn']);
+  const apps: JobApplication[] = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length === 0) continue;
+
+    const dateStr = dateIdx >= 0 ? row[dateIdx] : '';
+    const timeStr = timeIdx >= 0 ? row[timeIdx] : '';
+    const jobTitle = titleIdx >= 0 ? row[titleIdx] : '';
+    const company = companyIdx >= 0 ? row[companyIdx] : '';
+    const rawStatus = (statusIdx >= 0 ? row[statusIdx] : '').toLowerCase();
+    const atsHint = atsIdx >= 0 ? row[atsIdx] : null;
+    const notes = notesIdx >= 0 ? row[notesIdx] : '';
+    const url = urlIdx >= 0 ? row[urlIdx] : '';
+
+    if (!jobTitle && !company && !url) continue;
+
+    let timestamp = Date.now();
+    if (dateStr) {
+      const parsed = Date.parse(dateStr + (timeStr ? ` ${timeStr}` : ' 12:00:00'));
+      if (!isNaN(parsed)) {
+        timestamp = parsed;
+      }
+    }
+
+    const status = validStatuses.has(rawStatus) ? (rawStatus as JobApplication['status']) : 'submitted';
+
+    apps.push({
+      id: `app_${timestamp}_${Math.random().toString(36).slice(2, 8)}`,
+      jobTitle: jobTitle || 'Application',
+      company: company || 'Company',
+      url: url || 'https://example.com',
+      atsHint: atsHint || null,
+      timestamp,
+      status,
+      notes: notes || '',
+    });
+  }
+
+  return apps;
+}
+
+/**
+ * Parse JobApplication items from JSON text
+ */
+function parseApplicationsJSON(text: string): JobApplication[] {
+  const parsed = JSON.parse(text);
+  const rawList: any[] = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed.applications)
+    ? parsed.applications
+    : Array.isArray(parsed.data)
+    ? parsed.data
+    : [];
+
+  const validStatuses = new Set(['detected', 'submitted', 'interviewing', 'rejected', 'accepted', 'withdrawn']);
+  const apps: JobApplication[] = [];
+
+  for (const item of rawList) {
+    if (!item || typeof item !== 'object') continue;
+    const timestamp = typeof item.timestamp === 'number' ? item.timestamp : Date.now();
+    const rawStatus = String(item.status || '').toLowerCase();
+    const status = validStatuses.has(rawStatus) ? (rawStatus as JobApplication['status']) : 'submitted';
+
+    apps.push({
+      id: item.id || `app_${timestamp}_${Math.random().toString(36).slice(2, 8)}`,
+      jobTitle: String(item.jobTitle || item.title || 'Application'),
+      company: String(item.company || 'Company'),
+      url: String(item.url || 'https://example.com'),
+      atsHint: item.atsHint || null,
+      timestamp,
+      status,
+      notes: item.notes || '',
+    });
+  }
+
+  return apps;
 }
 
 /**

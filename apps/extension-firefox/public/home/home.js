@@ -67,6 +67,38 @@
     }
   });
 
+  const actionImport = document.getElementById('actionImport');
+  const actionImportInput = document.getElementById('actionImportInput');
+  if (actionImport && actionImportInput) {
+    actionImport.addEventListener('click', () => {
+      actionImportInput.click();
+    });
+
+    actionImportInput.addEventListener('change', async () => {
+      const file = actionImportInput.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        if (!imported || typeof imported !== 'object') {
+          throw new Error('Invalid JSON format: file does not contain a valid JSON object.');
+        }
+
+        const profileData = imported.userProfile || imported;
+        profileData.lastUpdated = Date.now();
+        await api.storage.local.set({ userProfile: profileData });
+
+        alert('Profile imported successfully!');
+      } catch (err) {
+        console.error('Import failed:', err);
+        alert('Failed to import profile: ' + (err.message || err));
+      } finally {
+        actionImportInput.value = '';
+      }
+    });
+  }
+
   document.getElementById('actionClear').addEventListener('click', async () => {
     if (!confirm('Clear all tracked job applications? This cannot be undone.')) return;
     try {

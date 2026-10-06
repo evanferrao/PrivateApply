@@ -210,6 +210,40 @@ async function init(): Promise<void> {
     } catch (err) { error('Export failed:', err); }
   });
 
+  // --- Import Profile ---
+  const btnImportProfile = document.getElementById('btn-import-profile');
+  const inputImportProfile = document.getElementById('input-import-profile') as HTMLInputElement | null;
+  btnImportProfile?.addEventListener('click', () => {
+    inputImportProfile?.click();
+  });
+  inputImportProfile?.addEventListener('change', async () => {
+    const file = inputImportProfile.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('File does not contain valid JSON.');
+      }
+      const profile = parsed.userProfile || parsed;
+      profile.lastUpdated = Date.now();
+      await browser.storage.local.set({ userProfile: profile });
+      try {
+        const { getActiveProfileId, saveProfile } = await import('../shared/profile');
+        const activeId = await getActiveProfileId();
+        if (activeId) {
+          await saveProfile(activeId, profile);
+        }
+      } catch (_) { /* non-critical */ }
+      showFeedback('feedback-import');
+    } catch (err) {
+      error('Import failed:', err);
+      alert('Import failed: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      inputImportProfile.value = '';
+    }
+  });
+
   // --- View Learned Values ---
   document.getElementById('btn-view-learned')?.addEventListener('click', async () => {
     await browser.storage.local.set({ showLearnedValues: true });
