@@ -678,6 +678,14 @@
     html.dark .storage-meter { background: var(--gray-200); }
     html.dark .ollama-test-result.ok { background: var(--green-light); color: var(--green-mid); border-color: var(--green); }
     html.dark .ollama-test-result.fail { background: #2d1515; color: #f87171; border-color: #dc2626; }
+    html.dark .provider-card { background: var(--white); border-color: var(--border); }
+    html.dark .provider-card.active-provider { background: #13271e; border-color: var(--green); }
+    html.dark .provider-editor-panel { background: #151515; border-color: var(--border); }
+    html.dark .preset-pill { background: var(--gray-100); border-color: var(--border); color: var(--gray-400); }
+    html.dark .preset-pill:hover { background: var(--green-light); color: var(--green-mid); border-color: var(--green); }
+    html.dark .btn-provider-action { background: var(--gray-100); border-color: var(--border); color: var(--gray-800); }
+    html.dark .btn-provider-action:hover { background: var(--gray-200); }
+    html.dark .btn-provider-action.btn-provider-delete:hover { background: #2d1515; color: #f87171; border-color: #dc2626; }
     html.dark .footer-link { color: var(--gray-400); }
     html.dark .footer-link:hover { color: var(--gray-800); }
     html.dark .version { color: var(--gray-400); }
@@ -868,6 +876,14 @@
             </div>
             <datalist id="provider-models-datalist"></datalist>
             <small>Model used for autofill reasoning, cover letters, and chat</small>
+
+            <div class="models-picker-container" id="provider-models-picker" style="display:none;background:var(--gray-100);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:12px;font-weight:600;color:var(--gray-800);">Available Models (<span id="models-count-display">0</span>):</span>
+                <span style="font-size:11px;color:var(--gray-500);">Click any pill to select</span>
+              </div>
+              <div id="provider-models-pills" style="display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;padding:2px 0;"></div>
+            </div>
           </div>
 
           <div class="ollama-field">

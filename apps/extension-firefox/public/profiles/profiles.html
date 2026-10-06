@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" sizes="48x48" href="../icons/icon-48.png">
-  <title>Manage Profiles - Offlyn Apply</title>
+  <title>Applicant Profile & Question Bank - PrivateApply</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <script src="../shared/theme-init.js"></script>
   <style>
     /* ── Design Tokens ── */
@@ -29,6 +29,14 @@
       --radius-lg: 16px;
       --font-serif: 'Lora', Georgia, serif;
       --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.08);
+      --amber: #d97706;
+      --amber-light: #fef3c7;
+      --rose: #e11d48;
+      --rose-light: #ffe4e6;
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
     }
     
     html.dark {
@@ -44,13 +52,16 @@
       --gray-600: #a3a3a3;
       --gray-800: #e5e5e5;
       --border: #2a2a2a;
+      --amber-light: #451a03;
+      --rose-light: #4c0519;
+      --blue-light: #172554;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: var(--font-sans);
-      background: var(--white);
+      background: var(--off-white);
       min-height: 100vh;
       color: var(--black);
       line-height: 1.6;
@@ -62,13 +73,13 @@
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
     }
 
     .header-inner {
-      max-width: 960px;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 16px 24px;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -77,11 +88,11 @@
     .header-brand {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
 
     .header-brand img {
-      height: 40px;
+      height: 36px;
       width: auto;
       object-fit: contain;
     }
@@ -96,7 +107,7 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .btn-back {
@@ -114,11 +125,7 @@
       text-decoration: none;
       transition: background 0.15s, color 0.15s;
     }
-
-    .btn-back:hover {
-      background: var(--gray-100);
-      color: var(--black);
-    }
+    .btn-back:hover { background: var(--gray-100); color: var(--black); }
 
     .dark-mode-toggle {
       width: 34px; height: 34px;
@@ -128,106 +135,431 @@
       cursor: pointer; color: var(--gray-600);
       display: inline-flex; align-items: center; justify-content: center;
       transition: all .15s;
-      flex-shrink: 0;
     }
-    .dark-mode-toggle:hover { background: var(--gray-100); color: var(--black); border-color: var(--gray-200); }
+    .dark-mode-toggle:hover { background: var(--gray-100); color: var(--black); }
 
     .container {
-      max-width: 960px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 24px;
     }
 
-    .section-title {
-      font-family: var(--font-serif);
-      font-size: 1.1em;
-      font-weight: 500;
-      color: var(--gray-800);
-      margin-bottom: 16px;
-    }
-
-    /* Active profile banner */
+    /* Active banner */
     .active-banner {
-      background: var(--green);
-      color: #fff;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--green);
       border-radius: var(--radius-md);
-      padding: 20px 24px;
-      margin-bottom: 24px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
+      box-shadow: var(--shadow-sm);
     }
-
+    .active-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
     .active-banner-dot {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.25);
+      background: var(--green);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       flex-shrink: 0;
     }
-
     .active-banner-info h2 {
-      font-family: var(--font-serif);
-      font-size: 1.2em;
-      font-weight: 500;
-      margin-bottom: 2px;
+      font-size: 1.15em;
+      font-weight: 600;
+      color: var(--black);
     }
-
     .active-banner-info p {
       font-size: 0.85em;
-      opacity: 0.8;
+      color: var(--gray-600);
     }
-
     .active-banner-badge {
-      margin-left: auto;
-      background: rgba(255,255,255,0.2);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75em;
+      background: var(--green-light);
+      color: var(--green);
+      font-size: 12px;
       font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    /* Profile cards grid */
+    /* Main Hub Navigation Tabs */
+    .hub-nav {
+      display: flex;
+      gap: 4px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+    }
+    .hub-tab-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--gray-600);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .hub-tab-btn:hover {
+      background: var(--gray-100);
+      color: var(--black);
+    }
+    .hub-tab-btn.active {
+      background: var(--black);
+      color: var(--white);
+      font-weight: 600;
+    }
+    html.dark .hub-tab-btn.active {
+      background: var(--green);
+      color: #fff;
+    }
+
+    /* Tab Panels */
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Card styling */
+    .hub-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .hub-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hub-card-title {
+      font-family: var(--font-serif);
+      font-size: 1.15em;
+      font-weight: 500;
+      color: var(--black);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hub-card-desc {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 2px;
+    }
+
+    /* Grid Form */
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field-group label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .field-group label .badge-sens {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .badge-sens.restricted { background: var(--rose-light); color: var(--rose); }
+    .badge-sens.sensitive { background: var(--amber-light); color: var(--amber); }
+
+    .field-input, .field-select, .field-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--black);
+      background: var(--white);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(26,127,90,0.15);
+    }
+    .field-textarea { min-height: 80px; resize: vertical; }
+
+    /* Button styles */
+    .btn-action-primary {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .btn-action-primary:hover { background: var(--green-mid); }
+
+    .btn-action-secondary {
+      background: var(--gray-100);
+      color: var(--black);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .btn-action-secondary:hover { background: var(--gray-200); }
+
+    .btn-action-danger {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fee2e2;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-action-danger:hover { background: #fee2e2; }
+
+    /* Repeatable records list */
+    .records-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .record-item {
+      background: var(--off-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .record-details {
+      flex: 1;
+    }
+    .record-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 4px;
+    }
+    .record-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+    }
+    .record-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .record-tag {
+      font-size: 11.5px;
+      padding: 2px 7px;
+      background: var(--gray-200);
+      color: var(--gray-800);
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    /* Experience derived banner */
+    .derived-stats-banner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      background: var(--green-light);
+      border: 1px solid rgba(26,127,90,0.25);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-box-title {
+      font-size: 11.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--green);
+      letter-spacing: 0.5px;
+    }
+    .stat-box-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--black);
+      margin-top: 2px;
+    }
+
+    /* Custom Field Builder Live Preview */
+    .builder-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+    @media (max-width: 860px) {
+      .builder-layout { grid-template-columns: 1fr; }
+    }
+    .builder-preview-card {
+      background: var(--off-white);
+      border: 2px dashed var(--gray-400);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .builder-preview-badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--green);
+    }
+    .preview-field-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--black);
+    }
+    .preview-field-meta {
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+    .preview-field-aliases {
+      font-size: 12px;
+      color: var(--gray-600);
+      background: var(--white);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .preview-field-val {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--black);
+      background: var(--white);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    /* Question Bank List */
+    .qb-item {
+      background: var(--off-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .qb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .qb-question {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--black);
+    }
+    .qb-answer {
+      font-size: 13.5px;
+      color: var(--gray-800);
+      background: var(--white);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* Multi-profile cards */
     .profiles-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
     }
-
     .profile-card {
       background: var(--white);
       border: 2px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 20px;
+      padding: 18px;
       transition: all 0.2s;
       position: relative;
     }
-
-    .profile-card:hover {
-      border-color: var(--gray-400);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
     .profile-card.active {
       border-color: var(--green);
       box-shadow: 0 0 0 3px rgba(26, 127, 90, 0.15);
     }
-
     .profile-card-header {
       display: flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
     }
-
     .profile-card-dot {
       width: 36px;
       height: 36px;
@@ -238,126 +570,34 @@
       font-size: 14px;
       font-weight: 700;
       color: #fff;
-      flex-shrink: 0;
     }
-
     .profile-card-name {
       font-weight: 600;
-      font-size: 1em;
+      font-size: 15px;
       color: var(--black);
-      outline: none;
-      border-radius: 4px;
-      padding: 1px 4px;
-      margin: -1px -4px;
-      transition: background 0.15s, box-shadow 0.15s;
     }
-    .profile-card-name:hover {
-      background: var(--green-light);
-    }
-    .profile-card-name:focus {
-      background: var(--green-light);
-      box-shadow: 0 0 0 2px rgba(26,127,90,0.3);
-    }
-
     .profile-card-role {
-      font-size: 0.82em;
+      font-size: 12px;
       color: var(--gray-600);
-      margin-top: 2px;
     }
-
-    .profile-card-meta {
-      font-size: 0.78em;
-      color: var(--gray-400);
-      margin-bottom: 14px;
-    }
-
     .profile-card-actions {
       display: flex;
       gap: 8px;
+      margin-top: 14px;
     }
-
     .profile-card-actions button {
       flex: 1;
-      padding: 8px 10px;
+      padding: 7px 10px;
       border-radius: var(--radius-sm);
-      font-size: 0.82em;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
       border: none;
       font-family: inherit;
     }
-
-    .btn-activate {
-      background: var(--green);
-      color: #fff;
-    }
+    .btn-activate { background: var(--green); color: #fff; }
     .btn-activate:hover { background: var(--green-mid); }
-
-    .btn-edit-profile {
-      background: var(--gray-100);
-      color: var(--gray-600);
-    }
-    .btn-edit-profile:hover { background: var(--gray-200); color: var(--black); }
-
-    .btn-delete-profile {
-      background: #fef2f2;
-      color: #dc2626;
-      flex: 0 0 auto;
-      padding: 8px 12px;
-    }
-    .btn-delete-profile:hover { background: #fee2e2; }
-
-    .btn-onboarding {
-      background: #f0fdf4;
-      color: #16a34a;
-    }
-    .btn-onboarding:hover { background: #dcfce7; }
-
-    .active-tag {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #f0fdf4;
-      color: #16a34a;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 0.72em;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Create new profile card */
-    .profile-card-new {
-      background: #fff;
-      border: 2px dashed #cbd5e1;
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 180px;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #64748b;
-      gap: 8px;
-    }
-
-    .profile-card-new:hover {
-      border-color: #7c3aed;
-      color: #7c3aed;
-      background: #faf5ff;
-    }
-
-    .profile-card-new svg { opacity: 0.6; }
-    .profile-card-new:hover svg { opacity: 1; }
-
-    .profile-card-new span {
-      font-weight: 600;
-      font-size: 0.9em;
-    }
+    .btn-delete-card { background: #fef2f2; color: #dc2626; flex: 0 0 auto !important; padding: 7px 10px !important; }
 
     /* Modal */
     .modal {
@@ -368,184 +608,587 @@
       z-index: 1000;
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(2px);
     }
-
     .modal.active { display: flex; }
-
     .modal-content {
-      background: #fff;
-      padding: 28px;
+      background: var(--white);
+      padding: 24px;
       border-radius: 14px;
-      max-width: 440px;
+      max-width: 480px;
       width: 90%;
-      max-height: 80vh;
+      max-height: 85vh;
       overflow-y: auto;
+      box-shadow: var(--shadow-md);
     }
-
     .modal-content h2 {
-      margin-bottom: 18px;
-      color: #1e293b;
-      font-size: 1.15em;
+      font-family: var(--font-serif);
+      margin-bottom: 16px;
+      color: var(--black);
+      font-size: 1.2em;
     }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      color: #475569;
-      font-weight: 600;
-      font-size: 0.85em;
-    }
-
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      color: #1e293b;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
-    }
-
-    .color-picker {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
+    .color-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
     .color-swatch {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s;
+      width: 26px; height: 26px; border-radius: 50%;
+      cursor: pointer; transition: transform 0.15s;
     }
-
     .color-swatch:hover { transform: scale(1.15); }
-    .color-swatch.selected { border-color: #1e293b; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1e293b; }
+    .color-swatch.selected { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--black); }
 
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .btn-primary {
-      flex: 1;
-      background: #7c3aed;
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
       color: #fff;
-      border: none;
-      padding: 10px 20px;
+      padding: 10px 18px;
       border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-family: inherit;
-      font-size: 14px;
-      transition: background 0.15s;
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 9999;
     }
-
-    .btn-primary:hover { background: #6d28d9; }
-
-    .btn-secondary {
-      flex: 1;
-      background: #e2e8f0;
-      color: #475569;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-family: inherit;
-      font-size: 14px;
-      transition: background 0.15s;
+    .toast-msg.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
-
-    .btn-secondary:hover { background: #cbd5e1; }
-
-    /* Dark mode — mostly handled by CSS tokens */
-    html.dark .btn-delete-profile { background: #2d1515; color: #f87171; }
-    html.dark .btn-delete-profile:hover { background: #3d1515; }
-    html.dark .btn-onboarding { background: var(--green-light); color: var(--green-mid); }
-    html.dark .btn-onboarding:hover { background: #1a3d20; }
-    html.dark .active-tag { background: var(--green-light); color: var(--green-mid); }
-    html.dark .profile-card-new:hover { border-color: var(--green); background: var(--green-light); }
-    html.dark .color-swatch.selected { border-color: var(--gray-800); box-shadow: 0 0 0 2px var(--gray-100), 0 0 0 4px var(--gray-800); }
   </style>
 </head>
 <body>
   <header class="header">
     <div class="header-inner">
       <div class="header-brand">
-        <img src="../icons/primary-logo.png" alt="Offlyn Apply">
-        <h1>Manage Profiles</h1>
+        <img src="../icons/primary-logo.png" alt="PrivateApply">
+        <h1>Applicant Profile & Question Bank</h1>
       </div>
       <div class="header-actions">
         <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode"></button>
         <a href="../home/home.html" class="btn-back">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back to Home
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Home
         </a>
       </div>
     </div>
   </header>
 
   <div class="container">
+    <!-- Active profile banner -->
     <div id="active-banner" class="active-banner" style="display:none;">
-      <div class="active-banner-dot" id="active-dot"></div>
-      <div class="active-banner-info">
-        <h2 id="active-name"></h2>
-        <p id="active-role"></p>
+      <div class="active-banner-left">
+        <div class="active-banner-dot" id="active-dot"></div>
+        <div class="active-banner-info">
+          <h2 id="active-name"></h2>
+          <p id="active-role"></p>
+        </div>
       </div>
-      <div class="active-banner-badge">Active</div>
+      <div class="active-banner-badge">Active Profile</div>
     </div>
 
-    <div class="section-title">All Profiles</div>
-    <div class="profiles-grid" id="profiles-grid"></div>
+    <!-- Navigation Hub Tabs -->
+    <nav class="hub-nav">
+      <button type="button" class="hub-tab-btn active" data-tab="tab-core">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Personal & Contact
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-education">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        Education
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-experience">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Experience & CTC
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-family">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Family & Contacts
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-india">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+        India Recruitment Pack
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-custom">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Custom Fields Builder
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-questions">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Question Bank
+      </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-profiles">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Manage Profiles
+      </button>
+    </nav>
+
+    <!-- TAB 1: Core Personal & Contact -->
+    <div id="tab-core" class="tab-panel active">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Identity & Contact Information</div>
+            <div class="hub-card-desc">Canonical personal details used by application forms. Alternate phone is maintained separately from primary mobile.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-save-personal">Save Personal Info</button>
+        </div>
+        <div class="form-grid-3">
+          <div class="field-group">
+            <label>Legal First Name</label>
+            <input type="text" id="core-first-name" class="field-input" placeholder="First Name">
+          </div>
+          <div class="field-group">
+            <label>Middle Name</label>
+            <input type="text" id="core-middle-name" class="field-input" placeholder="Middle Name (optional)">
+          </div>
+          <div class="field-group">
+            <label>Legal Last Name</label>
+            <input type="text" id="core-last-name" class="field-input" placeholder="Last Name">
+          </div>
+          <div class="field-group">
+            <label>Full Legal Name (as per ID)</label>
+            <input type="text" id="core-full-name" class="field-input" placeholder="Full name as per official ID">
+          </div>
+          <div class="field-group">
+            <label>Preferred / Display Name</label>
+            <input type="text" id="core-preferred-name" class="field-input" placeholder="Nickname or preferred name">
+          </div>
+          <div class="field-group">
+            <label>Personal Email</label>
+            <input type="email" id="core-email" class="field-input" placeholder="name@example.com">
+          </div>
+          <div class="field-group">
+            <label>Primary Mobile / Phone</label>
+            <input type="tel" id="core-phone" class="field-input" placeholder="+1 (555) 000-0000 or +91 9876543210">
+          </div>
+          <div class="field-group">
+            <label>Alternate / Secondary Phone</label>
+            <input type="tel" id="core-alternate-phone" class="field-input" placeholder="Backup contact phone number">
+          </div>
+          <div class="field-group">
+            <label>University / Student Email</label>
+            <input type="email" id="core-univ-email" class="field-input" placeholder="student@university.edu">
+          </div>
+          <div class="field-group">
+            <label>Current Residential Address</label>
+            <input type="text" id="core-address" class="field-input" placeholder="City, State, Country">
+          </div>
+          <div class="field-group">
+            <label>Permanent Address</label>
+            <input type="text" id="core-permanent-address" class="field-input" placeholder="Native or permanent address">
+          </div>
+          <div class="field-group">
+            <label>Nationality / Citizenship</label>
+            <input type="text" id="core-nationality" class="field-input" placeholder="e.g. Indian, American, etc.">
+          </div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Professional Links & Profiles</div>
+            <div class="hub-card-desc">Social links and portfolio websites.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-save-links">Save Links</button>
+        </div>
+        <div class="form-grid-3">
+          <div class="field-group">
+            <label>LinkedIn URL</label>
+            <input type="url" id="core-linkedin" class="field-input" placeholder="https://linkedin.com/in/username">
+          </div>
+          <div class="field-group">
+            <label>GitHub URL</label>
+            <input type="url" id="core-github" class="field-input" placeholder="https://github.com/username">
+          </div>
+          <div class="field-group">
+            <label>Portfolio / Personal Website</label>
+            <input type="url" id="core-portfolio" class="field-input" placeholder="https://yourportfolio.dev">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Education History -->
+    <div id="tab-education" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Education History (Class 10 through Higher Degrees)</div>
+            <div class="hub-card-desc">Comprehensive record of secondary, senior secondary, undergraduate, and postgrad qualifications.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-add-education">+ Add Education Record</button>
+        </div>
+
+        <div id="education-records-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Experience & Compensation -->
+    <div id="tab-experience" class="tab-panel">
+      <!-- Derived stats bar -->
+      <div class="derived-stats-banner">
+        <div>
+          <div class="stat-box-title">Total Experience</div>
+          <div class="stat-box-val" id="stat-total-exp">0 years</div>
+        </div>
+        <div>
+          <div class="stat-box-title">Full-time Experience</div>
+          <div class="stat-box-val" id="stat-fulltime-exp">0 years</div>
+        </div>
+        <div>
+          <div class="stat-box-title">Current Employer Tenure</div>
+          <div class="stat-box-val" id="stat-tenure">0 years</div>
+        </div>
+        <div>
+          <div class="stat-box-title">Total Employers</div>
+          <div class="stat-box-val" id="stat-employers">0</div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Compensation & Notice Period</div>
+            <div class="hub-card-desc">Stored compensation history and private salary expectations.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-save-compensation">Save Compensation</button>
+        </div>
+        <div class="form-grid-3">
+          <div class="field-group">
+            <label>Notice Period (Days)</label>
+            <input type="number" id="comp-notice-days" class="field-input" placeholder="e.g. 30, 60, 90">
+          </div>
+          <div class="field-group">
+            <label>Current Annual CTC</label>
+            <input type="number" id="comp-current-ctc" class="field-input" placeholder="e.g. 1200000">
+          </div>
+          <div class="field-group">
+            <label>Expected Annual CTC</label>
+            <input type="number" id="comp-expected-ctc" class="field-input" placeholder="e.g. 1800000">
+          </div>
+          <div class="field-group">
+            <label>Currency</label>
+            <select id="comp-currency" class="field-select">
+              <option value="INR">INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="CAD">CAD (C$)</option>
+              <option value="AUD">AUD (A$)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Salary Negotiable?</label>
+            <select id="comp-negotiable" class="field-select">
+              <option value="true">Yes, negotiable</option>
+              <option value="false">Fixed expectation</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Work Preference</label>
+            <select id="comp-work-pref" class="field-select">
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="onsite">On-site</option>
+              <option value="flexible">Flexible</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Employment Records</div>
+            <div class="hub-card-desc">Full professional history used for deriving experience years and filling role questions.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-add-employment">+ Add Job / Employment</button>
+        </div>
+        <div id="employment-records-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Family & Contacts -->
+    <div id="tab-family" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Family, Guardian & Emergency Contacts</div>
+            <div class="hub-card-desc">Repeatable contact records (Father, Mother, Guardian, Emergency Contact). The AI maps questions directly to the corresponding relative.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-add-family-contact">+ Add Contact</button>
+        </div>
+        <div id="family-contacts-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: India Recruitment Pack -->
+    <div id="tab-india" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">India Recruitment & Campus Placement Pack</div>
+            <div class="hub-card-desc">Indian campus and recruitment portals (Naukri, Digialm, Freshersworld, campus forms) frequently ask for 10th/12th marks, backlogs, arrears, student registration IDs, and bonds.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-save-india-pack">Save India Pack</button>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+            <input type="checkbox" id="india-pack-enabled" style="width: 16px; height: 16px;">
+            <span>Enable India Recruitment Pack for Autofill & Semantic Matching</span>
+          </label>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="field-group">
+            <label>Class 10 (SSC) Percentage (%)</label>
+            <input type="number" step="0.01" id="in-10th-pct" class="field-input" placeholder="e.g. 91.5">
+          </div>
+          <div class="field-group">
+            <label>Class 10 Passing Year</label>
+            <input type="text" id="in-10th-year" class="field-input" placeholder="e.g. 2018">
+          </div>
+          <div class="field-group">
+            <label>Class 10 Board</label>
+            <input type="text" id="in-10th-board" class="field-input" placeholder="CBSE, ICSE, State Board">
+          </div>
+
+          <div class="field-group">
+            <label>Class 12 (HSC) Percentage (%)</label>
+            <input type="number" step="0.01" id="in-12th-pct" class="field-input" placeholder="e.g. 88.2">
+          </div>
+          <div class="field-group">
+            <label>Class 12 Passing Year</label>
+            <input type="text" id="in-12th-year" class="field-input" placeholder="e.g. 2020">
+          </div>
+          <div class="field-group">
+            <label>Class 12 Board / Stream</label>
+            <input type="text" id="in-12th-board" class="field-input" placeholder="CBSE (Science)">
+          </div>
+
+          <div class="field-group">
+            <label>Undergraduate CGPA (out of 10)</label>
+            <input type="number" step="0.01" id="in-ug-cgpa" class="field-input" placeholder="e.g. 8.65">
+          </div>
+          <div class="field-group">
+            <label>UG Percentage (%) or Conversion Formula</label>
+            <input type="text" id="in-ug-formula" class="field-input" placeholder="e.g. CGPA * 9.5 (82.17%)">
+          </div>
+          <div class="field-group">
+            <label>Student Registration / Roll No / USN</label>
+            <input type="text" id="in-student-roll" class="field-input" placeholder="University Roll No / Registration No">
+          </div>
+
+          <div class="field-group">
+            <label>Active Backlogs / Arrears Count</label>
+            <input type="number" id="in-active-backlogs" class="field-input" placeholder="0">
+          </div>
+          <div class="field-group">
+            <label>Cleared Backlogs / History of Arrears</label>
+            <input type="number" id="in-cleared-backlogs" class="field-input" placeholder="0">
+          </div>
+          <div class="field-group">
+            <label>Academic Gap (Years)</label>
+            <input type="number" id="in-gap-years" class="field-input" placeholder="0">
+          </div>
+
+          <div class="field-group">
+            <label>Current CTC (LPA)</label>
+            <input type="number" step="0.1" id="in-ctc-lpa" class="field-input" placeholder="e.g. 8.5 LPA">
+          </div>
+          <div class="field-group">
+            <label>Expected CTC (LPA)</label>
+            <input type="number" step="0.1" id="in-exp-lpa" class="field-input" placeholder="e.g. 14 LPA">
+          </div>
+          <div class="field-group">
+            <label>Willing to Sign Service Bond?</label>
+            <select id="in-bond-willing" class="field-select">
+              <option value="false">No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label>
+              Aadhaar Number (Masked)
+              <span class="badge-sens restricted">Restricted</span>
+            </label>
+            <input type="text" id="in-aadhaar" class="field-input" placeholder="XXXX-XXXX-1234">
+          </div>
+          <div class="field-group">
+            <label>
+              PAN Card Number (Masked)
+              <span class="badge-sens restricted">Restricted</span>
+            </label>
+            <input type="text" id="in-pan" class="field-input" placeholder="ABCDE1234F">
+          </div>
+          <div class="field-group">
+            <label>Hosteller or Day Scholar?</label>
+            <select id="in-scholar-type" class="field-select">
+              <option value="day_scholar">Day Scholar</option>
+              <option value="hosteller">Hosteller</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: Custom Field Builder -->
+    <div id="tab-custom" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Custom Field Builder</div>
+            <div class="hub-card-desc">Define arbitrary custom fields with aliases, sensitivity levels, and live preview. Never get stuck on unusual employer questions.</div>
+          </div>
+        </div>
+
+        <div class="builder-layout">
+          <!-- Form -->
+          <div id="builder-form-wrap">
+            <div class="form-grid-2">
+              <div class="field-group">
+                <label for="builder-label">Field Name</label>
+                <input type="text" id="builder-label" class="field-input" placeholder="e.g. Secondary qualification result">
+              </div>
+              <div class="field-group">
+                <label for="builder-section">Section</label>
+                <select id="builder-section" class="field-select">
+                  <option value="personal">Personal</option>
+                  <option value="education">Education</option>
+                  <option value="employment">Employment</option>
+                  <option value="work_auth">Work authorization</option>
+                  <option value="family">Family and contacts</option>
+                  <option value="india_pack">India pack</option>
+                  <option value="custom">Custom section</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="builder-type">Value Type</label>
+                <select id="builder-type" class="field-select">
+                  <option value="text">Text</option>
+                  <option value="number">Number / grade / score</option>
+                  <option value="date">Date</option>
+                  <option value="boolean">Yes / no</option>
+                  <option value="choice">Dropdown / choice</option>
+                  <option value="long_text">Long text</option>
+                  <option value="file_ref">File / document reference</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="builder-sensitivity">Data Sensitivity</label>
+                <select id="builder-sensitivity" class="field-select">
+                  <option value="ordinary">Ordinary profile information</option>
+                  <option value="sensitive_personal">Sensitive personal information</option>
+                  <option value="restricted_identifier">Restricted identifier or document</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-top: 14px;">
+              <label for="builder-aliases">Aliases & Alternative Question Labels (comma-separated)</label>
+              <input type="text" id="builder-aliases" class="field-input" placeholder="School result, high school grades, secondary examination score">
+            </div>
+
+            <div class="field-group" style="margin-top: 14px;">
+              <label for="builder-value">Saved Value</label>
+              <input type="text" id="builder-value" class="field-input" placeholder="e.g. 94.5% or CBSE Merit">
+            </div>
+
+            <div style="margin-top: 18px; display: flex; gap: 10px;">
+              <button type="button" class="btn-action-primary" id="btn-save-custom-field">Save Custom Field</button>
+              <button type="button" class="btn-action-secondary" id="btn-reset-builder">Reset</button>
+            </div>
+          </div>
+
+          <!-- Live Preview Card -->
+          <div>
+            <div class="builder-preview-card">
+              <div class="builder-preview-badge">Live Preview</div>
+              <div class="preview-field-title" id="prev-title">Secondary qualification result</div>
+              <div class="preview-field-meta" id="prev-meta">Education · text · Ordinary</div>
+              <div class="preview-field-aliases" id="prev-aliases">Aliases: School result, high school grades, secondary examination score</div>
+              <div class="preview-field-val" id="prev-val">No value entered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Defined Custom Fields List -->
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div class="hub-card-title">Saved Custom Fields</div>
+        </div>
+        <div id="custom-fields-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 7: Question Bank -->
+    <div id="tab-questions" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Question Bank & Saved Screening Answers</div>
+            <div class="hub-card-desc">Pre-verified answers for recurring questions (Why this company, career goals, shift availability). Reusable across all applications.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-add-question">+ Add Saved Answer</button>
+        </div>
+        <div id="question-bank-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 8: Profiles Management -->
+    <div id="tab-profiles" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Applicant Profiles</div>
+            <div class="hub-card-desc">Create role-specific profiles (e.g. "Frontend Engineer", "Full Stack", "Campus Placements") and switch between them instantly.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-new-profile-modal">+ New Profile</button>
+        </div>
+        <div class="profiles-grid" id="profiles-grid"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Create / Edit Modal -->
+  <!-- New Profile Modal -->
   <div class="modal" id="profile-modal">
     <div class="modal-content">
       <h2 id="modal-title">New Profile</h2>
       <form id="profile-form">
         <input type="hidden" id="edit-id">
-        <div class="form-group">
+        <div class="field-group" style="margin-bottom: 14px;">
           <label for="profile-name">Profile Name</label>
-          <input type="text" id="profile-name" placeholder="e.g. Frontend Engineer" required>
+          <input type="text" id="profile-name" class="field-input" placeholder="e.g. SDE-1 / Campus" required>
         </div>
-        <div class="form-group">
+        <div class="field-group" style="margin-bottom: 14px;">
           <label for="profile-role">Target Role (optional)</label>
-          <input type="text" id="profile-role" placeholder="e.g. Senior Frontend Developer">
+          <input type="text" id="profile-role" class="field-input" placeholder="e.g. Software Engineer">
         </div>
-        <div class="form-group">
+        <div class="field-group" style="margin-bottom: 14px;">
           <label for="clone-from">Clone data from</label>
-          <select id="clone-from">
+          <select id="clone-from" class="field-select">
             <option value="">Start empty</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Color</label>
+        <div class="field-group" style="margin-bottom: 18px;">
+          <label>Profile Color</label>
           <div class="color-picker" id="color-picker"></div>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary" id="modal-submit">Create Profile</button>
-          <button type="button" class="btn-secondary" id="modal-cancel">Cancel</button>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="modal-submit" style="flex:1;">Create Profile</button>
+          <button type="button" class="btn-action-secondary" id="modal-cancel" style="flex:1;">Cancel</button>
         </div>
       </form>
     </div>
   </div>
+
+  <div id="toast" class="toast-msg"></div>
 
   <script src="profiles.js"></script>
   <script src="../shared/dark-mode.js"></script>

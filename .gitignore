@@ -22,6 +22,9 @@ releases/
 .env.development.local
 .env.test.local
 .env.production.local
+Resume.pdf
+Resume.tex
+Resume.*
 
 # IDE
 .vscode/

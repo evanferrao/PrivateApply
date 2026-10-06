@@ -192,6 +192,30 @@ export class AIClient {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
+        if (response.status === 429) {
+          const waitMatch = errorText.match(/try again in ([\d.]+)s/i);
+          const waitSecs = waitMatch ? Math.min(Math.ceil(parseFloat(waitMatch[1])), 20) : 10;
+          console.warn(`[AIClient] 429 Rate limit hit on ${provider.nickname}, backing off for ${waitSecs}s...`);
+          await new Promise(r => setTimeout(r, (waitSecs + 1) * 1000));
+          const retryResp = await ollamaFetch(chatUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              model,
+              messages,
+              stream: false,
+              temperature,
+              max_tokens: maxTokens,
+            }),
+          });
+          if (retryResp.ok) {
+            const retryData: ChatCompletionResponse = await retryResp.json();
+            const retryContent = retryData.choices?.[0]?.message?.content;
+            if (retryContent !== undefined && retryContent !== null) {
+              return retryContent;
+            }
+          }
+        }
         throw new Error(`AI Provider error (${provider.nickname} HTTP ${response.status}): ${errorText || response.statusText}`);
       }
 

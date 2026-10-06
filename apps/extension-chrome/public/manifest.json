@@ -212,6 +212,6 @@
   ],
 
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https:"
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' blob: data:; img-src 'self' data: blob: https:"
   }
 }

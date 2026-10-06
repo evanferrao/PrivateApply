@@ -56,6 +56,7 @@ import {
 } from './ui/field-highlighter';
 import { showNotification, showSuccess, showError, showWarning, showInfo, showWorkdayBetaBanner } from './ui/notification';
 import { showAutofillNotification, hideAutofillNotification, showShoppingHelperNotification } from './ui/autofill-notification';
+import { showMissingInfoQuestionnaire } from './ui/missing-info-modal';
 import { showTrackingBadge, hideTrackingBadge } from './ui/tracking-badge';
 import {
   showInlineSuggestionTiles,
@@ -639,8 +640,15 @@ async function tryAutoFill(schema: ReturnType<typeof extractFormSchema>): Promis
     // After basic autofill, show inline AI tiles on remaining empty text fields
     const unfilledCount = allDetectedFields.length - filledSelectors.size;
     if (unfilledCount > 0) {
-      info(`ℹ️ ${unfilledCount} fields remain unfilled. Showing AI suggestion tiles.`);
+      info(`ℹ️ ${unfilledCount} fields remain unfilled. Showing AI suggestion tiles & questionnaire.`);
       showInlineSuggestionTiles(allDetectedFields, filledSelectors, handleInlineTileClick);
+
+      // Offer Missing-Information Questionnaire for unusual or unmapped fields
+      const unfilledSchemas = allDetectedFields.filter(f => !filledSelectors.has(f.selector));
+      showMissingInfoQuestionnaire(unfilledSchemas, async (selector, val) => {
+        await fillFieldWithValue(selector, val, 'Questionnaire Fill');
+        filledSelectors.add(selector);
+      });
     }
 
     const filled = filledSelectors.size;

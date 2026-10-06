@@ -20,22 +20,29 @@
   }
 
   // --- Navigation ---
-  document.getElementById('navFindJobs').addEventListener('click', () => openPage('jobs/jobs.html'));
-  document.getElementById('navFindJobsSide').addEventListener('click', () => openPage('jobs/jobs.html'));
-  document.getElementById('navDashboard').addEventListener('click', () => openPage('dashboard/dashboard.html'));
-  document.getElementById('navProfile').addEventListener('click', () => openPage('profiles/profiles.html'));
-  document.getElementById('navLearned').addEventListener('click', async () => {
+  document.getElementById('navResumeTailorCard')?.addEventListener('click', () => openPage('resume-tailor/resume-tailor.html'));
+  document.getElementById('navResumeTailorSide')?.addEventListener('click', () => openPage('resume-tailor/resume-tailor.html'));
+  document.getElementById('navFindJobs')?.addEventListener('click', () => openPage('jobs/jobs.html'));
+  document.getElementById('navFindJobsSide')?.addEventListener('click', () => openPage('jobs/jobs.html'));
+  document.getElementById('navDashboard')?.addEventListener('click', () => openPage('dashboard/dashboard.html'));
+  document.getElementById('navDashboardCard')?.addEventListener('click', () => openPage('dashboard/dashboard.html'));
+  document.getElementById('navDashboardSide')?.addEventListener('click', () => openPage('dashboard/dashboard.html'));
+  document.getElementById('navProfile')?.addEventListener('click', () => openPage('profiles/profiles.html'));
+  document.getElementById('navProfileSide')?.addEventListener('click', () => openPage('profiles/profiles.html'));
+  document.getElementById('navLearned')?.addEventListener('click', async () => {
     await api.storage.local.set({ showLearnedValues: true });
     openPage('onboarding/onboarding.html');
   });
-  document.getElementById('navDataExplorer').addEventListener('click', () => openPage('data/data.html'));
-  document.getElementById('navDataExplorerSide').addEventListener('click', () => openPage('data/data.html'));
-  document.getElementById('navSettings').addEventListener('click', () => openPage('settings/settings.html'));
-  document.getElementById('navHelp').addEventListener('click', () => openPage('help/help.html'));
-  document.getElementById('navPrivacy').addEventListener('click', () => openPage('privacy/privacy.html'));
-  document.getElementById('footerPrivacy').addEventListener('click', () => openPage('privacy/privacy.html'));
-  document.getElementById('footerHelp').addEventListener('click', () => openPage('help/help.html'));
-  document.getElementById('footerSettings').addEventListener('click', () => openPage('settings/settings.html'));
+  document.getElementById('navDataExplorer')?.addEventListener('click', () => openPage('data/data.html'));
+  document.getElementById('navDataExplorerSide')?.addEventListener('click', () => openPage('data/data.html'));
+  document.getElementById('navSettings')?.addEventListener('click', () => openPage('settings/settings.html'));
+  document.getElementById('navSettingsSide')?.addEventListener('click', () => openPage('settings/settings.html'));
+  document.getElementById('navHelp')?.addEventListener('click', () => openPage('help/help.html'));
+  document.getElementById('navHelpSide')?.addEventListener('click', () => openPage('help/help.html'));
+  document.getElementById('navPrivacy')?.addEventListener('click', () => openPage('privacy/privacy.html'));
+  document.getElementById('footerPrivacy')?.addEventListener('click', () => openPage('privacy/privacy.html'));
+  document.getElementById('footerHelp')?.addEventListener('click', () => openPage('help/help.html'));
+  document.getElementById('footerSettings')?.addEventListener('click', () => openPage('settings/settings.html'));
 
   // CTA button
   document.getElementById('ctaSetup').addEventListener('click', () => openPage('onboarding/onboarding.html'));

@@ -13,7 +13,7 @@ import { ParseValidator } from './shared/parse-validator';
 import { enrichParseErrorMessage } from './shared/error-classify';
 import { graphMemory } from './shared/graph/service';
 import {
-  getUserProfile, formatPhone, formatLocation, type UserProfile,
+  getUserProfile, saveUserProfile, formatPhone, formatLocation, type UserProfile,
   migrateToMultiProfile, listProfiles, getActiveProfileId, getProfileById,
 } from './shared/profile';
 import { fieldClassifier, isTypeCompatible } from './shared/field-classifier';
@@ -813,6 +813,142 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
         : chrome.runtime.getURL('onboarding/onboarding.html');
       chrome.tabs.create({ url });
       return { ok: true };
+    }
+
+    // ── Save missing profile info (from questionnaire) ────────────────────────
+    if (message.kind === 'SAVE_MISSING_PROFILE_INFO') {
+      const msg = message as any;
+      try {
+        const profile = await getUserProfile();
+        if (profile) {
+          const fieldKey = msg.fieldKey;
+          const label = msg.label || fieldKey;
+          const val = msg.value;
+          const category = msg.category || 'custom_field';
+          const aliases = msg.aliases || [label.toLowerCase()];
+
+          if (category === 'question_bank') {
+            if (!profile.questionBank) profile.questionBank = [];
+            const existing = profile.questionBank.find(q => q.question.toLowerCase() === label.toLowerCase());
+            if (existing) {
+              existing.answer = String(val);
+              existing.lastUpdated = Date.now();
+            } else {
+              profile.questionBank.push({
+                id: `qb_${Date.now()}`,
+                question: label,
+                aliases,
+                answer: String(val),
+                category: 'screening',
+                isVerified: true,
+                companyScoped: false,
+                lastUpdated: Date.now(),
+              });
+            }
+          } else if (category === 'india_pack') {
+            if (!profile.indiaPack) profile.indiaPack = { enabled: true };
+            profile.indiaPack.enabled = true;
+            const keyLower = fieldKey.toLowerCase();
+            if (keyLower.includes('10th') || keyLower.includes('tenth')) {
+              profile.indiaPack.tenthPercentage = parseFloat(val) || undefined;
+            } else if (keyLower.includes('12th') || keyLower.includes('twelfth')) {
+              profile.indiaPack.twelfthPercentage = parseFloat(val) || undefined;
+            } else if (keyLower.includes('backlog') || keyLower.includes('arrear')) {
+              profile.indiaPack.activeBacklogsCount = parseInt(val, 10) || 0;
+            } else if (keyLower.includes('roll') || keyLower.includes('student')) {
+              profile.indiaPack.studentRegistrationNumber = String(val);
+            } else if (keyLower.includes('bond')) {
+              profile.indiaPack.willingToSignBond = String(val).toLowerCase() === 'yes' || String(val) === 'true';
+            } else if (keyLower.includes('ctc')) {
+              profile.indiaPack.currentCtcLpa = parseFloat(val) || undefined;
+            } else {
+              if (!profile.customFields) profile.customFields = [];
+              profile.customFields.push({
+                id: `cf_${Date.now()}`,
+                key: fieldKey,
+                label,
+                sectionId: 'india_pack',
+                dataType: 'text',
+                aliases,
+                value: val,
+                sensitivity: 'ordinary',
+                aiAccessPermitted: true,
+                autoFillPermitted: true,
+                requiresConfirmation: false,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              });
+            }
+          } else if (category === 'family') {
+            if (!profile.familyContacts) profile.familyContacts = [];
+            const keyLower = fieldKey.toLowerCase();
+            const rel = keyLower.includes('father')
+              ? 'father'
+              : keyLower.includes('mother')
+              ? 'mother'
+              : keyLower.includes('guardian')
+              ? 'guardian'
+              : 'emergency';
+
+            let contact = profile.familyContacts.find(c => c.relationship === rel);
+            if (!contact) {
+              contact = {
+                id: `fc_${Date.now()}`,
+                relationship: rel as any,
+                name: '',
+                phone: '',
+              };
+              profile.familyContacts.push(contact);
+            }
+            if (keyLower.includes('phone') || keyLower.includes('mobile')) {
+              contact.phone = String(val);
+            } else if (keyLower.includes('occupation')) {
+              contact.occupation = String(val);
+            } else if (keyLower.includes('name')) {
+              contact.name = String(val);
+            } else if (keyLower.includes('employer')) {
+              contact.employer = String(val);
+            } else if (keyLower.includes('email')) {
+              contact.email = String(val);
+            }
+          } else {
+            if (!profile.customFields) profile.customFields = [];
+            const existing = profile.customFields.find(cf => cf.key === fieldKey || cf.label.toLowerCase() === label.toLowerCase());
+            if (existing) {
+              existing.value = val;
+              existing.updatedAt = Date.now();
+            } else {
+              profile.customFields.push({
+                id: `cf_${Date.now()}`,
+                key: fieldKey,
+                label,
+                sectionId: msg.section || 'custom',
+                dataType: 'text',
+                aliases,
+                value: val,
+                sensitivity: 'ordinary',
+                aiAccessPermitted: true,
+                autoFillPermitted: true,
+                requiresConfirmation: false,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              });
+            }
+          }
+
+          await saveUserProfile(profile);
+
+          try {
+            graphMemory.recordAnswer(label, String(val), 'user_prompt', fieldKey);
+          } catch {}
+
+          return { ok: true };
+        }
+      } catch (err) {
+        warn('[Profile] Failed to save missing profile info:', err);
+        return { ok: false, error: String(err) };
+      }
+      return { ok: false };
     }
 
     // ── Graph seed from profile ────────────────────────────────────────────────

@@ -58,27 +58,21 @@ function buildPatchPrompt(
   sourceHash: string,
   sectionsOverview: string,
   sectionsToTailor: string,
-  jobDescription: string
+  jobDescriptionOrInstructions: string
 ): string {
   return `You are an expert technical résumé editor and LaTeX specialist.
-Tailor the candidate's LaTeX résumé sections to align with the provided target job description.
+Tailor and enhance the candidate's LaTeX résumé to align with the provided target job description or user customization instructions.
 
-CRITICAL NON-FABRICATION CONSTRAINTS (STRICTLY ENFORCED):
-1. FACTUAL SOURCE OF TRUTH: The candidate's résumé is the only source of truth.
-2. DO NOT INVENT employment history, company names, job titles, or dates.
-3. DO NOT INVENT projects, degrees, certifications, or licenses.
-4. DO NOT INVENT metrics, percentages, revenue, or team sizes not already present.
-5. DO NOT claim skills that are unsupported by the candidate's actual experience.
-6. If a requirement in the job description is not met by the candidate, DO NOT fabricate it; leave the section truthful.
-
-DOCUMENT PRESERVATION RULES:
-1. Preserve ALL LaTeX macros, environments (e.g. \\begin{itemize}, \\item, \\textbf), formatting, fonts, and layout.
-2. Do NOT rewrite whole sections. Propose targeted changes to specific bullet points (\\item) to highlight genuine experience relevant to the job.
-3. You MUST provide an EXACT "anchor" string from the original text so our patch engine can locate it with substring matching.
+GUIDELINES & INSTRUCTIONS:
+1. ALIGNMENT & RELEVANCE: Emphasize genuine skills, technologies, and achievements relevant to the target role.
+2. USER INSTRUCTIONS: If the target description contains explicit user requests (e.g. "add crypto, web3, blockchain, google summer of code open source"), incorporate those skills, technologies, and projects into the appropriate sections (Skills, Projects, or Experience) using clean LaTeX formatting (\\item, \\textbf, etc.).
+3. FACTUAL INTEGRITY: Unless the user explicitly instructed adding specific skills/projects, do not fabricate new degrees or employers out of thin air.
+4. DOCUMENT PRESERVATION: Preserve ALL LaTeX macros, environments (e.g. \\begin{itemize}, \\item, \\textbf), formatting, fonts, and layout.
+5. PRECISE ANCHORS: You MUST provide an EXACT, distinctive multi-word substring "anchor" from the original source (such as an existing project line, specific bullet sentence, or header line). NEVER use generic repetitive tags like "\\begin{itemize}" or "\\end{itemize}" as an anchor.
 
 ---
-TARGET JOB DESCRIPTION:
-${jobDescription}
+TARGET JOB DESCRIPTION / USER INSTRUCTIONS:
+${jobDescriptionOrInstructions}
 
 ---
 RÉSUMÉ SECTIONS OVERVIEW:
@@ -103,7 +97,8 @@ Return ONLY a valid JSON object matching this exact schema (no markdown formatti
       "reason": "Brief rationale for keyword emphasis"
     }
   ]
-}`;
+}
+Supported operation types: "replace", "insert_after", "insert_before".`;
 }
 
 /**
@@ -168,31 +163,37 @@ export class LatexTailorService {
 
     const versionManager = new VersionManager(originalTex, sourceHash);
 
-    // 1. Identify sections to tailor (experience, projects, skills, summary)
-    const targetCategories = new Set(['experience', 'projects', 'skills', 'summary']);
-    const candidateSections = docStructure.sections.filter(s => targetCategories.has(s.category));
+    // 1. Identify sections to tailor (experience, projects, skills, summary, etc.)
+    const targetCategories = new Set(['experience', 'projects', 'skills', 'summary', 'certifications', 'education']);
+    let candidateSections = docStructure.sections.filter(s => targetCategories.has(s.category));
 
+    // If no candidate sections matched standard categories, include all non-header sections
     if (candidateSections.length === 0) {
-      return {
-        success: false,
-        finalSource: originalTex,
-        originalSource: originalTex,
-        sourceHash,
-        diffLines: [],
-        semanticChanges: [],
-        compileSuccess: false,
-        repairAttempts: 0,
-        error: 'No modifiable sections (experience, projects, skills, summary) identified in the LaTeX source.',
-      };
+      candidateSections = docStructure.sections.filter(s => s.category !== 'header');
     }
 
-    const sectionsOverview = docStructure.sections
-      .map(s => `- ${s.title} (${s.category}, lines ${s.startLine}-${s.endLine})`)
-      .join('\n');
+    let sectionsOverview: string;
+    let sectionsToTailor: string;
 
-    const sectionsToTailor = candidateSections
-      .map(s => `=== Section: ${s.title} ===\n${s.fullText}`)
-      .join('\n\n');
+    if (candidateSections.length > 0) {
+      sectionsOverview = candidateSections
+        .map(s => `- ${s.title} (${s.category}, lines ${s.startLine}-${s.endLine})`)
+        .join('\n');
+
+      sectionsToTailor = candidateSections
+        .map(s => `=== Section: ${s.title} ===\n${s.fullText}`)
+        .join('\n\n');
+    } else {
+      // Graceful fallback to entire document body (between \begin{document} and \end{document}, or full text)
+      const beginDoc = originalTex.indexOf('\\begin{document}');
+      const endDoc = originalTex.indexOf('\\end{document}');
+      const bodyText = (beginDoc !== -1 && endDoc !== -1 && endDoc > beginDoc)
+        ? originalTex.slice(beginDoc, endDoc + '\\end{document}'.length)
+        : originalTex;
+
+      sectionsOverview = '- Entire Résumé Document Source';
+      sectionsToTailor = `=== Document Source ===\n${bodyText}`;
+    }
 
     // 2. Generate structured patch via AI
     onProgress('patching', 'Generating tailored bullet points and keyword alignment...', 30);

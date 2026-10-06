@@ -54,6 +54,16 @@ const liveStatusText = document.getElementById('live-status-text') as HTMLElemen
 
 const inspectionContainer = document.getElementById('inspection-container') as HTMLElement;
 const pdfPreviewIframe = document.getElementById('pdf-preview-iframe') as HTMLIFrameElement;
+const pdfPreviewOriginalIframe = document.getElementById('pdf-preview-original-iframe') as HTMLIFrameElement | null;
+const tailoredPdfPlaceholder = document.getElementById('tailored-pdf-placeholder') as HTMLElement | null;
+const originalPdfStatus = document.getElementById('original-pdf-status') as HTMLElement | null;
+const tailoredPdfStatus = document.getElementById('tailored-pdf-status') as HTMLElement | null;
+const btnOpenOriginalTab = document.getElementById('btn-open-original-tab') as HTMLButtonElement | null;
+const btnViewSideBySide = document.getElementById('btn-view-side-by-side') as HTMLButtonElement | null;
+const btnViewTailoredOnly = document.getElementById('btn-view-tailored-only') as HTMLButtonElement | null;
+const btnViewOriginalOnly = document.getElementById('btn-view-original-only') as HTMLButtonElement | null;
+const pdfComparisonContainer = document.getElementById('pdf-comparison-container') as HTMLElement | null;
+
 const diffTableBody = document.getElementById('diff-table-body') as HTMLElement;
 const semanticChangesBox = document.getElementById('semantic-changes-box') as HTMLElement;
 const tailoredSourceView = document.getElementById('tailored-source-view') as HTMLTextAreaElement;
@@ -67,11 +77,16 @@ type EditorMode = 'latex' | 'plaintext';
 let currentMode: EditorMode = 'latex';
 let originalTexSource: string = '';
 let currentTailoredTex: string = '';
+let originalPdfBase64: string = '';
+let originalPdfBlobUrl: string = '';
+let tailoredPdfBase64: string = '';
+let tailoredPdfBlobUrl: string = '';
 let currentPdfBase64: string = '';
 let currentPdfBlobUrl: string = '';
 let sourceTabId: number | null = null;
 
-const SAMPLE_LATEX = `\\documentclass[letterpaper,11pt]{article}
+const DEFAULT_INJECTED_TEX = (typeof process !== 'undefined' && (process.env as any)?.DEFAULT_RESUME_TEX) || '';
+const SAMPLE_LATEX = DEFAULT_INJECTED_TEX || `\\documentclass[letterpaper,11pt]{article}
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
 \\usepackage{titlesec}
@@ -424,42 +439,170 @@ function renderDiagnostics(diagnostics?: any, exitCode?: number, durationMs?: nu
   diagnosticsLogText.textContent = diagnostics.logExcerpt || 'Compiler ran cleanly with no output logs.';
 }
 
-function updatePdfPreview(base64Data: string): void {
-  currentPdfBase64 = base64Data;
-  if (currentPdfBlobUrl) {
-    URL.revokeObjectURL(currentPdfBlobUrl);
+const SAMPLE_JD = `Senior Software Engineer - Distributed Systems & AI
+Company: Acme Tech Corp
+Location: Remote / Hybrid
+
+About the Role:
+We are looking for a Senior Software Engineer with strong experience in distributed backend systems, Python, TypeScript/JavaScript, and AI integrations (LLM APIs, RAG pipelines).
+
+Responsibilities:
+- Architect and scale high-throughput backend services and microservices.
+- Design resilient local AI workflows and native desktop integrations.
+- Collaborate with product and design to deliver robust user-facing developer tooling.
+- Mentor junior engineers and enforce code quality, unit testing, and CI/CD best practices.
+
+Requirements:
+- 5+ years building production backend and full-stack software.
+- Proficiency in Python, TypeScript, modern web APIs, and containerized deployments.
+- Hands-on experience with LLMs, prompt engineering, vector embeddings, and retrieval-augmented generation.
+- Strong knowledge of Linux internals, process management, and IPC communication.
+- Bachelor's or Master's in Computer Science or equivalent practical experience.`;
+
+function updateOriginalPdfPreview(base64Data: string): void {
+  originalPdfBase64 = base64Data;
+  if (originalPdfBlobUrl) {
+    URL.revokeObjectURL(originalPdfBlobUrl);
+  }
+
+  const sizeKb = ((base64Data.length * 0.75) / 1024).toFixed(1);
+  if (originalPdfStatus) {
+    originalPdfStatus.textContent = `Ready (${sizeKb} KB)`;
   }
 
   try {
     const byteChars = atob(base64Data);
-    const byteNumbers = new Array(byteChars.length);
+    const byteArray = new Uint8Array(byteChars.length);
     for (let i = 0; i < byteChars.length; i++) {
-      byteNumbers[i] = byteChars.charCodeAt(i);
+      byteArray[i] = byteChars.charCodeAt(i);
     }
-    const byteArray = new Uint8Array(byteNumbers);
     const blob = new Blob([byteArray], { type: 'application/pdf' });
-    currentPdfBlobUrl = URL.createObjectURL(blob);
-    pdfPreviewIframe.src = currentPdfBlobUrl;
+    originalPdfBlobUrl = URL.createObjectURL(blob);
+    if (pdfPreviewOriginalIframe) {
+      pdfPreviewOriginalIframe.src = originalPdfBlobUrl;
+    }
+  } catch (err) {
+    console.error('Failed to render original PDF preview blob:', err);
+    if (pdfPreviewOriginalIframe) {
+      pdfPreviewOriginalIframe.src = `data:application/pdf;base64,${base64Data}`;
+    }
+  }
+}
+
+function updateTailoredPdfPreview(base64Data: string): void {
+  tailoredPdfBase64 = base64Data;
+  currentPdfBase64 = base64Data;
+  if (tailoredPdfBlobUrl) {
+    URL.revokeObjectURL(tailoredPdfBlobUrl);
+  }
+
+  const sizeKb = ((base64Data.length * 0.75) / 1024).toFixed(1);
+  if (tailoredPdfStatus) {
+    tailoredPdfStatus.textContent = `Ready (${sizeKb} KB)`;
+  }
+
+  const pdfInfo = document.getElementById('pdf-preview-info');
+  if (pdfInfo) {
+    pdfInfo.textContent = `Side-by-side comparison active — Tailored PDF (${sizeKb} KB)`;
+  }
+
+  try {
+    const byteChars = atob(base64Data);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteArray[i] = byteChars.charCodeAt(i);
+    }
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    tailoredPdfBlobUrl = URL.createObjectURL(blob);
+    currentPdfBlobUrl = tailoredPdfBlobUrl;
+
+    if (tailoredPdfPlaceholder) {
+      tailoredPdfPlaceholder.style.display = 'none';
+    }
+    if (pdfPreviewIframe) {
+      pdfPreviewIframe.style.display = 'block';
+      pdfPreviewIframe.src = tailoredPdfBlobUrl;
+    }
     btnDownloadPdf.disabled = false;
   } catch (err) {
-    console.error('Failed to render PDF preview blob:', err);
-    pdfPreviewIframe.src = `data:application/pdf;base64,${base64Data}`;
+    console.error('Failed to render tailored PDF preview blob:', err);
+    if (tailoredPdfPlaceholder) {
+      tailoredPdfPlaceholder.style.display = 'none';
+    }
+    if (pdfPreviewIframe) {
+      pdfPreviewIframe.style.display = 'block';
+      pdfPreviewIframe.src = `data:application/pdf;base64,${base64Data}`;
+    }
     btnDownloadPdf.disabled = false;
   }
 }
 
+function updatePdfPreview(base64Data: string): void {
+  updateTailoredPdfPreview(base64Data);
+}
+
+// Wire side-by-side view mode buttons
+btnViewSideBySide?.addEventListener('click', () => {
+  pdfComparisonContainer?.classList.remove('view-original-only', 'view-tailored-only');
+  btnViewSideBySide.classList.add('active');
+  btnViewTailoredOnly?.classList.remove('active');
+  btnViewOriginalOnly?.classList.remove('active');
+});
+
+btnViewTailoredOnly?.addEventListener('click', () => {
+  pdfComparisonContainer?.classList.remove('view-original-only');
+  pdfComparisonContainer?.classList.add('view-tailored-only');
+  btnViewTailoredOnly.classList.add('active');
+  btnViewSideBySide?.classList.remove('active');
+  btnViewOriginalOnly?.classList.remove('active');
+});
+
+btnViewOriginalOnly?.addEventListener('click', () => {
+  pdfComparisonContainer?.classList.remove('view-tailored-only');
+  pdfComparisonContainer?.classList.add('view-original-only');
+  btnViewOriginalOnly.classList.add('active');
+  btnViewSideBySide?.classList.remove('active');
+  btnViewTailoredOnly?.classList.remove('active');
+});
+
+btnOpenOriginalTab?.addEventListener('click', () => {
+  if (originalPdfBlobUrl) {
+    window.open(originalPdfBlobUrl, '_blank');
+  }
+});
+
 // ── Actions ────────────────────────────────────────────────────────────────────
+
+document.getElementById('btn-sample-jd')?.addEventListener('click', () => {
+  jdEditor.value = SAMPLE_JD;
+  setLiveStatus('Loaded sample target job description. Ready to tailor!');
+});
+
+document.getElementById('btn-open-pdf-tab')?.addEventListener('click', () => {
+  if (currentPdfBlobUrl) {
+    window.open(currentPdfBlobUrl, '_blank');
+  } else if (currentPdfBase64) {
+    const w = window.open();
+    w?.document.write(`<iframe src="data:application/pdf;base64,${currentPdfBase64}" style="width:100%;height:100%;border:none;"></iframe>`);
+  }
+});
 
 btnTailorMain?.addEventListener('click', async () => {
   const resumeText = resumeEditor.value.trim();
   const jdText = jdEditor.value.trim();
 
   if (!resumeText) {
-    setLiveStatus('Please provide your résumé source.');
+    setLiveStatus('Please provide your résumé source. Click "Load Sample" to use a sample LaTeX template.');
+    resumeEditor.focus();
+    resumeEditor.classList.add('error-pulse');
+    setTimeout(() => resumeEditor.classList.remove('error-pulse'), 1500);
     return;
   }
   if (!jdText) {
-    setLiveStatus('Please provide a target job description.');
+    setLiveStatus('Please provide a target job description. Click "Load Sample JD" to test immediately.');
+    jdEditor.focus();
+    jdEditor.classList.add('error-pulse');
+    setTimeout(() => jdEditor.classList.remove('error-pulse'), 1500);
     return;
   }
 
@@ -475,6 +618,18 @@ btnTailorMain?.addEventListener('click', async () => {
 
     try {
       const selectedEngine = texEngineSelect.value as any;
+
+      // Compile original résumé in parallel if not yet compiled so user can compare side-by-side
+      if (!originalPdfBase64 && resumeText) {
+        companionClient.compileLatex({ source: resumeText, engine: selectedEngine })
+          .then(origResp => {
+            const origData = origResp.pdfBase64 || (origResp as any).pdf_base64;
+            if (origResp.success && origData) {
+              updateOriginalPdfPreview(origData);
+            }
+          }).catch(() => {});
+      }
+
       const result: LatexTailorResult = await latexTailorService.tailorAndCompile(
         resumeText,
         jdText,
@@ -494,9 +649,9 @@ btnTailorMain?.addEventListener('click', async () => {
       renderDiagnostics(result.compileDiagnostics, 0, 0, result.engineUsed);
 
       if (result.compileSuccess && result.pdfBase64) {
-        updatePdfPreview(result.pdfBase64);
+        updateTailoredPdfPreview(result.pdfBase64);
         switchInspectTab('tab-pdf');
-        setLiveStatus(`Compilation succeeded (${(result.pdfSize || 0) / 1024 | 0} KB PDF generated).`);
+        setLiveStatus(`Compilation succeeded (${((result.pdfSize || 0) / 1024).toFixed(1)} KB PDF generated).`);
       } else {
         switchInspectTab('tab-diff');
         setLiveStatus(result.error || 'Tailoring applied. Companion compilation incomplete.');
@@ -535,7 +690,8 @@ btnTailorMain?.addEventListener('click', async () => {
 btnCompileOnly?.addEventListener('click', async () => {
   const source = resumeEditor.value.trim();
   if (!source) {
-    setLiveStatus('No LaTeX source to compile.');
+    setLiveStatus('No LaTeX source to compile. Click "Load Sample" to load a template.');
+    resumeEditor.focus();
     return;
   }
 
@@ -552,13 +708,19 @@ btnCompileOnly?.addEventListener('click', async () => {
 
     renderDiagnostics(resp.diagnostics, resp.exitCode, resp.durationMs, resp.engineUsed);
 
-    if (resp.success && resp.pdfBase64) {
-      updatePdfPreview(resp.pdfBase64);
+    const pdfData = resp.pdfBase64 || (resp as any).pdf_base64;
+    if (resp.success && pdfData) {
+      if (currentTailoredTex) {
+        updateTailoredPdfPreview(pdfData);
+      } else {
+        updateOriginalPdfPreview(pdfData);
+      }
       switchInspectTab('tab-pdf');
-      setLiveStatus(`Compilation succeeded in ${resp.durationMs}ms.`);
+      setLiveStatus(`Compilation succeeded in ${resp.durationMs ?? 0}ms.`);
     } else {
       switchInspectTab('tab-diagnostics');
-      setLiveStatus(`Compilation failed (exit code ${resp.exitCode ?? '?'}). See diagnostics.`);
+      const errDetail = resp.diagnostics?.errors?.[0]?.message || resp.message || 'Compiler check failed';
+      setLiveStatus(`Compilation failed (exit code ${resp.exitCode ?? 1}): ${errDetail}`);
     }
   } catch (err) {
     setLiveStatus(`Compiler error: ${err instanceof Error ? err.message : String(err)}`);

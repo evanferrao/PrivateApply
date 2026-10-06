@@ -418,12 +418,89 @@
     .tab-content { padding: 18px; display: none; }
     .tab-content.active { display: block; }
 
-    /* PDF Viewer */
+    /* PDF Viewer & Side-by-Side Comparison */
+    .pdf-comparison-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .pdf-comparison-container.view-original-only {
+      grid-template-columns: 1fr;
+    }
+    .pdf-comparison-container.view-original-only .pdf-panel-tailored {
+      display: none;
+    }
+    .pdf-comparison-container.view-tailored-only {
+      grid-template-columns: 1fr;
+    }
+    .pdf-comparison-container.view-tailored-only .pdf-panel-original {
+      display: none;
+    }
+    @media (max-width: 900px) {
+      .pdf-comparison-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .pdf-comparison-card {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--white);
+    }
+    .pdf-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--gray-100);
+      border-bottom: 1px solid var(--border);
+    }
+    .pdf-card-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+    .badge-original {
+      background: var(--gray-200);
+      color: var(--gray-700);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .badge-tailored {
+      background: rgba(34, 197, 94, 0.15);
+      color: #15803d;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .pdf-placeholder-box {
+      height: 700px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-50);
+      color: var(--gray-500);
+      padding: 24px;
+      text-align: center;
+      gap: 12px;
+    }
     .pdf-preview-frame {
       width: 100%;
       height: 700px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      border: none;
       background: #525659;
     }
 
@@ -603,10 +680,13 @@
       <div class="panel">
         <div class="panel-header">
           <span>Target Job Description</span>
-          <button class="btn-sm" id="btn-scrape-jd">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            Scrape Active Tab
-          </button>
+          <div class="panel-header-actions" style="display:flex;gap:6px;">
+            <button class="btn-sm" id="btn-sample-jd">Load Sample JD</button>
+            <button class="btn-sm" id="btn-scrape-jd">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Scrape Active Tab
+            </button>
+          </div>
         </div>
         <div class="panel-body">
           <textarea id="jd-editor" class="editor-textarea" placeholder="Paste the target job description requirements here, or scrape directly from your current tab..."></textarea>
@@ -671,7 +751,58 @@
 
       <!-- PDF Preview Tab -->
       <div class="tab-content active" id="content-tab-pdf">
-        <iframe id="pdf-preview-iframe" class="pdf-preview-frame"></iframe>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--gray-100);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:12px;font-weight:600;color:var(--gray-700);">View:</span>
+            <div class="btn-group" style="display:inline-flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+              <button type="button" id="btn-view-side-by-side" class="btn-sm active" style="border-radius:0;border:none;padding:4px 10px;font-size:11px;">Side by Side</button>
+              <button type="button" id="btn-view-tailored-only" class="btn-sm" style="border-radius:0;border:none;border-left:1px solid var(--border);padding:4px 10px;font-size:11px;">Tailored Only</button>
+              <button type="button" id="btn-view-original-only" class="btn-sm" style="border-radius:0;border:none;border-left:1px solid var(--border);padding:4px 10px;font-size:11px;">Original Only</button>
+            </div>
+            <span style="font-size:12px;color:var(--gray-600);" id="pdf-preview-info">Side-by-side comparison (Original vs Tailored)</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn-sm" id="btn-open-original-tab" style="display:inline-flex;align-items:center;gap:4px;" title="Open Original PDF in new tab">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              Open Original
+            </button>
+            <button type="button" class="btn-sm" id="btn-open-pdf-tab" style="display:inline-flex;align-items:center;gap:4px;" title="Open Tailored PDF in new tab">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Open Tailored
+            </button>
+          </div>
+        </div>
+
+        <div class="pdf-comparison-container" id="pdf-comparison-container">
+          <!-- Original PDF Column -->
+          <div class="pdf-comparison-card pdf-panel-original">
+            <div class="pdf-card-header">
+              <div class="pdf-card-title">
+                <span class="badge-original">ORIGINAL</span>
+                <span>Original Résumé</span>
+              </div>
+              <div style="font-size:11px;color:var(--gray-500);" id="original-pdf-status">Ready</div>
+            </div>
+            <iframe id="pdf-preview-original-iframe" class="pdf-preview-frame"></iframe>
+          </div>
+
+          <!-- Tailored PDF Column -->
+          <div class="pdf-comparison-card pdf-panel-tailored">
+            <div class="pdf-card-header">
+              <div class="pdf-card-title">
+                <span class="badge-tailored">TAILORED</span>
+                <span>Modified Résumé</span>
+              </div>
+              <div style="font-size:11px;color:var(--gray-500);" id="tailored-pdf-status">Pending Tailoring</div>
+            </div>
+            <div id="tailored-pdf-placeholder" class="pdf-placeholder-box">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <div style="font-weight:600;color:var(--gray-700);">Tailored Résumé Not Yet Generated</div>
+              <div style="font-size:12px;max-width:320px;">Click <b>Tailor &amp; Compile LaTeX</b> to customize your bullet points and inspect the live differences side-by-side with your original résumé.</div>
+            </div>
+            <iframe id="pdf-preview-iframe" class="pdf-preview-frame" style="display:none;"></iframe>
+          </div>
+        </div>
       </div>
 
       <!-- Diff Tab -->

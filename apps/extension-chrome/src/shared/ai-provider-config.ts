@@ -107,9 +107,24 @@ export const PROVIDER_PRESETS: Record<string, ProviderPreset> = {
 
 export const AI_PROVIDER_PRESETS = PROVIDER_PRESETS;
 
+const envGroqKey = (typeof process !== 'undefined' && (process.env as any)?.GROQ_API_KEY) || '';
+const envGroqBaseUrl = (typeof process !== 'undefined' && (process.env as any)?.GROQ_BASE_URL) || 'https://api.groq.com/openai/v1';
+const envGroqModel = (typeof process !== 'undefined' && (process.env as any)?.GROQ_MODEL) || 'openai/gpt-oss-20b';
+
 export const DEFAULT_AI_SETTINGS: AIProvidersSettings = {
-  activeProviderId: 'local-ollama',
+  activeProviderId: envGroqKey ? 'groq' : 'local-ollama',
   providers: [
+    ...(envGroqKey ? [{
+      id: 'groq',
+      nickname: 'Groq',
+      protocol: 'openai' as const,
+      baseUrl: envGroqBaseUrl,
+      apiKey: envGroqKey,
+      chatModel: envGroqModel,
+      enabled: true,
+      lastChecked: 0,
+      createdAt: 1700000000000,
+    }] : []),
     {
       id: 'local-ollama',
       nickname: 'Local Ollama',

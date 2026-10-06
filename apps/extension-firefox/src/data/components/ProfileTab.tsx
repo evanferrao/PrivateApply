@@ -245,6 +245,74 @@ export function ProfileTab({ profile }: ProfileTabProps) {
           </Card>
         )}
 
+        {/* Family & Emergency Contacts */}
+        {profile.familyContacts && profile.familyContacts.length > 0 && (
+          <Card title="Family & Emergency Contacts">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {profile.familyContacts.map((c, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-subtle, #f8fafc)', padding: '8px 12px', borderRadius: 6 }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{c.name} ({c.relationship})</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.phone} {c.occupation ? `· ${c.occupation}` : ''}</div>
+                  </div>
+                  {c.isEmergencyContact && <Badge variant="danger">Emergency</Badge>}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* India Recruitment Pack */}
+        {profile.indiaPack && profile.indiaPack.enabled && (
+          <Card title="India Recruitment Pack">
+            <div className="dl-grid">
+              {profile.indiaPack.tenthPercentage !== undefined && (
+                <DlCell label="Class 10 Score" value={`${profile.indiaPack.tenthPercentage}% (${profile.indiaPack.tenthBoard || ''} ${profile.indiaPack.tenthPassingYear || ''})`} />
+              )}
+              {profile.indiaPack.twelfthPercentage !== undefined && (
+                <DlCell label="Class 12 Score" value={`${profile.indiaPack.twelfthPercentage}% (${profile.indiaPack.twelfthBoard || ''} ${profile.indiaPack.twelfthPassingYear || ''})`} />
+              )}
+              {profile.indiaPack.undergradCgpa !== undefined && (
+                <DlCell label="UG CGPA" value={String(profile.indiaPack.undergradCgpa)} />
+              )}
+              {profile.indiaPack.currentCtcLpa !== undefined && (
+                <DlCell label="Current CTC" value={`${profile.indiaPack.currentCtcLpa} LPA`} />
+              )}
+              {profile.indiaPack.expectedCtcLpa !== undefined && (
+                <DlCell label="Expected CTC" value={`${profile.indiaPack.expectedCtcLpa} LPA`} />
+              )}
+              {profile.indiaPack.studentRegistrationNumber && (
+                <DlCell label="Roll / Reg No" value={profile.indiaPack.studentRegistrationNumber} />
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Custom Fields */}
+        {profile.customFields && profile.customFields.length > 0 && (
+          <Card title="Custom Fields">
+            <div className="dl-grid">
+              {profile.customFields.map((cf, i) => (
+                <DlCell key={i} label={cf.label} value={String(cf.value ?? '—')} />
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Question Bank */}
+        {profile.questionBank && profile.questionBank.length > 0 && (
+          <Card title="Question Bank (Saved Answers)">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {profile.questionBank.map((q, i) => (
+                <div key={i} style={{ background: 'var(--bg-subtle, #f8fafc)', padding: '10px 12px', borderRadius: 6 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{q.question}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>{q.answer}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         <div style={{ height: 24 }} />
       </div>
     </div>

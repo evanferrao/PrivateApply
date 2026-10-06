@@ -473,15 +473,64 @@ async function initAIProvidersSettings(): Promise<void> {
       if (modelsDatalist) {
         setHTML(modelsDatalist, models.map(m => `<option value="${escapeHTML(m)}"></option>`).join(''));
       }
+
+      const pickerContainer = document.getElementById('provider-models-picker');
+      const pillsContainer = document.getElementById('provider-models-pills');
+      const countDisplay = document.getElementById('models-count-display');
+
       if (models.length > 0) {
+        if (countDisplay) countDisplay.textContent = String(models.length);
+        if (pillsContainer) {
+          pillsContainer.innerHTML = '';
+          for (const model of models) {
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'action-btn';
+            pill.style.cssText = 'padding:3px 9px;font-size:11px;font-family:var(--font-mono);border-radius:12px;background:var(--white);cursor:pointer;';
+            pill.textContent = model;
+            if (chatModelInput?.value === model) {
+              pill.style.background = 'var(--green)';
+              pill.style.color = '#fff';
+              pill.style.borderColor = 'var(--green)';
+            }
+            pill.addEventListener('click', () => {
+              if (chatModelInput) {
+                chatModelInput.value = model;
+              }
+              if (model.toLowerCase().includes('embed') && embedModelInput && !embedModelInput.value) {
+                embedModelInput.value = model;
+              }
+              // Update pills styling
+              const allPills = pillsContainer.querySelectorAll('button');
+              allPills.forEach(p => {
+                p.style.background = 'var(--white)';
+                p.style.color = 'inherit';
+                p.style.borderColor = 'var(--border)';
+              });
+              pill.style.background = 'var(--green)';
+              pill.style.color = '#fff';
+              pill.style.borderColor = 'var(--green)';
+
+              if (formTestResult) {
+                formTestResult.textContent = `Selected model: ${model}`;
+                formTestResult.className = 'ollama-test-result visible ok';
+              }
+            });
+            pillsContainer.appendChild(pill);
+          }
+          if (pickerContainer) pickerContainer.style.display = 'block';
+        }
+
         if (formTestResult) {
-          formTestResult.textContent = `Found ${models.length} model(s)! Select one or keep your custom entry.`;
+          formTestResult.textContent = `Found ${models.length} model(s): ${models.slice(0, 3).join(', ')}${models.length > 3 ? '...' : ''} (click any pill above to select).`;
           formTestResult.className = 'ollama-test-result visible ok';
         }
         if (chatModelInput && !chatModelInput.value.trim()) {
-          chatModelInput.value = models[0];
+          const defaultModel = models.find(m => !m.toLowerCase().includes('embed')) || models[0];
+          chatModelInput.value = defaultModel;
         }
       } else {
+        if (pickerContainer) pickerContainer.style.display = 'none';
         if (formTestResult) {
           formTestResult.textContent = 'Connected, but no models list returned. You can specify the model name manually.';
           formTestResult.className = 'ollama-test-result visible';

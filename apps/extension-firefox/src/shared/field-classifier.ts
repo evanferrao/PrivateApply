@@ -148,6 +148,45 @@ function deterministic(label: string, _inputType: string, fieldName: string): Ru
   if (matches(both, 'legal name', 'legal full name'))
     return ['full_name', 'profile_field', 0.92];
 
+  // ── Profile — alternate phone & family contacts (checked before generic phone/name) ──
+  if (matches(both, 'alternate phone', 'secondary phone', 'backup phone', 'alternate mobile', 'alternative phone', 'secondary contact'))
+    return ['alternate_phone', 'profile_field', 0.96];
+
+  if (matches(both, /\bfather\b/, /\bdad\b/)) {
+    if (matches(both, 'phone', 'mobile', 'cell', 'contact')) return ['father_phone', 'profile_field', 0.95];
+    if (matches(both, 'occupation', 'profession', 'job', 'designation')) return ['father_occupation', 'profile_field', 0.95];
+    if (matches(both, 'name')) return ['father_name', 'profile_field', 0.95];
+  }
+
+  if (matches(both, /\bmother\b/, /\bmom\b/)) {
+    if (matches(both, 'phone', 'mobile', 'cell', 'contact')) return ['mother_phone', 'profile_field', 0.95];
+    if (matches(both, 'occupation', 'profession', 'job', 'designation')) return ['mother_occupation', 'profile_field', 0.95];
+    if (matches(both, 'name')) return ['mother_name', 'profile_field', 0.95];
+  }
+
+  if (matches(both, 'emergency contact')) {
+    if (matches(both, 'phone', 'mobile', 'number', 'tel')) return ['emergency_contact_phone', 'profile_field', 0.95];
+    if (matches(both, 'name')) return ['emergency_contact_name', 'profile_field', 0.95];
+  }
+
+  // ── Profile — Indian recruitment & scores ────────────────────────────────
+  if (matches(both, '10th', 'tenth', 'class 10', 'class x', 'matriculation', 'ssc') &&
+      matches(both, 'percent', 'score', 'mark', 'grade', 'cgpa', 'result', 'aggregate'))
+    return ['class_10_percentage', 'profile_field', 0.95];
+
+  if (matches(both, '12th', 'twelfth', 'class 12', 'class xii', 'hsc', 'intermediate') &&
+      matches(both, 'percent', 'score', 'mark', 'grade', 'cgpa', 'result', 'aggregate'))
+    return ['class_12_percentage', 'profile_field', 0.95];
+
+  if (matches(both, 'backlog', 'arrear'))
+    return ['backlogs', 'profile_field', 0.92];
+
+  if (matches(both, 'service bond', 'employment bond', 'service agreement'))
+    return ['service_bond', 'enum_yes_no', 0.92];
+
+  if (matches(both, 'student id', 'student roll', 'registration number', 'college id', 'university roll', 'usn'))
+    return ['student_id', 'profile_field', 0.92];
+
   if (matches(both, /\bphone\b/, /\bmobile\b/, /\bcell\b/, /\btel\b/) &&
       !matches(both, 'country', 'code', 'extension'))
     return ['phone', 'profile_field', 0.95];

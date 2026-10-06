@@ -311,6 +311,7 @@
     .icon-green { background: var(--green); }
     .icon-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
     .icon-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .icon-teal { background: linear-gradient(135deg, #0d9488, #059669); }
     .action-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--black); }
     .action-card p { font-size: 12px; color: var(--gray-600); line-height: 1.5; margin-bottom: 12px; }
     .action-card-footer {
@@ -591,14 +592,14 @@
         <!-- Quick Actions -->
         <h3 class="section-heading">Quick Actions</h3>
         <div class="action-grid">
-          <a class="action-card" id="navDashboardCard">
-            <div class="action-card-icon icon-blue">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <a class="action-card" id="navResumeTailorCard">
+            <div class="action-card-icon icon-teal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18l1.5-3 3-1.5-3-1.5L12 9l-1.5 3-3 1.5 3 1.5z"/></svg>
             </div>
-            <h4>Application Dashboard</h4>
-            <p>Track all your job applications in one place</p>
+            <h4>Resume Tailor (AI LaTeX)</h4>
+            <p>Tailor LaTeX resumes to job descriptions with local AI and live PDF preview</p>
             <div class="action-card-footer">
-              <span class="action-badge" id="dashBadge">0 Applications</span>
+              <span class="action-badge">Local AI &amp; TeX</span>
               <span class="action-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
             </div>
           </a>
@@ -607,22 +608,22 @@
             <div class="action-card-icon icon-purple">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
-            <h4>Manage Profile</h4>
-            <p>Update your personal information and resume</p>
+            <h4>Applicant Profile &amp; Questions</h4>
+            <p>Manage personal info, repeatable education/experience, India pack, and custom fields</p>
             <div class="action-card-footer">
               <span class="action-badge" id="profilePct">0% Complete</span>
               <span class="action-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
             </div>
           </a>
 
-          <a class="action-card" id="navLearned">
-            <div class="action-card-icon icon-green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <a class="action-card" id="navDashboardCard">
+            <div class="action-card-icon icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             </div>
-            <h4>Learned Values</h4>
-            <p>Review corrections from your manual edits</p>
+            <h4>Application Dashboard</h4>
+            <p>Track all your job applications in one place</p>
             <div class="action-card-footer">
-              <span class="action-badge">Auto-learned</span>
+              <span class="action-badge" id="dashBadge">0 Applications</span>
               <span class="action-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
             </div>
           </a>
@@ -639,20 +640,20 @@
             </div>
           </a>
 
-          <a class="action-card" id="navHelp">
-            <div class="action-card-icon icon-orange">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <a class="action-card" id="navLearned">
+            <div class="action-card-icon icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
-            <h4>Help & Tutorials</h4>
-            <p>Quick start guide, tips, and FAQ</p>
+            <h4>Learned Values</h4>
+            <p>Review corrections from your manual edits</p>
             <div class="action-card-footer">
-              <span class="action-badge">Getting started</span>
+              <span class="action-badge">Auto-learned</span>
               <span class="action-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
             </div>
           </a>
 
           <a class="action-card" id="navFindJobs">
-            <div class="action-card-icon icon-green">
+            <div class="action-card-icon icon-orange">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </div>
             <h4>Find Jobs</h4>
@@ -697,9 +698,13 @@
         <div class="sidebar-card">
           <h3>Extension Pages</h3>
           <div class="nav-grid-links">
-            <a class="nav-link-btn" id="navFindJobsSide">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Find Jobs
+            <a class="nav-link-btn" id="navResumeTailorSide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18l1.5-3 3-1.5-3-1.5L12 9l-1.5 3-3 1.5 3 1.5z"/></svg>
+              Resume Tailor (LaTeX AI)
+            </a>
+            <a class="nav-link-btn" id="navProfileSide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Manage Profiles &amp; Custom Fields
             </a>
             <a class="nav-link-btn" id="navDashboardSide">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -709,9 +714,17 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
               Data Explorer
             </a>
-            <a class="nav-link-btn" id="navProfileSide">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Profile Setup
+            <a class="nav-link-btn" id="navFindJobsSide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Find Jobs
+            </a>
+            <a class="nav-link-btn" id="navSettingsSide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Settings
+            </a>
+            <a class="nav-link-btn" id="navHelpSide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Help &amp; Tutorials
             </a>
             <a class="nav-link-btn" id="navPrivacy">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

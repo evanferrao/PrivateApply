@@ -12,6 +12,7 @@ import { validateFieldData } from './field-data-validator';
 import { rlSystem } from './learning-rl';
 import { detectFieldType } from './context-aware-storage';
 import type { GetBestAnswerResult } from './graph/types';
+import { semanticProfileMatcher } from './semantic-profile-matcher';
 
 /**
  * Generate fill mappings from profile and form schema
@@ -496,6 +497,38 @@ function matchFieldToProfile(field: FieldSchema, profile: UserProfile): string |
     });
   }
   
+  // STAGE 1: Check semantic profile matcher (entity disambiguation, custom fields, India pack, family contacts, etc.)
+  try {
+    const semanticMatch = semanticProfileMatcher.match(field, profile);
+    if (semanticMatch && semanticMatch.value !== null && semanticMatch.value !== undefined) {
+      // Check radio options
+      if (field.type === 'radio' && (field as any).radioOptions) {
+        const options = (field as any).radioOptions as Array<{ selector: string; label: string; value: string }>;
+        const strVal = String(semanticMatch.value).toLowerCase();
+        const matchedOpt = options.find(opt => {
+          const optLower = opt.label.toLowerCase();
+          return optLower === strVal || optLower.includes(strVal) || strVal.includes(optLower);
+        });
+        if (matchedOpt) {
+          console.log(`[Autofill] 🎯 Semantic matcher resolved radio option "${matchedOpt.label}" for "${field.label}"`);
+          return matchedOpt.label;
+        }
+      }
+
+      // Check checkbox
+      if (field.type === 'checkbox') {
+        if (typeof semanticMatch.value === 'boolean') return semanticMatch.value;
+        const str = String(semanticMatch.value).toLowerCase();
+        return str === 'true' || str === 'yes' || str === '1';
+      }
+
+      console.log(`[Autofill] 🎯 Semantic matcher resolved "${field.label || field.name}":`, semanticMatch.value);
+      return String(semanticMatch.value);
+    }
+  } catch (err) {
+    console.warn('[Autofill] Semantic matcher error (falling back to legacy rules):', err);
+  }
+
   // First name
   if (matchesAny([label, name, id], ['first', 'fname', 'firstname', 'given'])) {
     return profile.personal.firstName;

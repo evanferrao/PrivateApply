@@ -44,13 +44,13 @@ export async function computeSourceHash(source: string): Promise<string> {
  */
 export function categorizeSectionTitle(title: string): LatexSection['category'] {
   const clean = title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
-  if (/\b(summary|objective|profile|about|overview)\b/.test(clean)) return 'summary';
-  if (/\b(experience|employment|work|history|career|professional)\b/.test(clean)) return 'experience';
-  if (/\b(education|academic|degrees|university|college)\b/.test(clean)) return 'education';
-  if (/\b(skills|technical|technologies|proficiencies|competencies|tools)\b/.test(clean)) return 'skills';
-  if (/\b(projects|portfolio|open\s*source|personal\s*projects)\b/.test(clean)) return 'projects';
-  if (/\b(certifications|certificates|licenses|awards|honors|achievements)\b/.test(clean)) return 'certifications';
-  if (/\b(contact|header|personal)\b/.test(clean)) return 'header';
+  if (/\b(summary|objective|profile|about|overview|statement|bio)\b/.test(clean)) return 'summary';
+  if (/\b(experience|employment|work|history|career|professional|positions?|internships?|jobs?|co\s*op)\b/.test(clean)) return 'experience';
+  if (/\b(education|academic|degrees?|university|college|schools?|coursework|studies)\b/.test(clean)) return 'education';
+  if (/\b(skills?|technical|technologies|proficiencies|competencies|tools|languages|frameworks|stack|expertise)\b/.test(clean)) return 'skills';
+  if (/\b(projects?|portfolio|open\s*source|personal\s*projects?|creations|hackathons?|code|apps?|contributions?)\b/.test(clean)) return 'projects';
+  if (/\b(certifications?|certificates?|licenses?|awards?|honors?|achievements?|publications?|activities|leadership|extracurriculars?)\b/.test(clean)) return 'certifications';
+  if (/\b(contact|header|personal|links|info)\b/.test(clean)) return 'header';
   return 'other';
 }
 
@@ -245,15 +245,8 @@ interface RawSectionHeaderMatch {
 export function parseLatexSections(source: string): LatexSection[] {
   const matches: RawSectionHeaderMatch[] = [];
 
-  // Patterns for section headers:
-  // 1. \section[*]?{Title}
-  // 2. \subsection[*]?{Title}
-  // 3. \cvsection{Title}
-  // 4. \heading{Title}
-  // 5. \begin{rSection}{Title}
-  // 6. \begin{resumeSection}{Title}
-
-  const headerRegex = /\\(?:(section|subsection|cvsection|heading)\*?\s*\{|begin\{(rSection|resumeSection)\}\s*\{)/g;
+  // Patterns for section headers across popular LaTeX resume classes (moderncv, altacv, jakes, resumesection, etc.):
+  const headerRegex = /\\(?:(section|subsection|cvsection|cvsubsection|heading|subheading|resumesection|ressection|resheading|customsection|cvevent|roottitle|spacedallcaps|spacedlowsmallcaps|sectionline)\*?\s*\{|begin\{(rSection|resumeSection|cvsection|experiencesection|rubric)\}\s*\{)/g;
   let execRes: RegExpExecArray | null;
 
   while ((execRes = headerRegex.exec(source)) !== null) {
@@ -287,6 +280,29 @@ export function parseLatexSections(source: string): LatexSection[] {
       envName: execRes[2],
     });
   }
+
+  // Fallback: If no macro-based sections were found, check bold standalone headers like \textbf{Experience}\hrule
+  if (matches.length === 0) {
+    const boldHeaderRegex = /\\(?:textbf|textsc|MakeUppercase|uppercase)\s*\{([A-Za-z\s]{3,35})\}(?:\s*\\(?:hrule|titlerule|hrulefill))?/g;
+    let boldRes: RegExpExecArray | null;
+    while ((boldRes = boldHeaderRegex.exec(source)) !== null) {
+      const matchIndex = boldRes.index;
+      if (isPositionCommented(source, matchIndex)) continue;
+      const rawTitle = boldRes[1].trim();
+      const cat = categorizeSectionTitle(rawTitle);
+      if (cat !== 'other') {
+        matches.push({
+          index: matchIndex,
+          headerText: boldRes[0],
+          title: rawTitle,
+          type: 'command',
+        });
+      }
+    }
+  }
+
+  // Sort matches by position in document
+  matches.sort((a, b) => a.index - b.index);
 
   if (matches.length === 0) {
     return [];

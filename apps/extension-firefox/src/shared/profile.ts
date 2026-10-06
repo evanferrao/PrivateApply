@@ -67,20 +67,65 @@ export interface WorkAuthorization {
   currentStatus?: string; // e.g., "US Citizen", "Permanent Resident", "Work Visa", "Student Visa"
 }
 
+// Re-export extended catalogue types
+export * from './applicant-profile';
+import type {
+  EducationRecord,
+  DetailedEmploymentRecord,
+  FamilyContact,
+  ApplicantReference,
+  CompensationDetails,
+  IndiaRecruitmentPack,
+  CustomFieldDefinition,
+  QuestionBankItem,
+  DocumentMetadata,
+  BackgroundCompliance,
+  LanguageProficiency,
+  DerivedExperienceSummary,
+} from './applicant-profile';
+
 export interface UserProfile {
   personal: {
     firstName: string;
     middleName?: string;
     lastName: string;
+    fullName?: string;
+    preferredName?: string;
+    previousName?: string;
+    phoneticName?: string;
     email: string;
+    universityEmail?: string;
+    workEmail?: string;
     phone: string | PhoneDetails;       // supports both string (legacy) and split object
+    alternatePhone?: string | PhoneDetails; // separate secondary contact number
+    landlinePhone?: string;
     location: string | LocationDetails; // supports both string (legacy) and split object
+    permanentAddress?: string | LocationDetails;
+    mailingAddress?: string | LocationDetails;
+    nationality?: string;
+    citizenship?: string;
+    timeZone?: string;
+    preferredContactTime?: string;
+    preferredContactMethod?: 'email' | 'phone' | 'messaging';
   };
   professional: {
     linkedin?: string;
     github?: string;
     portfolio?: string;
+    website?: string;
+    otherLinks?: string[];
     yearsOfExperience?: number;
+    currentRole?: string;
+    currentCompany?: string;
+    salaryExpectation?: string;
+    noticePeriod?: string;
+    noticePeriodDays?: number;
+    earliestJoiningDate?: string;
+    willingToRelocate?: boolean;
+    preferredLocations?: string[];
+    willingToTravel?: boolean;
+    travelPercentage?: number;
+    workPreference?: 'remote' | 'hybrid' | 'onsite' | 'flexible';
   };
   work: Array<{
     company: string;
@@ -101,6 +146,21 @@ export interface UserProfile {
   resumeText?: string; // Original resume text
   selfId?: SelfIdentification; // Optional self-identification data
   workAuth?: WorkAuthorization; // Work authorization and visa sponsorship info
+
+  // ── Extended Catalogue & Extensibility ──
+  educationHistory?: EducationRecord[];
+  employmentHistory?: DetailedEmploymentRecord[];
+  familyContacts?: FamilyContact[];
+  references?: ApplicantReference[];
+  compensation?: CompensationDetails;
+  indiaPack?: IndiaRecruitmentPack;
+  customFields?: CustomFieldDefinition[];
+  questionBank?: QuestionBankItem[];
+  documents?: DocumentMetadata[];
+  compliance?: BackgroundCompliance;
+  languages?: LanguageProficiency[];
+  derivedExperience?: DerivedExperienceSummary;
+
   lastUpdated: number;
 }
 

@@ -134,13 +134,23 @@ export async function validatePatch(
     }
 
     // Locate anchor in document
-    const anchor = op.anchor;
+    let anchor = op.anchor;
     let searchScope = source;
     let offsetAdjustment = 0;
 
     // Check if target section is specified and can constrain the search
     if (op.target_section) {
-      const targetSec = sectionMap.get(op.target_section.toLowerCase().trim());
+      const targetKey = op.target_section.toLowerCase().trim();
+      let targetSec = sectionMap.get(targetKey);
+      if (!targetSec) {
+        for (const s of sections) {
+          const sTitle = s.title.toLowerCase().trim();
+          if (sTitle === targetKey || sTitle.includes(targetKey) || targetKey.includes(sTitle) || s.category === targetKey) {
+            targetSec = s;
+            break;
+          }
+        }
+      }
       if (targetSec) {
         searchScope = targetSec.fullText;
         offsetAdjustment = targetSec.startIndex;
@@ -172,6 +182,26 @@ export async function validatePatch(
       }
     }
 
+    // If still not found, try trimmed anchor
+    if (count === 0 && anchor.trim().length > 0 && anchor.trim() !== anchor) {
+      const trimmed = anchor.trim();
+      pos = 0;
+      let trimmedCount = 0;
+      let trimmedIdx = -1;
+      while ((pos = source.indexOf(trimmed, pos)) !== -1) {
+        trimmedCount++;
+        trimmedIdx = pos;
+        pos += trimmed.length;
+      }
+      if (trimmedCount >= 1) {
+        anchor = trimmed;
+        count = trimmedCount;
+        lastFoundIdx = trimmedIdx;
+        searchScope = source;
+        offsetAdjustment = 0;
+      }
+    }
+
     if (count === 0) {
       errors.push({
         operationIndex: i,
@@ -184,14 +214,38 @@ export async function validatePatch(
     }
 
     if (count > 1) {
-      errors.push({
-        operationIndex: i,
-        operationType: op.type,
-        code: 'ANCHOR_AMBIGUOUS',
-        message: `Anchor matches ${count} locations in source. Anchors must be unique and unambiguous.`,
-        details: { count, anchor, target_section: op.target_section },
-      });
-      continue;
+      // Disambiguate by checking if any individual section has exactly one occurrence
+      let disambiguated = false;
+      for (const s of sections) {
+        let secCount = 0;
+        let secPos = 0;
+        let secFoundIdx = -1;
+        while ((secPos = s.fullText.indexOf(anchor, secPos)) !== -1) {
+          secCount++;
+          secFoundIdx = secPos;
+          secPos += anchor.length;
+        }
+        if (secCount === 1) {
+          searchScope = s.fullText;
+          offsetAdjustment = s.startIndex;
+          lastFoundIdx = secFoundIdx;
+          count = 1;
+          disambiguated = true;
+          warnings.push(`Operation ${i}: Anchor matched multiple times globally, disambiguated to section "${s.title}".`);
+          break;
+        }
+      }
+
+      if (!disambiguated) {
+        errors.push({
+          operationIndex: i,
+          operationType: op.type,
+          code: 'ANCHOR_AMBIGUOUS',
+          message: `Anchor matches ${count} locations in source. Anchors must be unique and unambiguous.`,
+          details: { count, anchor, target_section: op.target_section },
+        });
+        continue;
+      }
     }
 
     // Exactly one match found

@@ -74,12 +74,27 @@ export class CompanionClient {
         kind: 'COMPANION_GET_STATUS',
       }).catch(() => null);
 
-      if (bgResp && typeof bgResp === 'object' && 'installed' in bgResp) {
-        return bgResp as CompanionStatus;
+      if (bgResp && typeof bgResp === 'object' && ('installed' in bgResp || 'ok' in bgResp)) {
+        return {
+          installed: Boolean(bgResp.installed ?? bgResp.ok),
+          version: bgResp.version,
+          platform: bgResp.platform,
+          texInstalled: bgResp.texInstalled ?? bgResp.tex_installed,
+          engines: bgResp.engines,
+          error: bgResp.error,
+        };
       }
 
       // Direct fallback via runtime.connectNative / sendNativeMessage
-      return await this.sendDirectNativeMessage({ cmd: 'get_status' });
+      const direct = await this.sendDirectNativeMessage({ cmd: 'get_status' });
+      return {
+        installed: Boolean(direct?.installed ?? direct?.ok),
+        version: direct?.version,
+        platform: direct?.platform,
+        texInstalled: direct?.texInstalled ?? direct?.tex_installed,
+        engines: direct?.engines,
+        error: direct?.error,
+      };
     } catch (err) {
       return {
         installed: false,
@@ -104,18 +119,17 @@ export class CompanionClient {
         },
       }).catch(() => null);
 
-      if (bgResp && typeof bgResp === 'object' && ('success' in bgResp || 'ok' in bgResp)) {
-        return bgResp as CompileLatexResponse;
-      }
+      const raw = (bgResp && typeof bgResp === 'object' && ('success' in bgResp || 'ok' in bgResp))
+        ? bgResp
+        : await this.sendDirectNativeMessage({
+            cmd: 'compile_latex',
+            source: request.source,
+            engine: request.engine || 'auto',
+            assets: request.assets || {},
+            timeout_secs: request.timeoutSecs || 30,
+          });
 
-      // Direct fallback
-      return await this.sendDirectNativeMessage({
-        cmd: 'compile_latex',
-        source: request.source,
-        engine: request.engine || 'auto',
-        assets: request.assets || {},
-        timeout_secs: request.timeoutSecs || 30,
-      });
+      return this.normalizeCompileResponse(raw);
     } catch (err) {
       return {
         ok: false,
@@ -124,6 +138,49 @@ export class CompanionClient {
         message: err instanceof Error ? err.message : 'Compilation request failed',
       };
     }
+  }
+
+  private normalizeCompileResponse(raw: any): CompileLatexResponse {
+    if (!raw || typeof raw !== 'object') {
+      return {
+        ok: false,
+        success: false,
+        errorType: 'EMPTY_RESPONSE',
+        message: 'Empty or invalid response from companion host',
+      };
+    }
+
+    const success = Boolean(raw.success || raw.ok);
+    const pdfBase64 = raw.pdfBase64 || raw.pdf_base64 || undefined;
+    const pdfSize = raw.pdfSize ?? raw.pdf_size ?? (pdfBase64 ? Math.round(pdfBase64.length * 0.75) : 0);
+    const exitCode = raw.exitCode ?? raw.exit_code ?? (success ? 0 : 1);
+    const durationMs = raw.durationMs ?? raw.duration_ms ?? 0;
+    const engineUsed = raw.engineUsed || raw.engine_used || 'auto';
+
+    let diagnostics = raw.diagnostics;
+    if (diagnostics && typeof diagnostics === 'object') {
+      diagnostics = {
+        errors: diagnostics.errors || [],
+        warnings: diagnostics.warnings || [],
+        missingPackages: diagnostics.missingPackages || diagnostics.missing_packages || [],
+        logExcerpt: diagnostics.logExcerpt || diagnostics.log_excerpt || '',
+      };
+    } else {
+      diagnostics = { errors: [], warnings: [], missingPackages: [] };
+    }
+
+    return {
+      ok: success,
+      success,
+      pdfBase64,
+      pdfSize,
+      exitCode,
+      durationMs,
+      engineUsed,
+      diagnostics,
+      errorType: raw.errorType || raw.error_type,
+      message: raw.message,
+    };
   }
 
   /**

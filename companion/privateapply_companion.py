@@ -392,12 +392,18 @@ def run_latex_compilation(
         success = (exit_code == 0) and pdf_file.exists()
 
         diagnostics = parse_compiler_diagnostics(log_content, stdout_data or "", stderr_data or "")
+        diagnostics["missingPackages"] = diagnostics.get("missing_packages", [])
+        diagnostics["logExcerpt"] = diagnostics.get("log_excerpt", "")
 
         result: Dict[str, Any] = {
             "success": success,
+            "ok": success,
             "exit_code": exit_code,
+            "exitCode": exit_code,
             "duration_ms": duration_ms,
+            "durationMs": duration_ms,
             "engine_used": selected_engine,
+            "engineUsed": selected_engine,
             "diagnostics": diagnostics,
         }
 
@@ -405,8 +411,11 @@ def run_latex_compilation(
             pdf_bytes = pdf_file.read_bytes()
             pdf_size = len(pdf_bytes)
             result["pdf_size"] = pdf_size
+            result["pdfSize"] = pdf_size
             if pdf_size <= MAX_PDF_RETURN_SIZE:
-                result["pdf_base64"] = base64.b64encode(pdf_bytes).decode("ascii")
+                b64 = base64.b64encode(pdf_bytes).decode("ascii")
+                result["pdf_base64"] = b64
+                result["pdfBase64"] = b64
             else:
                 # Save into cache artifact directory for user access
                 artifact_dir = Path.home() / ".cache" / "privateapply" / "artifacts"
@@ -415,9 +424,12 @@ def run_latex_compilation(
                 dest_path = artifact_dir / artifact_name
                 shutil.copy2(pdf_file, dest_path)
                 result["artifact_path"] = str(dest_path)
+                result["artifactPath"] = str(dest_path)
                 result["artifact_name"] = artifact_name
+                result["artifactName"] = artifact_name
         else:
             result["error_type"] = "COMPILATION_ERROR"
+            result["errorType"] = "COMPILATION_ERROR"
             result["message"] = (
                 diagnostics["errors"][0]["message"]
                 if diagnostics["errors"]
@@ -450,12 +462,14 @@ def handle_request(req: Dict[str, Any]) -> Dict[str, Any]:
         res["pong"] = True
         return res
 
-    elif cmd == "get_status":
+    elif cmd in ("get_status", "status"):
         engines = detect_installed_engines()
         has_any = any(e["available"] for e in engines.values())
         res["version"] = VERSION
         res["platform"] = "linux"
+        res["installed"] = True
         res["tex_installed"] = has_any
+        res["texInstalled"] = has_any
         res["engines"] = engines
         return res
 

@@ -1,6 +1,7 @@
 import browser from '../shared/browser-compat';
 import {
   type ProfileMeta,
+  type UserProfile,
   getProfilesIndex,
   listProfiles,
   createProfile,
@@ -9,7 +10,22 @@ import {
   updateProfileMeta,
   migrateToMultiProfile,
   getProfileById,
+  saveProfileById,
+  getUserProfile,
+  saveUserProfile,
+  formatPhone,
+  formatLocation,
 } from '../shared/profile';
+import {
+  calculateDerivedExperience,
+  createDefaultIndiaPack,
+  createDefaultCustomField,
+  type EducationRecord,
+  type DetailedEmploymentRecord,
+  type FamilyContact,
+  type CustomFieldDefinition,
+  type QuestionBankItem,
+} from '../shared/applicant-profile';
 import { setHTML } from '../shared/html';
 
 const COLORS = [
@@ -19,51 +35,80 @@ const COLORS = [
 
 let allProfiles: ProfileMeta[] = [];
 let activeId = 'default';
-let editMode = false;
+let activeProfileData: UserProfile | null = null;
 
 function escapeHtml(s: string): string {
   const d = document.createElement('div');
-  d.textContent = s;
+  d.textContent = s || '';
   return d.innerHTML;
 }
 
+function showToast(message: string): void {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+}
+
 function initials(name: string): string {
-  return name
+  return (name || 'U')
     .split(/\s+/)
     .slice(0, 2)
     .map(w => w[0]?.toUpperCase() ?? '')
     .join('');
 }
 
-function relativeTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+// ── Tab Navigation ─────────────────────────────────────────────────────────
+
+function setupTabs(): void {
+  const tabButtons = document.querySelectorAll('.hub-tab-btn');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = (btn as HTMLElement).dataset.tab;
+      if (!targetId) return;
+
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(targetId)?.classList.add('active');
+    });
+  });
 }
 
-const profileDataMap = new Map<string, UserProfile>();
+// ── Load & Render Data ─────────────────────────────────────────────────────
 
-async function loadProfiles(): Promise<void> {
+async function init(): Promise<void> {
   await migrateToMultiProfile();
   const index = await getProfilesIndex();
   activeId = index?.activeId ?? 'default';
   allProfiles = await listProfiles();
 
-  profileDataMap.clear();
-  for (const p of allProfiles) {
-    try {
-      const data = await getProfileById(p.id);
-      if (data) profileDataMap.set(p.id, data);
-    } catch {}
+  activeProfileData = await getUserProfile();
+  if (!activeProfileData) {
+    activeProfileData = {
+      personal: { firstName: '', lastName: '', email: '', phone: '', location: '' },
+      professional: {},
+      work: [],
+      education: [],
+      skills: [],
+      lastUpdated: Date.now(),
+    };
   }
 
   renderActiveBanner();
-  renderGrid();
+  populatePersonalForm();
+  populateEducationList();
+  populateExperienceList();
+  populateFamilyList();
+  populateIndiaPackForm();
+  populateCustomFieldsList();
+  populateQuestionBankList();
+  renderProfilesGrid();
+  setupCustomFieldBuilderEvents();
+  setupActionButtons();
 }
 
 function renderActiveBanner(): void {
@@ -74,148 +119,732 @@ function renderActiveBanner(): void {
     return;
   }
   banner.style.display = 'flex';
-  banner.style.background = `linear-gradient(135deg, ${active.color} 0%, ${active.color}cc 100%)`;
   const dot = document.getElementById('active-dot')!;
+  dot.style.background = active.color;
   dot.textContent = initials(active.name);
   setHTML(document.getElementById('active-name')!, escapeHtml(active.name));
   setHTML(
     document.getElementById('active-role')!,
-    active.targetRole ? escapeHtml(active.targetRole) : 'No target role set',
+    active.targetRole ? escapeHtml(active.targetRole) : 'No target role set'
   );
 }
 
-function renderGrid(): void {
+// ── Personal Form ──────────────────────────────────────────────────────────
+
+function populatePersonalForm(): void {
+  if (!activeProfileData) return;
+  const p = activeProfileData.personal;
+  const prof = activeProfileData.professional;
+
+  (document.getElementById('core-first-name') as HTMLInputElement).value = p.firstName || '';
+  (document.getElementById('core-middle-name') as HTMLInputElement).value = p.middleName || '';
+  (document.getElementById('core-last-name') as HTMLInputElement).value = p.lastName || '';
+  (document.getElementById('core-full-name') as HTMLInputElement).value = p.fullName || '';
+  (document.getElementById('core-preferred-name') as HTMLInputElement).value = p.preferredName || '';
+  (document.getElementById('core-email') as HTMLInputElement).value = p.email || '';
+  (document.getElementById('core-phone') as HTMLInputElement).value = formatPhone(p.phone) || '';
+  (document.getElementById('core-alternate-phone') as HTMLInputElement).value = formatPhone(p.alternatePhone || '') || '';
+  (document.getElementById('core-univ-email') as HTMLInputElement).value = p.universityEmail || '';
+  (document.getElementById('core-address') as HTMLInputElement).value = formatLocation(p.location) || '';
+  (document.getElementById('core-permanent-address') as HTMLInputElement).value = formatLocation(p.permanentAddress || '') || '';
+  (document.getElementById('core-nationality') as HTMLInputElement).value = p.nationality || p.citizenship || '';
+
+  (document.getElementById('core-linkedin') as HTMLInputElement).value = prof?.linkedin || '';
+  (document.getElementById('core-github') as HTMLInputElement).value = prof?.github || '';
+  (document.getElementById('core-portfolio') as HTMLInputElement).value = prof?.portfolio || prof?.website || '';
+}
+
+async function savePersonal(): Promise<void> {
+  if (!activeProfileData) return;
+  const p = activeProfileData.personal;
+  p.firstName = (document.getElementById('core-first-name') as HTMLInputElement).value.trim();
+  p.middleName = (document.getElementById('core-middle-name') as HTMLInputElement).value.trim() || undefined;
+  p.lastName = (document.getElementById('core-last-name') as HTMLInputElement).value.trim();
+  p.fullName = (document.getElementById('core-full-name') as HTMLInputElement).value.trim() || undefined;
+  p.preferredName = (document.getElementById('core-preferred-name') as HTMLInputElement).value.trim() || undefined;
+  p.email = (document.getElementById('core-email') as HTMLInputElement).value.trim();
+  p.phone = (document.getElementById('core-phone') as HTMLInputElement).value.trim();
+  p.alternatePhone = (document.getElementById('core-alternate-phone') as HTMLInputElement).value.trim() || undefined;
+  p.universityEmail = (document.getElementById('core-univ-email') as HTMLInputElement).value.trim() || undefined;
+  p.location = (document.getElementById('core-address') as HTMLInputElement).value.trim();
+  p.permanentAddress = (document.getElementById('core-permanent-address') as HTMLInputElement).value.trim() || undefined;
+  p.nationality = (document.getElementById('core-nationality') as HTMLInputElement).value.trim() || undefined;
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Personal details saved');
+}
+
+async function saveLinks(): Promise<void> {
+  if (!activeProfileData) return;
+  if (!activeProfileData.professional) activeProfileData.professional = {};
+  activeProfileData.professional.linkedin = (document.getElementById('core-linkedin') as HTMLInputElement).value.trim() || undefined;
+  activeProfileData.professional.github = (document.getElementById('core-github') as HTMLInputElement).value.trim() || undefined;
+  activeProfileData.professional.portfolio = (document.getElementById('core-portfolio') as HTMLInputElement).value.trim() || undefined;
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Professional links saved');
+}
+
+// ── Education History ──────────────────────────────────────────────────────
+
+function populateEducationList(): void {
+  const container = document.getElementById('education-records-container')!;
+  const records = activeProfileData?.educationHistory || [];
+
+  if (records.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 28px; color: var(--gray-600); font-size: 13.5px;">
+        No education records added yet. Click "+ Add Education Record" to add Class 10, Class 12, or degree qualifications.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  records.forEach((r, idx) => {
+    const levelLabel =
+      r.level === 'class_10'
+        ? 'Class 10 / Secondary'
+        : r.level === 'class_12'
+        ? 'Class 12 / Higher Secondary'
+        : r.level === 'diploma'
+        ? 'Diploma'
+        : r.level === 'undergraduate'
+        ? 'Undergraduate Degree'
+        : r.level === 'postgraduate'
+        ? "Master's Degree"
+        : r.level === 'doctoral'
+        ? 'PhD / Doctorate'
+        : 'Qualification';
+
+    html += `
+      <div class="record-item">
+        <div class="record-details">
+          <div class="record-title">${escapeHtml(r.qualificationTitle || levelLabel)}</div>
+          <div class="record-subtitle">${escapeHtml(r.schoolOrInstitution)} ${r.boardOrUniversity ? `· ${escapeHtml(r.boardOrUniversity)}` : ''}</div>
+          <div class="record-tags">
+            <span class="record-tag">${escapeHtml(levelLabel)}</span>
+            ${r.scoreValue ? `<span class="record-tag">Score: ${escapeHtml(String(r.scoreValue))}${r.scoreType === 'percentage' ? '%' : ''}</span>` : ''}
+            ${r.yearOfPassing ? `<span class="record-tag">Year: ${escapeHtml(r.yearOfPassing)}</span>` : ''}
+            ${r.streamOrMajor ? `<span class="record-tag">Major: ${escapeHtml(r.streamOrMajor)}</span>` : ''}
+            ${r.studentIdOrRollNo ? `<span class="record-tag">Roll: ${escapeHtml(r.studentIdOrRollNo)}</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="btn-action-danger btn-del-edu" data-idx="${idx}">Delete</button>
+      </div>
+    `;
+  });
+
+  setHTML(container, html);
+
+  container.querySelectorAll('.btn-del-edu').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      activeProfileData?.educationHistory?.splice(idx, 1);
+      await saveUserProfile(activeProfileData!);
+      populateEducationList();
+      showToast('✓ Education record deleted');
+    });
+  });
+}
+
+function promptAddEducation(): void {
+  const level = prompt(
+    'Enter qualification level (class_10, class_12, undergraduate, postgraduate, diploma):',
+    'undergraduate'
+  );
+  if (!level) return;
+
+  const title = prompt('Qualification Title (e.g. B.Tech Computer Science, Secondary School Examination):', '') || '';
+  const school = prompt('School / College / University Name:', '') || '';
+  const score = prompt('Percentage or CGPA (e.g. 88.5% or 8.5):', '') || '';
+  const year = prompt('Year of Passing (e.g. 2024):', '') || '';
+
+  if (!activeProfileData) return;
+  if (!activeProfileData.educationHistory) activeProfileData.educationHistory = [];
+
+  const rec: EducationRecord = {
+    id: `edu_${Date.now()}`,
+    level: level as any,
+    qualificationTitle: title,
+    schoolOrInstitution: school,
+    scoreValue: score,
+    yearOfPassing: year,
+    resultStatus: 'passed',
+  };
+
+  activeProfileData.educationHistory.push(rec);
+  saveUserProfile(activeProfileData).then(() => {
+    populateEducationList();
+    showToast('✓ Education record added');
+  });
+}
+
+// ── Experience & Compensation ──────────────────────────────────────────────
+
+function populateExperienceList(): void {
+  if (!activeProfileData) return;
+  const prof = activeProfileData.professional;
+  const comp = activeProfileData.compensation;
+
+  (document.getElementById('comp-notice-days') as HTMLInputElement).value = String(
+    prof?.noticePeriodDays ?? comp?.currentAnnualCtc ?? ''
+  );
+  (document.getElementById('comp-current-ctc') as HTMLInputElement).value = String(comp?.currentAnnualCtc ?? '');
+  (document.getElementById('comp-expected-ctc') as HTMLInputElement).value = String(comp?.expectedAnnualCtc ?? '');
+  (document.getElementById('comp-currency') as HTMLSelectElement).value = comp?.currency || 'INR';
+  (document.getElementById('comp-negotiable') as HTMLSelectElement).value = comp?.isNegotiable ? 'true' : 'false';
+  (document.getElementById('comp-work-pref') as HTMLSelectElement).value = prof?.workPreference || 'remote';
+
+  // Derived stats
+  const allJobs = activeProfileData.employmentHistory || activeProfileData.work || [];
+  const derived = calculateDerivedExperience(allJobs as any);
+  document.getElementById('stat-total-exp')!.textContent = derived.displayTotalExperience;
+  document.getElementById('stat-fulltime-exp')!.textContent = `${derived.fullTimeYears} yrs`;
+  document.getElementById('stat-tenure')!.textContent = `${derived.currentEmployerTenureYears} yrs`;
+  document.getElementById('stat-employers')!.textContent = String(derived.totalEmployersCount);
+
+  // Job cards
+  const container = document.getElementById('employment-records-container')!;
+  const detailedJobs = activeProfileData.employmentHistory || [];
+
+  if (detailedJobs.length === 0 && (!activeProfileData.work || activeProfileData.work.length === 0)) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 28px; color: var(--gray-600); font-size: 13.5px;">
+        No employment records added yet. Click "+ Add Job / Employment" to add work history.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  detailedJobs.forEach((job, idx) => {
+    html += `
+      <div class="record-item">
+        <div class="record-details">
+          <div class="record-title">${escapeHtml(job.jobTitle)} at ${escapeHtml(job.employerName)}</div>
+          <div class="record-subtitle">${escapeHtml(job.startDate)} — ${job.currentlyEmployed ? 'Present' : escapeHtml(job.endDate || '')}</div>
+          <div class="record-tags">
+            <span class="record-tag">${job.employmentType.replace('_', ' ')}</span>
+            ${job.noticePeriodDays ? `<span class="record-tag">Notice: ${job.noticePeriodDays} days</span>` : ''}
+            ${job.currentlyEmployed ? '<span class="record-tag" style="background:#dcfce7;color:#15803d;">Current</span>' : ''}
+          </div>
+        </div>
+        <button type="button" class="btn-action-danger btn-del-job" data-idx="${idx}">Delete</button>
+      </div>
+    `;
+  });
+
+  setHTML(container, html);
+
+  container.querySelectorAll('.btn-del-job').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      activeProfileData?.employmentHistory?.splice(idx, 1);
+      await saveUserProfile(activeProfileData!);
+      populateExperienceList();
+      showToast('✓ Job record deleted');
+    });
+  });
+}
+
+async function saveCompensation(): Promise<void> {
+  if (!activeProfileData) return;
+  if (!activeProfileData.compensation) {
+    activeProfileData.compensation = {
+      currency: 'INR',
+      salaryPeriod: 'annual',
+      isNegotiable: true,
+    };
+  }
+
+  const notice = parseInt((document.getElementById('comp-notice-days') as HTMLInputElement).value, 10);
+  const currentCtc = parseFloat((document.getElementById('comp-current-ctc') as HTMLInputElement).value);
+  const expCtc = parseFloat((document.getElementById('comp-expected-ctc') as HTMLInputElement).value);
+  const curr = (document.getElementById('comp-currency') as HTMLSelectElement).value;
+  const neg = (document.getElementById('comp-negotiable') as HTMLSelectElement).value === 'true';
+  const pref = (document.getElementById('comp-work-pref') as HTMLSelectElement).value as any;
+
+  if (!activeProfileData.professional) activeProfileData.professional = {};
+  if (!isNaN(notice)) {
+    activeProfileData.professional.noticePeriodDays = notice;
+    activeProfileData.professional.noticePeriod = `${notice} days`;
+  }
+  activeProfileData.professional.workPreference = pref;
+
+  activeProfileData.compensation.currentAnnualCtc = isNaN(currentCtc) ? undefined : currentCtc;
+  activeProfileData.compensation.expectedAnnualCtc = isNaN(expCtc) ? undefined : expCtc;
+  activeProfileData.compensation.currency = curr;
+  activeProfileData.compensation.isNegotiable = neg;
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Compensation & notice period saved');
+}
+
+function promptAddEmployment(): void {
+  const company = prompt('Employer / Company Name:', '');
+  if (!company) return;
+  const title = prompt('Job Title / Designation:', '') || '';
+  const start = prompt('Start Date (YYYY-MM):', '2022-01') || '';
+  const current = confirm('Is this your current employer?');
+  const end = current ? undefined : prompt('End Date (YYYY-MM):', '2024-01') || undefined;
+
+  if (!activeProfileData) return;
+  if (!activeProfileData.employmentHistory) activeProfileData.employmentHistory = [];
+
+  const job: DetailedEmploymentRecord = {
+    id: `job_${Date.now()}`,
+    employerName: company,
+    jobTitle: title,
+    startDate: start,
+    endDate: end,
+    currentlyEmployed: current,
+    employmentType: 'full_time',
+  };
+
+  activeProfileData.employmentHistory.push(job);
+  saveUserProfile(activeProfileData).then(() => {
+    populateExperienceList();
+    showToast('✓ Employment record added');
+  });
+}
+
+// ── Family & Contacts ──────────────────────────────────────────────────────
+
+function populateFamilyList(): void {
+  const container = document.getElementById('family-contacts-container')!;
+  const contacts = activeProfileData?.familyContacts || [];
+
+  if (contacts.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 28px; color: var(--gray-600); font-size: 13.5px;">
+        No family or emergency contacts added yet. Click "+ Add Contact" to add Father, Mother, Guardian, or Emergency Contact.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  contacts.forEach((c, idx) => {
+    html += `
+      <div class="record-item">
+        <div class="record-details">
+          <div class="record-title">${escapeHtml(c.name)} <span style="font-weight:400;color:var(--gray-600);">(${escapeHtml(c.relationship)})</span></div>
+          <div class="record-subtitle">Phone: ${escapeHtml(c.phone)} ${c.email ? `· Email: ${escapeHtml(c.email)}` : ''}</div>
+          <div class="record-tags">
+            ${c.occupation ? `<span class="record-tag">Occupation: ${escapeHtml(c.occupation)}</span>` : ''}
+            ${c.employer ? `<span class="record-tag">Employer: ${escapeHtml(c.employer)}</span>` : ''}
+            ${c.isEmergencyContact ? '<span class="record-tag" style="background:#fef2f2;color:#dc2626;">Emergency Contact</span>' : ''}
+          </div>
+        </div>
+        <button type="button" class="btn-action-danger btn-del-fam" data-idx="${idx}">Delete</button>
+      </div>
+    `;
+  });
+
+  setHTML(container, html);
+
+  container.querySelectorAll('.btn-del-fam').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      activeProfileData?.familyContacts?.splice(idx, 1);
+      await saveUserProfile(activeProfileData!);
+      populateFamilyList();
+      showToast('✓ Family contact removed');
+    });
+  });
+}
+
+function promptAddFamily(): void {
+  const rel = prompt(
+    'Relationship type (father, mother, guardian, spouse, sibling, emergency):',
+    'father'
+  );
+  if (!rel) return;
+  const name = prompt(`${rel.charAt(0).toUpperCase() + rel.slice(1)}'s Full Name:`, '') || '';
+  const phone = prompt(`${rel.charAt(0).toUpperCase() + rel.slice(1)}'s Contact Phone:`, '') || '';
+  const occ = prompt(`${rel.charAt(0).toUpperCase() + rel.slice(1)}'s Occupation:`, '') || '';
+
+  if (!activeProfileData) return;
+  if (!activeProfileData.familyContacts) activeProfileData.familyContacts = [];
+
+  const contact: FamilyContact = {
+    id: `fc_${Date.now()}`,
+    relationship: rel.toLowerCase() as any,
+    name,
+    phone,
+    occupation: occ,
+    isEmergencyContact: rel.toLowerCase() === 'emergency',
+  };
+
+  activeProfileData.familyContacts.push(contact);
+  saveUserProfile(activeProfileData).then(() => {
+    populateFamilyList();
+    showToast('✓ Contact added');
+  });
+}
+
+// ── India Recruitment Pack ─────────────────────────────────────────────────
+
+function populateIndiaPackForm(): void {
+  if (!activeProfileData) return;
+  const pack = activeProfileData.indiaPack || createDefaultIndiaPack();
+
+  (document.getElementById('india-pack-enabled') as HTMLInputElement).checked = Boolean(pack.enabled);
+  (document.getElementById('in-10th-pct') as HTMLInputElement).value = String(pack.tenthPercentage ?? '');
+  (document.getElementById('in-10th-year') as HTMLInputElement).value = pack.tenthPassingYear || '';
+  (document.getElementById('in-10th-board') as HTMLInputElement).value = pack.tenthBoard || '';
+
+  (document.getElementById('in-12th-pct') as HTMLInputElement).value = String(pack.twelfthPercentage ?? '');
+  (document.getElementById('in-12th-year') as HTMLInputElement).value = pack.twelfthPassingYear || '';
+  (document.getElementById('in-12th-board') as HTMLInputElement).value = pack.twelfthBoard || pack.twelfthStream || '';
+
+  (document.getElementById('in-ug-cgpa') as HTMLInputElement).value = String(pack.undergradCgpa ?? '');
+  (document.getElementById('in-ug-formula') as HTMLInputElement).value = pack.cgpaConversionFormula || '';
+  (document.getElementById('in-student-roll') as HTMLInputElement).value = pack.studentRegistrationNumber || pack.universityRollNumber || '';
+
+  (document.getElementById('in-active-backlogs') as HTMLInputElement).value = String(pack.activeBacklogsCount ?? 0);
+  (document.getElementById('in-cleared-backlogs') as HTMLInputElement).value = String(pack.clearedBacklogsCount ?? 0);
+  (document.getElementById('in-gap-years') as HTMLInputElement).value = String(pack.educationGapYears ?? 0);
+
+  (document.getElementById('in-ctc-lpa') as HTMLInputElement).value = String(pack.currentCtcLpa ?? '');
+  (document.getElementById('in-exp-lpa') as HTMLInputElement).value = String(pack.expectedCtcLpa ?? '');
+  (document.getElementById('in-bond-willing') as HTMLSelectElement).value = pack.willingToSignBond ? 'true' : 'false';
+
+  (document.getElementById('in-aadhaar') as HTMLInputElement).value = pack.aadhaarNumberMasked || '';
+  (document.getElementById('in-pan') as HTMLInputElement).value = pack.panNumberMasked || '';
+  (document.getElementById('in-scholar-type') as HTMLSelectElement).value = pack.dayScholarOrHosteller || 'day_scholar';
+}
+
+async function saveIndiaPack(): Promise<void> {
+  if (!activeProfileData) return;
+  if (!activeProfileData.indiaPack) activeProfileData.indiaPack = createDefaultIndiaPack();
+
+  const p = activeProfileData.indiaPack;
+  p.enabled = (document.getElementById('india-pack-enabled') as HTMLInputElement).checked;
+  p.tenthPercentage = parseFloat((document.getElementById('in-10th-pct') as HTMLInputElement).value) || undefined;
+  p.tenthPassingYear = (document.getElementById('in-10th-year') as HTMLInputElement).value.trim() || undefined;
+  p.tenthBoard = (document.getElementById('in-10th-board') as HTMLInputElement).value.trim() || undefined;
+
+  p.twelfthPercentage = parseFloat((document.getElementById('in-12th-pct') as HTMLInputElement).value) || undefined;
+  p.twelfthPassingYear = (document.getElementById('in-12th-year') as HTMLInputElement).value.trim() || undefined;
+  p.twelfthBoard = (document.getElementById('in-12th-board') as HTMLInputElement).value.trim() || undefined;
+
+  p.undergradCgpa = parseFloat((document.getElementById('in-ug-cgpa') as HTMLInputElement).value) || undefined;
+  p.cgpaConversionFormula = (document.getElementById('in-ug-formula') as HTMLInputElement).value.trim() || undefined;
+  p.studentRegistrationNumber = (document.getElementById('in-student-roll') as HTMLInputElement).value.trim() || undefined;
+
+  p.activeBacklogsCount = parseInt((document.getElementById('in-active-backlogs') as HTMLInputElement).value, 10) || 0;
+  p.clearedBacklogsCount = parseInt((document.getElementById('in-cleared-backlogs') as HTMLInputElement).value, 10) || 0;
+  p.educationGapYears = parseInt((document.getElementById('in-gap-years') as HTMLInputElement).value, 10) || 0;
+
+  p.currentCtcLpa = parseFloat((document.getElementById('in-ctc-lpa') as HTMLInputElement).value) || undefined;
+  p.expectedCtcLpa = parseFloat((document.getElementById('in-exp-lpa') as HTMLInputElement).value) || undefined;
+  p.willingToSignBond = (document.getElementById('in-bond-willing') as HTMLSelectElement).value === 'true';
+
+  p.aadhaarNumberMasked = (document.getElementById('in-aadhaar') as HTMLInputElement).value.trim() || undefined;
+  p.panNumberMasked = (document.getElementById('in-pan') as HTMLInputElement).value.trim() || undefined;
+  p.dayScholarOrHosteller = (document.getElementById('in-scholar-type') as HTMLSelectElement).value as any;
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ India Recruitment Pack saved');
+}
+
+// ── Custom Field Builder ───────────────────────────────────────────────────
+
+function setupCustomFieldBuilderEvents(): void {
+  const lblInput = document.getElementById('builder-label') as HTMLInputElement;
+  const secSelect = document.getElementById('builder-section') as HTMLSelectElement;
+  const typeSelect = document.getElementById('builder-type') as HTMLSelectElement;
+  const sensSelect = document.getElementById('builder-sensitivity') as HTMLSelectElement;
+  const aliasesInput = document.getElementById('builder-aliases') as HTMLInputElement;
+  const valInput = document.getElementById('builder-value') as HTMLInputElement;
+
+  function updateLivePreview(): void {
+    const l = lblInput.value.trim() || 'Secondary qualification result';
+    const s = secSelect.options[secSelect.selectedIndex].text;
+    const t = typeSelect.value;
+    const sens = sensSelect.options[sensSelect.selectedIndex].text;
+    const aliases = aliasesInput.value.trim() || 'School result, high school grades, secondary examination score';
+    const val = valInput.value.trim() || 'No value entered';
+
+    document.getElementById('prev-title')!.textContent = l;
+    document.getElementById('prev-meta')!.textContent = `${s} · ${t} · ${sens}`;
+    document.getElementById('prev-aliases')!.textContent = `Aliases: ${aliases}`;
+    document.getElementById('prev-val')!.textContent = val;
+  }
+
+  [lblInput, secSelect, typeSelect, sensSelect, aliasesInput, valInput].forEach(el => {
+    el?.addEventListener('input', updateLivePreview);
+  });
+
+  document.getElementById('btn-save-custom-field')?.addEventListener('click', async () => {
+    const label = lblInput.value.trim();
+    if (!label) {
+      lblInput.focus();
+      return;
+    }
+
+    const key = label
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+
+    const aliases = aliasesInput.value
+      .split(',')
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    const cf = createDefaultCustomField(
+      key,
+      label,
+      secSelect.value as any,
+      typeSelect.value as any,
+      aliases
+    );
+    cf.sensitivity = sensSelect.value as any;
+    cf.value = valInput.value.trim() || undefined;
+    cf.requiresConfirmation = cf.sensitivity === 'restricted_identifier';
+    cf.aiAccessPermitted = cf.sensitivity !== 'restricted_identifier';
+
+    if (!activeProfileData) return;
+    if (!activeProfileData.customFields) activeProfileData.customFields = [];
+
+    // Replace if key exists, otherwise append
+    const existingIdx = activeProfileData.customFields.findIndex(x => x.key === key);
+    if (existingIdx >= 0) {
+      activeProfileData.customFields[existingIdx] = cf;
+    } else {
+      activeProfileData.customFields.push(cf);
+    }
+
+    await saveUserProfile(activeProfileData);
+    populateCustomFieldsList();
+    showToast(`✓ Custom field "${label}" saved`);
+
+    // Reset form
+    lblInput.value = '';
+    aliasesInput.value = '';
+    valInput.value = '';
+    updateLivePreview();
+  });
+
+  document.getElementById('btn-reset-builder')?.addEventListener('click', () => {
+    lblInput.value = '';
+    aliasesInput.value = '';
+    valInput.value = '';
+    updateLivePreview();
+  });
+}
+
+function populateCustomFieldsList(): void {
+  const container = document.getElementById('custom-fields-container')!;
+  const fields = activeProfileData?.customFields || [];
+
+  if (fields.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 28px; color: var(--gray-600); font-size: 13.5px;">
+        No custom fields defined yet. Use the Custom Field Builder above to create your first field.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  fields.forEach((cf, idx) => {
+    html += `
+      <div class="record-item">
+        <div class="record-details">
+          <div class="record-title">${escapeHtml(cf.label)} <span style="font-weight:400;color:var(--gray-600);font-size:12px;">(${cf.key})</span></div>
+          <div class="record-subtitle">Value: <strong>${escapeHtml(String(cf.value ?? 'None'))}</strong></div>
+          <div class="record-tags">
+            <span class="record-tag">Section: ${escapeHtml(cf.sectionId)}</span>
+            <span class="record-tag">Type: ${escapeHtml(cf.dataType)}</span>
+            <span class="record-tag">${cf.sensitivity.replace('_', ' ')}</span>
+            ${cf.aliases && cf.aliases.length > 0 ? `<span class="record-tag">Aliases: ${escapeHtml(cf.aliases.join(', '))}</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="btn-action-danger btn-del-cf" data-idx="${idx}">Delete</button>
+      </div>
+    `;
+  });
+
+  setHTML(container, html);
+
+  container.querySelectorAll('.btn-del-cf').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      activeProfileData?.customFields?.splice(idx, 1);
+      await saveUserProfile(activeProfileData!);
+      populateCustomFieldsList();
+      showToast('✓ Custom field deleted');
+    });
+  });
+}
+
+// ── Question Bank ──────────────────────────────────────────────────────────
+
+function populateQuestionBankList(): void {
+  const container = document.getElementById('question-bank-container')!;
+  const items = activeProfileData?.questionBank || [];
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 28px; color: var(--gray-600); font-size: 13.5px;">
+        No saved answers in your Question Bank yet. Click "+ Add Saved Answer" to store reusable answers for screening questions.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  items.forEach((item, idx) => {
+    html += `
+      <div class="qb-item">
+        <div class="qb-header">
+          <div class="qb-question">${escapeHtml(item.question)}</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="record-tag" style="background:#e0f2fe;color:#0369a1;">${item.category}</span>
+            <button type="button" class="btn-action-danger btn-del-qb" data-idx="${idx}">Delete</button>
+          </div>
+        </div>
+        ${item.aliases && item.aliases.length > 0 ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:4px;">Aliases: ${escapeHtml(item.aliases.join(', '))}</div>` : ''}
+        <div class="qb-answer">${escapeHtml(item.answer)}</div>
+      </div>
+    `;
+  });
+
+  setHTML(container, html);
+
+  container.querySelectorAll('.btn-del-qb').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      activeProfileData?.questionBank?.splice(idx, 1);
+      await saveUserProfile(activeProfileData!);
+      populateQuestionBankList();
+      showToast('✓ Question removed');
+    });
+  });
+}
+
+function promptAddQuestion(): void {
+  const q = prompt('Screening Question (e.g. Why are you interested in this position?):', '');
+  if (!q) return;
+  const a = prompt('Your Saved Answer / Narrative Response:', '') || '';
+  const aliasesStr = prompt('Alternative Question Phrasings (comma-separated):', '') || '';
+
+  if (!activeProfileData) return;
+  if (!activeProfileData.questionBank) activeProfileData.questionBank = [];
+
+  const item: QuestionBankItem = {
+    id: `qb_${Date.now()}`,
+    question: q,
+    aliases: aliasesStr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+    answer: a,
+    category: 'screening',
+    isVerified: true,
+    companyScoped: false,
+    lastUpdated: Date.now(),
+  };
+
+  activeProfileData.questionBank.push(item);
+  saveUserProfile(activeProfileData).then(() => {
+    populateQuestionBankList();
+    showToast('✓ Saved answer added');
+  });
+}
+
+// ── Multi-Profile Management ───────────────────────────────────────────────
+
+function renderProfilesGrid(): void {
   const grid = document.getElementById('profiles-grid')!;
   let html = '';
 
   for (const p of allProfiles) {
     const isActive = p.id === activeId;
-    const profileData = profileDataMap.get(p.id);
-    const personal = profileData?.personal as
-      | (UserProfile['personal'] & { name?: string; fullName?: string })
-      | undefined;
-    const professional = profileData?.professional as
-      | (UserProfile['professional'] & { currentRole?: string; currentTitle?: string })
-      | undefined;
-    const resumeName = personal?.name || personal?.fullName || '';
-    const resumeTitle = profileData?.work?.find(w => w.current)?.title
-      ?? professional?.currentRole
-      ?? professional?.currentTitle
-      ?? '';
-    const displayName = resumeName || p.name;
-    const displayRole = resumeTitle || p.targetRole || '';
-
     html += `
       <div class="profile-card ${isActive ? 'active' : ''}" data-id="${escapeHtml(p.id)}">
-        ${isActive ? '<div class="active-tag">Active</div>' : ''}
         <div class="profile-card-header">
-          <div class="profile-card-dot" style="background:${p.color}">${initials(displayName)}</div>
+          <div class="profile-card-dot" style="background:${p.color}">${initials(p.name)}</div>
           <div>
-            <div class="profile-card-name" contenteditable="true" data-rename="${escapeHtml(p.id)}" spellcheck="false">${escapeHtml(displayName)}</div>
-            ${displayRole ? `<div class="profile-card-role">${escapeHtml(displayRole)}</div>` : ''}
+            <div class="profile-card-name">${escapeHtml(p.name)}</div>
+            ${p.targetRole ? `<div class="profile-card-role">${escapeHtml(p.targetRole)}</div>` : ''}
           </div>
         </div>
-        <div class="profile-card-meta">Created ${relativeTime(p.createdAt)}</div>
         <div class="profile-card-actions">
-          ${!isActive ? `<button class="btn-activate" data-activate="${escapeHtml(p.id)}">Activate</button>` : ''}
-          <button class="btn-edit-profile" data-edit="${escapeHtml(p.id)}">Edit</button>
-          ${allProfiles.length > 1 ? `<button class="btn-delete-profile" data-delete="${escapeHtml(p.id)}" title="Delete profile">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          </button>` : ''}
+          ${!isActive ? `<button type="button" class="btn-activate" data-activate="${escapeHtml(p.id)}">Activate</button>` : '<button type="button" disabled style="background:var(--green-light);color:var(--green);cursor:default;">Active</button>'}
+          ${allProfiles.length > 1 ? `<button type="button" class="btn-delete-card" data-delete="${escapeHtml(p.id)}" title="Delete profile">&times;</button>` : ''}
         </div>
       </div>
     `;
   }
 
-  html += `
-    <div class="profile-card-new" id="btn-new-profile">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      <span>New Profile</span>
-    </div>
-  `;
-
   setHTML(grid, html);
-  bindCardEvents();
-}
 
-function bindCardEvents(): void {
-  document.querySelectorAll('[data-activate]').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
+  grid.querySelectorAll('[data-activate]').forEach(btn => {
+    btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).dataset.activate!;
       await setActiveProfile(id);
       await browser.runtime.sendMessage({ kind: 'SWITCH_PROFILE', profileId: id });
-      await loadProfiles();
+      await init();
+      showToast('✓ Switched active profile');
     });
   });
 
-  document.querySelectorAll('[data-edit]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = (btn as HTMLElement).dataset.edit!;
-      browser.tabs.create({
-        url: browser.runtime.getURL(`onboarding/onboarding.html?profileId=${id}&edit=true`),
-      });
-    });
-  });
-
-  document.querySelectorAll('[data-delete]').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
+  grid.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
       const id = (btn as HTMLElement).dataset.delete!;
       const p = allProfiles.find(x => x.id === id);
       if (!p) return;
-      if (!confirm(`Delete profile "${p.name}"? This cannot be undone.`)) return;
+      if (!confirm(`Delete profile "${p.name}"?`)) return;
       await deleteProfile(id);
-      await loadProfiles();
-    });
-  });
-
-  document.getElementById('btn-new-profile')?.addEventListener('click', () => {
-    openCreateModal();
-  });
-
-  document.querySelectorAll('[data-rename]').forEach(el => {
-    const htmlEl = el as HTMLElement;
-    htmlEl.addEventListener('blur', async () => {
-      const id = htmlEl.dataset.rename!;
-      const newName = htmlEl.textContent?.trim();
-      if (newName && newName.length > 0) {
-        await updateProfileMeta(id, { name: newName });
-        const p = allProfiles.find(x => x.id === id);
-        if (p) p.name = newName;
-        renderActiveBanner();
-      }
-    });
-    htmlEl.addEventListener('keydown', (e) => {
-      if ((e as KeyboardEvent).key === 'Enter') {
-        (e as KeyboardEvent).preventDefault();
-        htmlEl.blur();
-      }
+      await init();
+      showToast('✓ Profile deleted');
     });
   });
 }
 
-function openCreateModal(): void {
-  editMode = false;
-  (document.getElementById('modal-title') as HTMLElement).textContent = 'New Profile';
-  (document.getElementById('modal-submit') as HTMLElement).textContent = 'Create Profile';
-  (document.getElementById('edit-id') as HTMLInputElement).value = '';
-  (document.getElementById('profile-name') as HTMLInputElement).value = '';
-  (document.getElementById('profile-role') as HTMLInputElement).value = '';
+function setupActionButtons(): void {
+  document.getElementById('btn-save-personal')?.addEventListener('click', savePersonal);
+  document.getElementById('btn-save-links')?.addEventListener('click', saveLinks);
+  document.getElementById('btn-add-education')?.addEventListener('click', promptAddEducation);
+  document.getElementById('btn-save-compensation')?.addEventListener('click', saveCompensation);
+  document.getElementById('btn-add-employment')?.addEventListener('click', promptAddEmployment);
+  document.getElementById('btn-add-family-contact')?.addEventListener('click', promptAddFamily);
+  document.getElementById('btn-save-india-pack')?.addEventListener('click', saveIndiaPack);
+  document.getElementById('btn-add-question')?.addEventListener('click', promptAddQuestion);
 
-  const cloneSelect = document.getElementById('clone-from') as HTMLSelectElement;
-  cloneSelect.innerHTML = '<option value="">Start empty</option>';
-  cloneSelect.parentElement!.style.display = '';
-  for (const p of allProfiles) {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `Clone from "${p.name}"`;
-    cloneSelect.appendChild(opt);
-  }
+  document.getElementById('btn-new-profile-modal')?.addEventListener('click', () => {
+    (document.getElementById('profile-name') as HTMLInputElement).value = '';
+    (document.getElementById('profile-role') as HTMLInputElement).value = '';
+    const cloneSelect = document.getElementById('clone-from') as HTMLSelectElement;
+    cloneSelect.innerHTML = '<option value="">Start empty</option>';
+    for (const p of allProfiles) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `Clone from "${p.name}"`;
+      cloneSelect.appendChild(opt);
+    }
+    renderColorPicker(COLORS[allProfiles.length % COLORS.length]);
+    document.getElementById('profile-modal')!.classList.add('active');
+  });
 
-  renderColorPicker(COLORS[allProfiles.length % COLORS.length]);
-  document.getElementById('profile-modal')!.classList.add('active');
+  document.getElementById('modal-cancel')?.addEventListener('click', () => {
+    document.getElementById('profile-modal')?.classList.remove('active');
+  });
+
+  document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = (document.getElementById('profile-name') as HTMLInputElement).value.trim();
+    if (!name) return;
+    const role = (document.getElementById('profile-role') as HTMLInputElement).value.trim() || undefined;
+    const cloneFrom = (document.getElementById('clone-from') as HTMLSelectElement).value || undefined;
+
+    await createProfile(name, role, cloneFrom);
+    document.getElementById('profile-modal')?.classList.remove('active');
+    await init();
+    showToast(`✓ Created profile "${name}"`);
+  });
 }
 
 function renderColorPicker(selected: string): void {
@@ -234,44 +863,7 @@ function renderColorPicker(selected: string): void {
   }
 }
 
-function getSelectedColor(): string {
-  const sel = document.querySelector('.color-swatch.selected') as HTMLElement | null;
-  return sel?.dataset.color ?? COLORS[0];
-}
+// ── Startup ────────────────────────────────────────────────────────────────
 
-document.getElementById('profile-form')!.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const name = (document.getElementById('profile-name') as HTMLInputElement).value.trim();
-  if (!name) return;
-  const role = (document.getElementById('profile-role') as HTMLInputElement).value.trim() || undefined;
-  const color = getSelectedColor();
-
-  if (editMode) {
-    const id = (document.getElementById('edit-id') as HTMLInputElement).value;
-    await updateProfileMeta(id, { name, targetRole: role, color });
-  } else {
-    const cloneFrom = (document.getElementById('clone-from') as HTMLSelectElement).value || undefined;
-    const newMeta = await createProfile(name, role, cloneFrom);
-    document.getElementById('profile-modal')!.classList.remove('active');
-    await loadProfiles();
-    browser.tabs.create({
-      url: browser.runtime.getURL(`onboarding/onboarding.html?profileId=${newMeta.id}`),
-    });
-    return;
-  }
-
-  document.getElementById('profile-modal')!.classList.remove('active');
-  await loadProfiles();
-});
-
-document.getElementById('modal-cancel')!.addEventListener('click', () => {
-  document.getElementById('profile-modal')!.classList.remove('active');
-});
-
-document.getElementById('profile-modal')!.addEventListener('click', (e) => {
-  if (e.target === document.getElementById('profile-modal')) {
-    document.getElementById('profile-modal')!.classList.remove('active');
-  }
-});
-
-loadProfiles();
+setupTabs();
+init();

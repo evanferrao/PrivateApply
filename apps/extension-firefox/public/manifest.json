@@ -202,7 +202,7 @@
     "icons/header-icon-24.png"
   ],
   
-  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "content_security_policy": "script-src 'self'; object-src 'self'; frame-src 'self' blob: data:; img-src 'self' data: blob: https:",
   
   "browser_specific_settings": {
     "gecko": {
