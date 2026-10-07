@@ -18,7 +18,7 @@ export function showAutofillNotification(fieldCount: number): void {
     <div class="privateapply-notif-content">
       <div class="privateapply-notif-icon">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <circle cx="9" cy="9" r="9" fill="#1e5e41"/>
+          <circle cx="9" cy="9" r="9" fill="#707953"/>
           <path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
@@ -152,9 +152,9 @@ function ensureStyles(): void {
   style.id = 'privateapply-autofill-notification-styles';
   style.textContent = `
     @keyframes privateapply-notif-pulse {
-      0%   { box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 0 0 0 rgba(22,163,74,0.45); }
-      50%  { box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 0 0 7px rgba(22,163,74,0); }
-      100% { box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 0 0 0 rgba(22,163,74,0); }
+      0%   { box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 0 0 0 rgba(112,121,83,0.45); }
+      50%  { box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 0 0 7px rgba(112,121,83,0); }
+      100% { box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 0 0 0 rgba(112,121,83,0); }
     }
 
     #privateapply-autofill-notification {
@@ -162,7 +162,7 @@ function ensureStyles(): void {
       top: 20px;
       right: 20px;
       z-index: 2147483647;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       opacity: 0;
       transform: translateX(24px);
       transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16,1,0.3,1);
@@ -174,7 +174,8 @@ function ensureStyles(): void {
       pointer-events: auto;
     }
     .privateapply-notif-content {
-      background: #fff;
+      background: #f3f5f0;
+      border: 1px solid #cfd6c2;
       border-radius: 10px;
       box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 1px 4px rgba(30,41,59,0.08);
       padding: 14px 16px;
@@ -183,7 +184,7 @@ function ensureStyles(): void {
       gap: 10px;
       min-width: 280px;
       max-width: 360px;
-      border-left: 4px solid #1e5e41;
+      border-left: 4px solid #707953;
       animation: privateapply-notif-pulse 2s ease-out 0.35s 3;
     }
     .privateapply-notif-icon {
@@ -198,26 +199,26 @@ function ensureStyles(): void {
       position: absolute;
       inset: -4px;
       border-radius: 50%;
-      background: rgba(22,163,74,0.18);
+      background: rgba(112,121,83,0.18);
       animation: privateapply-notif-pulse 2s ease-out 0.35s 3;
     }
     .privateapply-notif-text { flex: 1; min-width: 0; }
     .privateapply-notif-title {
       font-weight: 600;
       font-size: 13px;
-      color: #0a0a0a;
+      color: #1d1f14;
       line-height: 1.3;
       margin-bottom: 2px;
     }
     .privateapply-notif-subtitle {
       font-size: 12px;
-      color: #64748b;
+      color: #727a52;
       line-height: 1.4;
     }
     .privateapply-notif-close {
       background: none;
       border: none;
-      color: #94a3b8;
+      color: #727a52;
       cursor: pointer;
       padding: 0;
       width: 20px;
@@ -230,8 +231,8 @@ function ensureStyles(): void {
       transition: background 0.15s, color 0.15s;
     }
     .privateapply-notif-close:hover {
-      background: #f1f5f9;
-      color: #334155;
+      background: #e7ebe0;
+      color: #1d1f14;
     }
   `;
   document.head.appendChild(style);

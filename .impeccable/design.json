@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T00:46:00Z",
+  "title": "Design System: Private Apply (Realtime Olive & Sage)",
+  "extensions": {
+    "colorMeta": {
+      "text": { "role": "text", "displayName": "Olive Charcoal Text", "canonical": "#1d1f14", "tonalRamp": ["#f4f5f0", "#e9ebe0", "#d2d6c2", "#bcc2a3", "#a5ad85", "#8f9966", "#727a52", "#565c3d", "#393d29", "#1d1f14", "#0e0f0a"] },
+      "background": { "role": "background", "displayName": "Sage Cream Background", "canonical": "#f3f5f0", "tonalRamp": ["#f3f5f0", "#e7ebe0", "#cfd6c2", "#b8c2a3", "#a0ad85", "#889966", "#6d7a52", "#525c3d", "#363d29", "#1b1f14", "#0e0f0a"] },
+      "primary": { "role": "primary", "displayName": "Warm Moss Primary", "canonical": "#707953", "tonalRamp": ["#f3f5f0", "#e8eae1", "#d1d6c2", "#bac1a4", "#a3ac86", "#8c9867", "#707953", "#545b3e", "#383d29", "#1c1e15", "#0e0f0a"] },
+      "secondary": { "role": "secondary", "displayName": "Forest Sage Secondary", "canonical": "#5e7953", "tonalRamp": ["#f1f5f0", "#e4eae1", "#c8d6c2", "#adc1a4", "#91ac86", "#769867", "#5e7953", "#475b3e", "#2f3d29", "#181e15", "#0c0f0a"] },
+      "accent": { "role": "accent", "displayName": "Foliage Leaf Accent", "canonical": "#597953", "tonalRamp": ["#f1f5f0", "#e2eae1", "#c6d6c2", "#a9c1a4", "#8cac86", "#6f9867", "#597953", "#435b3e", "#2d3d29", "#161e15", "#0b0f0a"] }
+    },
+    "typographyMeta": {
+      "fontFamily": "Hind Vadodara, sans-serif",
+      "scale": {
+        "sm": "0.618rem",
+        "base": "1rem",
+        "xl": "1.618rem",
+        "2xl": "2.618rem",
+        "3xl": "4.236rem",
+        "4xl": "6.854rem",
+        "5xl": "11.090rem"
+      },
+      "weights": {
+        "normal": "400",
+        "bold": "700"
+      }
+    },
+    "shadows": [
+      { "name": "shadow-xs", "value": "0 1px 2px rgba(0,0,0,0.04)", "purpose": "Subtle rest elevation for cards and buttons." },
+      { "name": "shadow-sm", "value": "0 1px 3px rgba(0,0,0,0.06)", "purpose": "Hovered interactive elements." },
+      { "name": "flyout", "value": "0 4px 16px rgba(0,0,0,0.08)", "purpose": "Dropdowns, flyout drawers, and modals." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Snappy drawer entries and toasts." },
+      { "name": "ping", "value": "job-dot-ping 1.4s ease-out infinite", "purpose": "Pulsating beacon for active detected jobs." }
+    ],
+    "breakpoints": [
+      { "name": "popup", "value": "350px" },
+      { "name": "drawer", "value": "420px" },
+      { "name": "dashboard", "value": "960px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Warm moss button for primary application actions.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z\"/></svg> Auto-Fill Application</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary-600); color: var(--background-50); padding: 10px 16px; border-radius: 8px; font-family: 'Hind Vadodara', sans-serif; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; transition: background 0.15s, transform 0.1s; } .ds-btn-primary:hover { background: var(--primary-700); } .ds-btn-primary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "Quiet sage badge for pipeline stages and verification flags.",
+      "html": "<span class=\"ds-chip ds-chip-sage\">Autofill Ready</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-family: 'Hind Vadodara', sans-serif; font-size: 0.618rem; font-weight: 700; } .ds-chip-sage { background: var(--secondary-100); color: var(--secondary-700); border: 1px solid var(--secondary-200); }"
+    },
+    {
+      "name": "Detected Job Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Bordered container displaying detected ATS job with pulsating green dot.",
+      "html": "<div class=\"ds-job-card\"><div class=\"ds-job-dot\"></div><div><div class=\"ds-job-title\">Senior Software Engineer</div><div class=\"ds-job-meta\">Acme Corp · Greenhouse ATS</div></div></div>",
+      "css": ".ds-job-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--background-100); border: 1px solid var(--background-200); border-radius: 8px; font-family: 'Hind Vadodara', sans-serif; } .ds-job-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; margin-top: 4px; position: relative; } .ds-job-title { font-size: 1rem; font-weight: 700; color: var(--text-900); } .ds-job-meta { font-size: 0.618rem; color: var(--text-600); margin-top: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Olive Atelier",
+    "theme": "Realtime Colors Earthy Olive & Sage with Golden Ratio Typography"
+  }
+}

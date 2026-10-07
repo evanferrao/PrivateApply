@@ -1,86 +1,84 @@
-    /* ── Design Tokens ── */
-    :root {
-      --black: #18181b;
-      --white: #ffffff;
-      --off-white: #faf9f6;
-      --green: #1e5e41;
-      --green-light: #edf6f1;
-      --green-mid: #2d8a60;
-      --accent: #1e5e41;
-      --accent-subtle: #edf6f1;
-      --accent-border: #c8e4d6;
-      --accent-hover: #164932;
-      --gray-100: #f4f3ee;
-      --gray-200: #e6e4dc;
-      --gray-400: #9b988f;
-      --gray-600: #57554f;
-      --gray-800: #272623;
-      --border: #e5e3dc;
-      --border-subtle: #eeece5;
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 16px;
-      --font-serif: 'Lora', Georgia, serif;
-      --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    html.dark {
-      --black: #f4f4f5;
-      --white: #18181b;
-      --off-white: #121214;
-      --green: #34a873;
-      --green-light: #162d22;
-      --green-mid: #3ebd83;
-      --accent: #34a873;
-      --accent-subtle: #162d22;
-      --accent-border: #1d4332;
-      --accent-hover: #3ebd83;
-      --gray-100: #1e1e23;
-      --gray-200: #2b2b31;
-      --gray-400: #7a7a85;
-      --gray-600: #a8a8b2;
-      --gray-800: #e4e4e9;
-      --border: #2b2b31;
-      --border-subtle: #222227;
-    }
+@import url('../shared/theme.css');
 
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: var(--font-sans);
-      font-size: 15px;
-      color: var(--black);
-      background: var(--off-white);
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-font-smoothing: antialiased;
-    }
-    .card {
-      max-width: 400px;
-      width: 100%;
-      background: var(--white);
-      border-radius: var(--radius-md);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      padding: 24px;
-    }
-    .card h1 { font-family: var(--font-serif); font-size: 18px; margin-bottom: 8px; color: var(--green); font-weight: 500; }
-    .card .company { color: var(--gray-600); font-size: 14px; margin-bottom: 20px; }
-    .card .hostname { font-size: 12px; color: var(--gray-400); margin-bottom: 20px; }
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
-      background: var(--green);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      cursor: pointer;
-      text-decoration: none;
-      font-family: var(--font-sans);
-    }
-    .btn:hover { background: var(--green-mid); }
-    .btn.secondary { background: var(--gray-600); }
-    .btn.secondary:hover { background: var(--gray-800); }
-    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-page);
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+}
+
+h1 {
+  font-family: var(--font-family);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.company {
+  font-weight: 700;
+  color: var(--primary-600);
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.hostname {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  background: var(--primary-600);
+  color: var(--background-50);
+  transition: background 0.15s;
+  box-shadow: var(--shadow-xs);
+}
+
+.btn:hover { background: var(--primary-700); }
+
+.btn.secondary {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+.btn.secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary-400);
+}

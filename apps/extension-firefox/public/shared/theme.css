@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;500;600;700&display=swap');
+
+/* ── Global Theme: Realtime Colors Olive & Sage Design Tokens ("The Olive Atelier") ── */
+:root {
+  /* Text Scale */
+  --text-50: #f4f5f0;
+  --text-100: #e9ebe0;
+  --text-200: #d2d6c2;
+  --text-300: #bcc2a3;
+  --text-400: #a5ad85;
+  --text-500: #8f9966;
+  --text-600: #727a52;
+  --text-700: #565c3d;
+  --text-800: #393d29;
+  --text-900: #1d1f14;
+  --text-950: #0e0f0a;
+
+  /* Background Scale */
+  --background-50: #f3f5f0;
+  --background-100: #e7ebe0;
+  --background-200: #cfd6c2;
+  --background-300: #b8c2a3;
+  --background-400: #a0ad85;
+  --background-500: #889966;
+  --background-600: #6d7a52;
+  --background-700: #525c3d;
+  --background-800: #363d29;
+  --background-900: #1b1f14;
+  --background-950: #0e0f0a;
+
+  /* Primary Scale (Warm Moss / Olive) */
+  --primary-50: #f3f5f0;
+  --primary-100: #e8eae1;
+  --primary-200: #d1d6c2;
+  --primary-300: #bac1a4;
+  --primary-400: #a3ac86;
+  --primary-500: #8c9867;
+  --primary-600: #707953;
+  --primary-700: #545b3e;
+  --primary-800: #383d29;
+  --primary-900: #1c1e15;
+  --primary-950: #0e0f0a;
+
+  /* Secondary Scale (Forest Sage) */
+  --secondary-50: #f1f5f0;
+  --secondary-100: #e4eae1;
+  --secondary-200: #c8d6c2;
+  --secondary-300: #adc1a4;
+  --secondary-400: #91ac86;
+  --secondary-500: #769867;
+  --secondary-600: #5e7953;
+  --secondary-700: #475b3e;
+  --secondary-800: #2f3d29;
+  --secondary-900: #181e15;
+  --secondary-950: #0c0f0a;
+
+  /* Accent Scale (Leaf Sage) */
+  --accent-50: #f1f5f0;
+  --accent-100: #e2eae1;
+  --accent-200: #c6d6c2;
+  --accent-300: #a9c1a4;
+  --accent-400: #8cac86;
+  --accent-500: #6f9867;
+  --accent-600: #597953;
+  --accent-700: #435b3e;
+  --accent-800: #2d3d29;
+  --accent-900: #161e15;
+  --accent-950: #0b0f0a;
+
+  /* Semantic Theme Mappings */
+  --bg-page: var(--background-50);
+  --bg-card: var(--background-100);
+  --bg-card-hover: #dfe4d7;
+  --border-color: var(--background-200);
+  --border-subtle: var(--background-200);
+  --text-primary: var(--text-900);
+  --text-muted: var(--text-600);
+  --text-subtle: var(--text-500);
+
+  /* Legacy Aliases & Seamless Fallbacks */
+  --bg: var(--background-50);
+  --surface: var(--background-100);
+  --black: var(--text-900);
+  --white: var(--background-100);
+  --pure-white: #ffffff;
+  --off-white: var(--background-50);
+  --border: var(--background-200);
+  --accent: var(--primary-600);
+  --accent-hover: var(--primary-700);
+  --accent-subtle: var(--secondary-100);
+  --accent-border: var(--secondary-300);
+  --accent-contrast: var(--background-50);
+  --green: var(--primary-600);
+  --green-light: var(--secondary-100);
+  --green-mid: var(--primary-500);
+  --green-hover: var(--primary-700);
+  --blue: var(--secondary-600);
+  --blue-light: var(--secondary-100);
+  --amber: var(--primary-500);
+  --amber-light: var(--primary-100);
+  --red: #a84242;
+  --red-light: #f7ebeb;
+  --gray-50: var(--background-50);
+  --gray-100: var(--background-100);
+  --gray-200: var(--background-200);
+  --gray-300: var(--background-300);
+  --gray-400: var(--text-600);
+  --gray-600: var(--text-700);
+  --gray-800: var(--text-900);
+
+  /* Typography */
+  --font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: var(--font-family);
+  --font-sans: var(--font-family);
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Dark Mode Inversion ── */
+html.dark {
+  --text-50: #0e0f0a;
+  --text-100: #1d1f14;
+  --text-200: #393d29;
+  --text-300: #565c3d;
+  --text-400: #727a52;
+  --text-500: #8f9966;
+  --text-600: #a5ad85;
+  --text-700: #bcc2a3;
+  --text-800: #d2d6c2;
+  --text-900: #e9ebe0;
+  --text-950: #f4f5f0;
+
+  --background-50: #0e0f0a;
+  --background-100: #1b1f14;
+  --background-200: #2d3420;
+  --background-300: #424c30;
+  --background-400: #586640;
+  --background-500: #728254;
+  --background-600: #8d9e6a;
+  --background-700: #a9ba84;
+  --background-800: #c6d6a2;
+  --background-900: #e2ecc2;
+  --background-950: #f3f5f0;
+
+  --primary-50: #0e0f0a;
+  --primary-100: #1c1e15;
+  --primary-200: #383d29;
+  --primary-300: #545b3e;
+  --primary-400: #707953;
+  --primary-500: #8c9867;
+  --primary-600: #a3ac86;
+  --primary-700: #bac1a4;
+  --primary-800: #d1d6c2;
+  --primary-900: #e8eae1;
+  --primary-950: #f3f5f0;
+
+  --secondary-50: #0c0f0a;
+  --secondary-100: #181e15;
+  --secondary-200: #2f3d29;
+  --secondary-300: #475b3e;
+  --secondary-400: #5e7953;
+  --secondary-500: #769867;
+  --secondary-600: #91ac86;
+  --secondary-700: #adc1a4;
+  --secondary-800: #c8d6c2;
+  --secondary-900: #e4eae1;
+  --secondary-950: #f1f5f0;
+
+  --bg: #0e0f0a;
+  --surface: #1b1f14;
+  --bg-page: #0e0f0a;
+  --bg-card: #1b1f14;
+  --bg-card-hover: #23291b;
+  --border-color: #2d3420;
+  --border-subtle: #22271a;
+  --text-primary: #e9ebe0;
+  --text-muted: #a5ad85;
+  --text-subtle: #727a52;
+
+  --black: #e9ebe0;
+  --white: #1b1f14;
+  --pure-white: #22271a;
+  --off-white: #0e0f0a;
+  --border: #2d3420;
+  --accent: #8c9867;
+  --accent-hover: #a3ac86;
+  --accent-subtle: #1c2215;
+  --accent-border: #2f3d29;
+  --accent-contrast: #0e0f0a;
+  --green: #8c9867;
+  --green-light: #202717;
+  --green-mid: #a3ac86;
+  --green-hover: #a3ac86;
+  --blue: #91ac86;
+  --blue-light: #1b2418;
+  --amber: #a3ac86;
+  --amber-light: #262a1b;
+  --red: #d16b6b;
+  --red-light: #2a1515;
+  --gray-50: #0e0f0a;
+  --gray-100: #1b1f14;
+  --gray-200: #2d3420;
+  --gray-300: #424c30;
+  --gray-400: #8f9966;
+  --gray-600: #a5ad85;
+  --gray-800: #e9ebe0;
+}
+
+/* ── Global Selection & Scrollbars ── */
+::selection {
+  background: var(--primary-200);
+  color: var(--text-900);
+}
+html.dark ::selection {
+  background: var(--primary-700);
+  color: var(--text-50);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--background-300);
+  border-radius: 4px;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: var(--background-300);
+}

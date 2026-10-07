@@ -535,14 +535,15 @@ function addStyles(): void {
       top: 20px;
       right: 20px;
       width: 280px;
-      background: #fff;
+      background: #f3f5f0;
+      border: 1px solid #cfd6c2;
       border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
       z-index: 2147483647;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
       overflow: hidden;
-      color: #1a1a1a;
+      color: #1d1f14;
       transition: width .35s cubic-bezier(.4,0,.2,1),
                   height .35s cubic-bezier(.4,0,.2,1),
                   border-radius .35s cubic-bezier(.4,0,.2,1),
@@ -571,7 +572,7 @@ function addStyles(): void {
       height: 88px !important;
       cursor: pointer;
       overflow: hidden;
-      background: #0a0a0a;
+      background: #545b3e;
       transition: transform .18s ease, box-shadow .18s ease;
     }
     /* Right edge: left half-circle visible, right half off-screen */
@@ -670,8 +671,8 @@ function addStyles(): void {
 
     /* ─── Header ─── */
     .ofl-header {
-      background: #18181b;
-      border-bottom: 1px solid #27272a;
+      background: #707953;
+      border-bottom: 1px solid #545b3e;
       padding: 10px 12px;
       display: flex;
       align-items: center;
@@ -750,7 +751,7 @@ function addStyles(): void {
     .ofl-job-title {
       font-weight: 600;
       font-size: 14px;
-      color: #1a1a1a;
+      color: #1d1f14;
       line-height: 1.3;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -759,7 +760,7 @@ function addStyles(): void {
     }
     .ofl-job-company {
       font-size: 12px;
-      color: #888;
+      color: #727a52;
       margin-top: 2px;
     }
 
@@ -768,15 +769,15 @@ function addStyles(): void {
       gap: 12px;
       margin-bottom: 16px;
       padding: 10px 14px;
-      background: #f7f7fb;
+      background: #e7ebe0;
       border-radius: 10px;
     }
     .ofl-stat { display: flex; align-items: baseline; gap: 5px; }
     .ofl-stat-num {
-      font-size: 22px; font-weight: 700; color: #0a0a0a; line-height: 1;
+      font-size: 22px; font-weight: 700; color: #1d1f14; line-height: 1;
     }
     .ofl-stat-num.ofl-required { color: #EF4444; }
-    .ofl-stat-label { font-size: 12px; color: #5a5750; font-weight: 500; }
+    .ofl-stat-label { font-size: 12px; color: #727a52; font-weight: 500; }
 
     .ofl-actions { display: flex; flex-direction: column; gap: 8px; }
     .ofl-btn {
@@ -797,31 +798,31 @@ function addStyles(): void {
     }
     .ofl-btn-icon { font-size: 16px; }
     .ofl-btn-fill {
-      background: #1e5e41;
+      background: #707953;
       color: #ffffff;
     }
     .ofl-btn-fill:hover {
-      background: #164932;
+      background: #545b3e;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(30, 94, 65, 0.25);
+      box-shadow: 0 4px 12px rgba(112, 121, 83, 0.25);
     }
     .ofl-btn-fill:active {
-      background: #1e5e41;
+      background: #707953;
       transform: translateY(0);
     }
     .ofl-btn-cover {
-      background: #18181b;
+      background: #545b3e;
       color: #FFFFFF;
-      border: 1px solid #3f3f46;
+      border: 1px solid #707953;
     }
     .ofl-btn-cover:hover {
-      background: #27272a;
-      border-color: #52525b;
+      background: #383d29;
+      border-color: #545b3e;
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     .ofl-btn-cover:active {
-      background: #18181b;
+      background: #545b3e;
       transform: translateY(0);
     }
 
@@ -834,13 +835,13 @@ function addStyles(): void {
       padding: 0 8px;
       transition: all .2s;
     }
-    .ofl-status-info  { color: #18181b; }
-    .ofl-status-success { color: #1e5e41; background: #edf6f1; padding: 4px 8px; border: 1px solid #c8e4d6; }
+    .ofl-status-info  { color: #1d1f14; }
+    .ofl-status-success { color: #545b3e; background: #e4eae1; padding: 4px 8px; border: 1px solid #c8d6c2; }
     .ofl-status-error   { color: #dc2626; background: #fdf2f2; padding: 4px 8px; border: 1px solid #fecaca; }
 
     .ofl-footer {
       padding: 8px 16px;
-      border-top: 1px solid #f0f0f0;
+      border-top: 1px solid #cfd6c2;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -848,7 +849,7 @@ function addStyles(): void {
     .ofl-link-btn {
       background: none;
       border: none;
-      color: #5a5750;
+      color: #727a52;
       font-size: 12px;
       cursor: pointer;
       padding: 4px 6px;
@@ -857,7 +858,7 @@ function addStyles(): void {
       font-family: inherit;
     }
     .ofl-link-btn:hover {
-      color: #0a0a0a;
+      color: #1d1f14;
       background: rgba(39, 227, 141, 0.1);
     }
     .ofl-link-btn:disabled { opacity: .5; cursor: default; }

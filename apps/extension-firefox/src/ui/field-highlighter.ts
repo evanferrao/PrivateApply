@@ -43,8 +43,8 @@ export function highlightField(selector: string, type: 'filling' | 'success' | '
         background: 'rgba(59, 130, 246, 0.1)'
       },
       success: {
-        outline: '3px solid #1e5e41',
-        background: 'rgba(30, 94, 65, 0.1)'
+        outline: '3px solid #707953',
+        background: 'rgba(112, 121, 83, 0.1)'
       },
       error: {
         outline: '3px solid #ef4444',

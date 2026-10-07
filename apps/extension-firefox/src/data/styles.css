@@ -1,53 +1,53 @@
 /* ── React Flow base styles ────────────────────────────────────────────────── */
 @import '@xyflow/react/dist/style.css';
 
-/* ── Design tokens ─────────────────────────────────────────────────────────── */
+/* ── Design tokens (Realtime Colors: Olive & Sage Atelier) ──────────────────── */
 :root {
-  --bg:           #faf9f6;
-  --surface-1:    #ffffff;
-  --surface-2:    #f4f3ef;
-  --surface-3:    #eae8e2;
-  --surface-hover:#e1ded7;
-  --border:       #e5e3dc;
-  --border-soft:  #d3cfc5;
-  --text:         #18181b;
-  --text-muted:   #52525b;
-  --text-faint:   #8a8780;
+  --bg:           #f3f5f0;
+  --surface-1:    #e7ebe0;
+  --surface-2:    #cfd6c2;
+  --surface-3:    #b8c2a3;
+  --surface-hover:#dfe4d7;
+  --border:       #cfd6c2;
+  --border-soft:  #d1d6c2;
+  --text:         #1d1f14;
+  --text-muted:   #727a52;
+  --text-faint:   #8f9966;
 
-  /* Semantic accent (Pine Forest) */
-  --accent:       #1e5e41;
-  --accent-dim:   rgba(30, 94, 65, 0.12);
+  /* Semantic accent (Warm Moss / Olive) */
+  --accent:       #707953;
+  --accent-dim:   rgba(112, 121, 83, 0.14);
 
   /* Node type colors */
-  --node-question:        #1e5e41;
-  --node-question-bg:     rgba(30, 94, 65, 0.08);
-  --node-question-border: rgba(30, 94, 65, 0.35);
-  --node-answer:          #257853;
-  --node-answer-bg:       rgba(37, 120, 83, 0.08);
-  --node-answer-border:   rgba(37, 120, 83, 0.35);
-  --node-field:           #b45309;
-  --node-field-bg:        rgba(180, 83, 9, 0.08);
-  --node-field-border:    rgba(180, 83, 9, 0.35);
-  --node-correction:      #b91c1c;
-  --node-correction-bg:   rgba(185, 28, 28, 0.08);
-  --node-correction-border: rgba(185, 28, 28, 0.35);
-  --node-application:     #2d557a;
-  --node-application-bg:  rgba(45, 85, 122, 0.08);
-  --node-application-border: rgba(45, 85, 122, 0.35);
+  --node-question:        #707953;
+  --node-question-bg:     rgba(112, 121, 83, 0.10);
+  --node-question-border: rgba(112, 121, 83, 0.35);
+  --node-answer:          #8c9867;
+  --node-answer-bg:       rgba(140, 152, 103, 0.10);
+  --node-answer-border:   rgba(140, 152, 103, 0.35);
+  --node-field:           #a5ad85;
+  --node-field-bg:        rgba(165, 173, 133, 0.12);
+  --node-field-border:    rgba(165, 173, 133, 0.35);
+  --node-correction:      #a84242;
+  --node-correction-bg:   rgba(168, 66, 66, 0.10);
+  --node-correction-border: rgba(168, 66, 66, 0.35);
+  --node-application:     #5e7953;
+  --node-application-bg:  rgba(94, 121, 83, 0.10);
+  --node-application-border: rgba(94, 121, 83, 0.35);
 
   /* Confidence colors */
-  --conf-high:    #1e5e41;
-  --conf-mid:     #b45309;
-  --conf-low:     #b91c1c;
+  --conf-high:    #707953;
+  --conf-mid:     #8c9867;
+  --conf-low:     #a84242;
 
   /* Shadows */
-  --shadow-sm:    0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:    0 1px 2px rgba(0,0,0,0.04);
   --shadow-md:    0 4px 12px rgba(0,0,0,0.06);
   --shadow-lg:    0 8px 32px rgba(0,0,0,0.08);
 
   /* Typography */
-  --font-mono:    'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-  --font-sans:    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --font-sans:    'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Spacing scale */
   --r-sm: 6px;
@@ -60,42 +60,42 @@
 }
 
 html.dark {
-  --bg:           #121214;
-  --surface-1:    #18181b;
-  --surface-2:    #202024;
-  --surface-3:    #28282e;
-  --surface-hover:#32323a;
-  --border:       #2b2b31;
-  --border-soft:  #3b3b43;
-  --text:         #f4f4f5;
-  --text-muted:   #a1a1aa;
-  --text-faint:   #71717a;
+  --bg:           #0e0f0a;
+  --surface-1:    #1b1f14;
+  --surface-2:    #2d3420;
+  --surface-3:    #424c30;
+  --surface-hover:#23291b;
+  --border:       #2d3420;
+  --border-soft:  #424c30;
+  --text:         #e9ebe0;
+  --text-muted:   #a5ad85;
+  --text-faint:   #727a52;
 
-  /* Semantic accent (Sage Green) */
-  --accent:       #34a873;
-  --accent-dim:   rgba(52, 168, 115, 0.15);
+  /* Semantic accent (Luminous Moss) */
+  --accent:       #8c9867;
+  --accent-dim:   rgba(140, 152, 103, 0.18);
 
   /* Node type colors */
-  --node-question:        #34a873;
-  --node-question-bg:     rgba(52, 168, 115, 0.12);
-  --node-question-border: rgba(52, 168, 115, 0.4);
-  --node-answer:          #42be85;
-  --node-answer-bg:       rgba(66, 190, 133, 0.12);
-  --node-answer-border:   rgba(66, 190, 133, 0.4);
-  --node-field:           #e09433;
-  --node-field-bg:        rgba(224, 148, 51, 0.12);
-  --node-field-border:    rgba(224, 148, 51, 0.4);
-  --node-correction:      #ea5b5b;
-  --node-correction-bg:   rgba(234, 91, 91, 0.12);
-  --node-correction-border: rgba(234, 91, 91, 0.4);
-  --node-application:     #5a94c9;
-  --node-application-bg:  rgba(90, 148, 201, 0.12);
-  --node-application-border: rgba(90, 148, 201, 0.4);
+  --node-question:        #8c9867;
+  --node-question-bg:     rgba(140, 152, 103, 0.15);
+  --node-question-border: rgba(140, 152, 103, 0.4);
+  --node-answer:          #a3ac86;
+  --node-answer-bg:       rgba(163, 172, 134, 0.15);
+  --node-answer-border:   rgba(163, 172, 134, 0.4);
+  --node-field:           #bcc2a3;
+  --node-field-bg:        rgba(188, 194, 163, 0.15);
+  --node-field-border:    rgba(188, 194, 163, 0.4);
+  --node-correction:      #d16b6b;
+  --node-correction-bg:   rgba(209, 107, 107, 0.15);
+  --node-correction-border: rgba(209, 107, 107, 0.4);
+  --node-application:     #91ac86;
+  --node-application-bg:  rgba(145, 172, 134, 0.15);
+  --node-application-border: rgba(145, 172, 134, 0.4);
 
   /* Confidence colors */
-  --conf-high:    #34a873;
-  --conf-mid:     #e09433;
-  --conf-low:     #ea5b5b;
+  --conf-high:    #8c9867;
+  --conf-mid:     #a3ac86;
+  --conf-low:     #d16b6b;
 
   /* Shadows */
   --shadow-sm:    0 1px 2px rgba(0,0,0,0.4);

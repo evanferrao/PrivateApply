@@ -1,74 +1,74 @@
 /**
- * Private Apply Design System - Color Theme
+ * Private Apply Design System - Color Theme ("The Olive Atelier")
  * 
  * Centralized color constants for consistent branding across all UI surfaces.
  * DO NOT use inline hex values - always import from this file.
  */
 
 export const colors = {
-  // Primary Brand Colors (Refined Pine / Forest Sage)
-  accent: '#1E5E41',
-  accentHover: '#164932',
-  accentDark: '#34A873',
-  green: '#1E5E41',
-  greenDark: '#164932',
-  white: '#FFFFFF',
+  // Primary Brand Colors (Warm Moss / Olive)
+  accent: '#707953',
+  accentHover: '#545b3e',
+  accentDark: '#8c9867',
+  green: '#707953',
+  greenDark: '#545b3e',
+  white: '#ffffff',
   
-  // Neutral Grays (Warm, human, anti-slop)
-  grayLight: '#FAF9F6',
-  grayMedium: '#E5E3DC',
-  grayDark: '#52525B',
-  charcoal: '#18181B',
+  // Neutral Olive-Toned Grays
+  grayLight: '#f3f5f0',
+  grayMedium: '#cfd6c2',
+  grayDark: '#727a52',
+  charcoal: '#1d1f14',
   
-  // Semantic Colors (Desaturated, balanced)
-  success: '#1E5E41',
-  error: '#B91C1C',
-  warning: '#B45309',
-  info: '#2D557A',
+  // Semantic Colors
+  success: '#707953',
+  error: '#a84242',
+  warning: '#8c9867',
+  info: '#5e7953',
   
   // Status Colors (for dashboard)
-  statusSubmitted: '#2D557A',
-  statusInterviewing: '#B45309',
-  statusRejected: '#B91C1C',
-  statusAccepted: '#1E5E41',
-  statusWithdrawn: '#71717A',
+  statusSubmitted: '#5e7953',
+  statusInterviewing: '#8c9867',
+  statusRejected: '#a84242',
+  statusAccepted: '#707953',
+  statusWithdrawn: '#a5ad85',
   
   // Text Colors
-  textPrimary: '#18181B',
-  textSecondary: '#52525B',
-  textDisabled: '#5C5953',
-  textInverse: '#FAF9F6',
+  textPrimary: '#1d1f14',
+  textSecondary: '#727a52',
+  textDisabled: '#a5ad85',
+  textInverse: '#f3f5f0',
   
   // Background Colors
-  bgPrimary: '#FFFFFF',
-  bgSecondary: '#FAF9F6',
-  bgDark: '#121214',
-  bgSurfaceDark: '#18181B',
-  bgGreenTint: '#EDF6F1',
+  bgPrimary: '#e7ebe0',
+  bgSecondary: '#f3f5f0',
+  bgDark: '#0e0f0a',
+  bgSurfaceDark: '#1b1f14',
+  bgGreenTint: '#e4eae1',
   
   // Border Colors
-  borderLight: '#E5E3DC',
-  borderMedium: '#D3CFC5',
-  borderAccent: '#1E5E41',
-  borderDark: '#2B2B31',
+  borderLight: '#cfd6c2',
+  borderMedium: '#b8c2a3',
+  borderAccent: '#707953',
+  borderDark: '#2d3420',
 } as const;
 
 /**
  * Computed colors (derived from primary colors)
  */
 export const computed = {
-  greenHover: '#164932',
-  greenActive: '#0F3624',
-  greenDisabled: '#D3CFC5',
+  greenHover: '#545b3e',
+  greenActive: '#383d29',
+  greenDisabled: '#cfd6c2',
   
-  navyLight: '#2D557A',
-  navyDark: '#18181B',
+  navyLight: '#5e7953',
+  navyDark: '#1d1f14',
   
   // Opacity variants
-  accentAlpha10: 'rgba(30, 94, 65, 0.1)',
-  accentAlpha15: 'rgba(30, 94, 65, 0.15)',
-  accentAlpha20: 'rgba(30, 94, 65, 0.2)',
-  accentAlpha30: 'rgba(30, 94, 65, 0.3)',
+  accentAlpha10: 'rgba(112, 121, 83, 0.10)',
+  accentAlpha15: 'rgba(112, 121, 83, 0.15)',
+  accentAlpha20: 'rgba(112, 121, 83, 0.20)',
+  accentAlpha30: 'rgba(112, 121, 83, 0.30)',
 } as const;
 
 /**
@@ -126,10 +126,10 @@ export function injectThemeCSS(): void {
 }
 
 /**
- * Typography (optional - for consistency)
+ * Typography
  */
 export const typography = {
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  fontFamily: "'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   fontSizes: {
     xs: '11px',
     sm: '12px',
@@ -142,7 +142,7 @@ export const typography = {
 } as const;
 
 /**
- * Spacing (optional - for consistency)
+ * Spacing
  */
 export const spacing = {
   xs: '4px',
@@ -154,7 +154,7 @@ export const spacing = {
 } as const;
 
 /**
- * Border radius (optional - for consistency)
+ * Border radius
  */
 export const borderRadius = {
   sm: '6px',

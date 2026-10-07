@@ -104,7 +104,7 @@ export function showMissingInfoQuestionnaire(
       <div class="missing-drawer-top">
         <div class="missing-drawer-title-group">
           <div class="missing-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e5e41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#707953" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
           </div>
@@ -243,20 +243,21 @@ function ensureStyles(): void {
       pointer-events: auto;
     }
     .missing-drawer-card {
-      background: #ffffff;
-      color: #0f172a;
-      border: 1px solid #e2e8f0;
+      background: #e7ebe0;
+      color: #1d1f14;
+      border: 1px solid #cfd6c2;
       border-radius: 14px;
-      box-shadow: 0 16px 36px -4px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 16px 36px -4px rgba(29,31,20,0.18), 0 4px 12px rgba(29,31,20,0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       max-height: 80vh;
+      font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     .missing-drawer-top {
       padding: 16px 18px;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
+      background: #f3f5f0;
+      border-bottom: 1px solid #cfd6c2;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
@@ -271,20 +272,21 @@ function ensureStyles(): void {
       width: 32px;
       height: 32px;
       border-radius: 8px;
-      background: #e6f4ee;
+      background: #e4eae1;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      color: #707953;
     }
     .missing-drawer-title {
       font-size: 15px;
-      font-weight: 600;
-      color: #0f172a;
+      font-weight: 700;
+      color: #1d1f14;
     }
     .missing-drawer-desc {
       font-size: 12px;
-      color: #64748b;
+      color: #727a52;
       margin-top: 2px;
       line-height: 1.4;
     }
@@ -292,12 +294,12 @@ function ensureStyles(): void {
       background: none;
       border: none;
       font-size: 22px;
-      color: #94a3b8;
+      color: #727a52;
       cursor: pointer;
       line-height: 1;
       padding: 0 4px;
     }
-    .missing-drawer-close:hover { color: #0f172a; }
+    .missing-drawer-close:hover { color: #1d1f14; }
     .missing-drawer-list {
       padding: 14px 18px;
       overflow-y: auto;
@@ -310,15 +312,15 @@ function ensureStyles(): void {
       flex-direction: column;
       gap: 6px;
       padding: 10px 12px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: #f3f5f0;
+      border: 1px solid #cfd6c2;
       border-radius: 8px;
       transition: background 0.2s;
     }
     .missing-field-row.completed {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-      opacity: 0.85;
+      background: #e4eae1;
+      border-color: #b8c2a3;
+      opacity: 0.9;
     }
     .missing-field-header {
       display: flex;
@@ -328,16 +330,16 @@ function ensureStyles(): void {
     }
     .missing-field-label {
       font-size: 13px;
-      font-weight: 500;
-      color: #1e293b;
+      font-weight: 600;
+      color: #1d1f14;
     }
-    .missing-field-label .req { color: #e11d48; margin-left: 2px; }
+    .missing-field-label .req { color: #a84242; margin-left: 2px; }
     .missing-badge {
       font-size: 10px;
       text-transform: uppercase;
-      font-weight: 600;
-      background: #e2e8f0;
-      color: #475569;
+      font-weight: 700;
+      background: #cfd6c2;
+      color: #1d1f14;
       padding: 2px 6px;
       border-radius: 4px;
       letter-spacing: 0.5px;
@@ -350,35 +352,36 @@ function ensureStyles(): void {
       flex: 1;
       font-size: 13px;
       padding: 7px 10px;
-      border: 1px solid #e5e3dc;
+      border: 1px solid #cfd6c2;
       border-radius: 6px;
       outline: none;
-      background: #ffffff;
-      color: #18181b;
+      background: #e7ebe0;
+      color: #1d1f14;
+      font-family: inherit;
     }
     .missing-input:focus {
-      border-color: #1e5e41;
-      box-shadow: 0 0 0 2px rgba(30,94,65,0.15);
+      border-color: #707953;
+      box-shadow: 0 0 0 2px rgba(112,121,83,0.18);
     }
     .btn-fill-single {
-      background: #1e5e41;
-      color: #ffffff;
+      background: #707953;
+      color: #f3f5f0;
       border: none;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 700;
       padding: 7px 12px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
       transition: background 0.15s;
     }
-    .btn-fill-single:hover { background: #164932; }
+    .btn-fill-single:hover { background: #545b3e; }
     .missing-field-options {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 11px;
-      color: #57554f;
+      color: #727a52;
     }
     .save-profile-checkbox {
       display: flex;
@@ -388,34 +391,35 @@ function ensureStyles(): void {
     }
     .missing-drawer-footer {
       padding: 12px 18px;
-      background: #faf9f6;
-      border-top: 1px solid #e5e3dc;
+      background: #f3f5f0;
+      border-top: 1px solid #cfd6c2;
       display: flex;
       align-items: center;
       justify-content: flex-end;
       gap: 10px;
     }
     .btn-fill-all {
-      background: #18181b;
-      color: #ffffff;
+      background: #707953;
+      color: #f3f5f0;
       border: none;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 700;
       padding: 8px 14px;
       border-radius: 7px;
       cursor: pointer;
       transition: background 0.15s;
     }
-    .btn-fill-all:hover { background: #27272a; }
+    .btn-fill-all:hover { background: #545b3e; }
     .btn-dismiss-drawer {
       background: none;
       border: none;
       font-size: 13px;
-      color: #57554f;
+      color: #727a52;
       cursor: pointer;
       padding: 8px 10px;
+      font-weight: 600;
     }
-    .btn-dismiss-drawer:hover { color: #18181b; }
+    .btn-dismiss-drawer:hover { color: #1d1f14; }
   `;
   document.head.appendChild(style);
 }

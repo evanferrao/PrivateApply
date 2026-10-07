@@ -20,9 +20,15 @@ function loadPopupHTML(): Document {
 }
 
 function getInlineStyles(doc: Document): string {
-  return Array.from(doc.querySelectorAll('style'))
+  const inline = Array.from(doc.querySelectorAll('style'))
     .map(s => s.textContent ?? '')
     .join('\n');
+  try {
+    const cssPath = resolve(__dirname, '../../public/popup/popup.css');
+    return inline + '\n' + readFileSync(cssPath, 'utf-8');
+  } catch {
+    return inline;
+  }
 }
 
 // ── Animation CSS presence ────────────────────────────────────────────────────

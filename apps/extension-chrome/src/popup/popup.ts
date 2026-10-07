@@ -30,11 +30,21 @@ let currentState: PopupState = {
 function updateUI(): void {
   // Enabled toggle (in header)
   const enabledToggle = document.getElementById('toggle-enabled');
-  if (enabledToggle) enabledToggle.classList.toggle('active', currentState.enabled);
+  if (enabledToggle) {
+    enabledToggle.classList.toggle('active', currentState.enabled);
+    enabledToggle.setAttribute('aria-checked', String(currentState.enabled));
+  }
 
   // Dry run toggle
   const dryrunToggle = document.getElementById('dryrun-toggle');
-  if (dryrunToggle) dryrunToggle.classList.toggle('active', currentState.dryRun);
+  const dryrunBadge = document.getElementById('dryrun-badge');
+  if (dryrunToggle) {
+    dryrunToggle.classList.toggle('active', currentState.dryRun);
+    dryrunToggle.setAttribute('aria-checked', String(currentState.dryRun));
+  }
+  if (dryrunBadge) {
+    dryrunBadge.classList.toggle('visible', currentState.dryRun);
+  }
 
   // Ollama / AI status
   const ollamaStatusEl = document.getElementById('ollama-status');
@@ -80,16 +90,31 @@ function updateUI(): void {
       const title = currentState.lastJob.title || 'Unknown Title';
       const company = currentState.lastJob.hostname || '';
       setHTML(jobInfoEl, `
-        <div class="job-card-detected">
-          <div class="job-dot"></div>
+        <div class="job-card-detected job-bar-detected">
+          <div class="job-dot" aria-hidden="true"></div>
           <div>
-            <div class="job-title">Job Page Detected</div>
-            <div class="job-detail">${escapeHtml(title)} &middot; ${escapeHtml(company)}</div>
+            <div class="job-title job-bar-label">Job Page Detected</div>
+            <div class="job-detail job-bar-detail">${escapeHtml(title)} &middot; ${escapeHtml(company)}</div>
           </div>
         </div>
       `);
     } else {
-      setHTML(jobInfoEl, '<div class="job-empty">No job detected yet</div>');
+      setHTML(jobInfoEl, `
+        <div class="job-empty job-bar-empty">
+          <div class="empty-state-header">
+            <svg class="empty-state-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="empty-state-title">Ready to Apply</span>
+          </div>
+          <p class="empty-state-desc">Navigate to any job posting to detect application fields and auto-fill.</p>
+          <div class="supported-chips" aria-label="Supported platforms">
+            <span class="ats-chip">LinkedIn</span>
+            <span class="ats-chip">Greenhouse</span>
+            <span class="ats-chip">Lever</span>
+            <span class="ats-chip">Workday</span>
+            <span class="ats-chip">Ashby</span>
+          </div>
+        </div>
+      `);
     }
   }
 }
@@ -241,7 +266,7 @@ async function checkProfileStatus(): Promise<void> {
 
       if (activeMeta) {
         warningEl.style.display = 'block';
-        setHTML(warningEl, `<strong>${escapeHtml(activeMeta.name)} needs setup.</strong> <a href="#" id="profile-warning-link" style="color:#ea580c;text-decoration:underline;">Set up profile</a> to enable auto-fill.`);
+        setHTML(warningEl, `<strong>${escapeHtml(activeMeta.name)} needs setup.</strong> <a href="#" id="profile-warning-link" style="color:var(--amber);text-decoration:underline;">Set up profile</a> to enable auto-fill.`);
         warningEl.querySelector('#profile-warning-link')?.addEventListener('click', (e) => {
           e.preventDefault();
           browser.tabs.create({ url: browser.runtime.getURL(`onboarding/onboarding.html?profileId=${encodeURIComponent(activeMeta.id)}`) });
@@ -249,7 +274,7 @@ async function checkProfileStatus(): Promise<void> {
         });
       } else {
         warningEl.style.display = 'block';
-        setHTML(warningEl, '<strong>No profile found.</strong> <a href="#" id="profile-warning-link" style="color:#ea580c;text-decoration:underline;">Set up your profile</a> to enable auto-fill.');
+        setHTML(warningEl, '<strong>No profile found.</strong> <a href="#" id="profile-warning-link" style="color:var(--amber);text-decoration:underline;">Set up your profile</a> to enable auto-fill.');
         warningEl.querySelector('#profile-warning-link')?.addEventListener('click', (e) => {
           e.preventDefault();
           browser.tabs.create({ url: browser.runtime.getURL('onboarding/onboarding.html') });
@@ -268,7 +293,7 @@ async function checkProfileStatus(): Promise<void> {
       const moreCount = completeness.missingFields.length - 4;
       const moreText = moreCount > 0 ? ` +${moreCount} more` : '';
       warningEl.style.display = 'block';
-      setHTML(warningEl, `<strong>Profile ${completeness.completionPercentage}% complete.</strong> Missing: ${missing}${moreText}. <a href="#" id="profile-warning-link" style="color:#ea580c;text-decoration:underline;">Complete profile</a>`);
+      setHTML(warningEl, `<strong>Profile ${completeness.completionPercentage}% complete.</strong> Missing: ${missing}${moreText}. <a href="#" id="profile-warning-link" style="color:var(--amber);text-decoration:underline;">Complete profile</a>`);
       warningEl.querySelector('#profile-warning-link')?.addEventListener('click', (e) => {
         e.preventDefault();
         browser.tabs.create({ url: browser.runtime.getURL('onboarding/onboarding.html') });
@@ -316,55 +341,129 @@ async function renderProfileSwitcher(): Promise<void> {
   for (const p of profiles) {
     const isActive = p.id === activeId;
     dropdownHtml += `
-      <div class="profile-dropdown-item ${isActive ? 'active' : ''}" data-switch-profile="${escapeHtml(p.id)}">
-        <div class="profile-dot" style="background:${p.color}"></div>
+      <div class="profile-dropdown-item ${isActive ? 'active' : ''}" role="option" aria-selected="${isActive}" tabindex="0" data-switch-profile="${escapeHtml(p.id)}">
+        <div class="profile-dot" style="background:${p.color}" aria-hidden="true"></div>
         <span class="pdi-name">${escapeHtml(p.name)}</span>
         ${p.targetRole ? `<span class="pdi-role">${escapeHtml(p.targetRole)}</span>` : ''}
       </div>
     `;
   }
-  dropdownHtml += `<div class="profile-dropdown-manage" id="popup-manage-profiles">Manage Profiles</div>`;
+  dropdownHtml += `<div class="profile-dropdown-manage" id="popup-manage-profiles" role="button" tabindex="0">Manage Profiles</div>`;
   setHTML(dropdownEl, dropdownHtml);
 
-  switcherEl.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownEl.classList.toggle('open');
-  });
+  const setDropdownOpen = (open: boolean) => {
+    dropdownEl.classList.toggle('open', open);
+    switcherEl.setAttribute('aria-expanded', String(open));
+  };
 
-  document.addEventListener('click', () => {
-    dropdownEl.classList.remove('open');
-  });
+  switcherEl.onclick = (e) => {
+    e.stopPropagation();
+    const isOpen = dropdownEl.classList.contains('open');
+    setDropdownOpen(!isOpen);
+  };
+
+  switcherEl.onkeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      setDropdownOpen(true);
+      const firstOption = dropdownEl.querySelector<HTMLElement>('[role="option"]');
+      firstOption?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setDropdownOpen(false);
+    }
+  };
+
+  document.onclick = () => {
+    setDropdownOpen(false);
+  };
 
   dropdownEl.querySelectorAll('[data-switch-profile]').forEach(item => {
-    item.addEventListener('click', async (e) => {
+    const selectFn = async (e: Event) => {
       e.stopPropagation();
       const id = (item as HTMLElement).dataset.switchProfile!;
-      if (id === activeId) { dropdownEl.classList.remove('open'); return; }
+      if (id === activeId) { setDropdownOpen(false); return; }
       await setActiveProfile(id);
       await browser.runtime.sendMessage({ kind: 'SWITCH_PROFILE', profileId: id }).catch(() => {});
-      dropdownEl.classList.remove('open');
+      setDropdownOpen(false);
       await renderProfileSwitcher();
       await checkProfileStatus();
+      switcherEl.focus();
+    };
+
+    item.addEventListener('click', selectFn);
+    item.addEventListener('keydown', (e: Event) => {
+      const ke = e as KeyboardEvent;
+      if (ke.key === 'Enter' || ke.key === ' ') {
+        ke.preventDefault();
+        selectFn(e);
+      } else if (ke.key === 'Escape') {
+        ke.preventDefault();
+        setDropdownOpen(false);
+        switcherEl.focus();
+      } else if (ke.key === 'ArrowDown') {
+        ke.preventDefault();
+        const next = item.nextElementSibling as HTMLElement | null;
+        if (next && next.tabIndex >= 0) next.focus();
+      } else if (ke.key === 'ArrowUp') {
+        ke.preventDefault();
+        const prev = item.previousElementSibling as HTMLElement | null;
+        if (prev && prev.tabIndex >= 0) prev.focus();
+        else switcherEl.focus();
+      }
     });
   });
 
-  document.getElementById('popup-manage-profiles')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    browser.tabs.create({ url: browser.runtime.getURL('profiles/profiles.html') });
-    window.close();
-  });
+  const manageBtn = document.getElementById('popup-manage-profiles');
+  if (manageBtn) {
+    const openManage = (e: Event) => {
+      e.stopPropagation();
+      browser.tabs.create({ url: browser.runtime.getURL('profiles/profiles.html') });
+      window.close();
+    };
+    manageBtn.addEventListener('click', openManage);
+    manageBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openManage(e);
+      }
+    });
+  }
 }
 
 async function init(): Promise<void> {
-  // ── Tab switching ──
-  document.querySelectorAll('.tab-btn').forEach(btn => {
+  // ── Tab switching with full keyboard navigation ──
+  const tabButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab-btn'));
+  tabButtons.forEach((btn, index) => {
     btn.addEventListener('click', () => {
-      const target = (btn as HTMLElement).dataset.tab;
+      const target = btn.dataset.tab;
       if (!target) return;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      tabButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
       document.getElementById(target)?.classList.add('active');
+    });
+
+    btn.addEventListener('keydown', (e: KeyboardEvent) => {
+      let newIndex = index;
+      if (e.key === 'ArrowRight') {
+        newIndex = (index + 1) % tabButtons.length;
+      } else if (e.key === 'ArrowLeft') {
+        newIndex = (index - 1 + tabButtons.length) % tabButtons.length;
+      } else if (e.key === 'Home') {
+        newIndex = 0;
+      } else if (e.key === 'End') {
+        newIndex = tabButtons.length - 1;
+      } else {
+        return;
+      }
+      e.preventDefault();
+      tabButtons[newIndex].focus();
+      tabButtons[newIndex].click();
     });
   });
 
@@ -442,7 +541,6 @@ async function init(): Promise<void> {
     window.close();
   });
 
-
   // ── Footer links ──
   document.getElementById('home-btn')?.addEventListener('click', () => {
     browser.tabs.create({ url: browser.runtime.getURL('home/home.html') });
@@ -461,12 +559,25 @@ async function init(): Promise<void> {
     window.close();
   });
 
-  // ── Auto-Fill ──
+  // ── Auto-Fill with Execution Feedback ──
   document.getElementById('manual-autofill-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('manual-autofill-btn') as HTMLButtonElement | null;
+    const textEl = document.getElementById('btn-autofill-text');
+    if (btn) {
+      btn.disabled = true;
+      if (textEl) textEl.textContent = 'Filling Application...';
+    }
     try {
       await dispatchCustomEventOnActiveTab('privateapply-manual-autofill');
-      window.close();
-    } catch (err) { error('Autofill trigger failed:', err); }
+      if (textEl) textEl.textContent = 'Application Filled!';
+      setTimeout(() => {
+        window.close();
+      }, 350);
+    } catch (err) {
+      error('Autofill trigger failed:', err);
+      if (btn) btn.disabled = false;
+      if (textEl) textEl.textContent = 'Auto-Fill Application';
+    }
   });
 
   // ── Cover Letter ──
@@ -477,19 +588,34 @@ async function init(): Promise<void> {
     } catch (err) { error('Cover letter trigger failed:', err); }
   });
 
-
-  // ── Enabled toggle ──
-  document.getElementById('toggle-enabled')?.addEventListener('click', async () => {
+  // ── Enabled toggle (Click + Keyboard Enter/Space) ──
+  const toggleEnabledFn = async () => {
     currentState.enabled = !currentState.enabled;
     await setSettings({ enabled: currentState.enabled });
     updateUI();
+  };
+  const toggleEnabledEl = document.getElementById('toggle-enabled');
+  toggleEnabledEl?.addEventListener('click', toggleEnabledFn);
+  toggleEnabledEl?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleEnabledFn();
+    }
   });
 
-  // ── Dry Run toggle ──
-  document.getElementById('dryrun-toggle')?.addEventListener('click', async () => {
+  // ── Dry Run toggle (Click + Keyboard Enter/Space) ──
+  const toggleDryRunFn = async () => {
     currentState.dryRun = !currentState.dryRun;
     await setSettings({ dryRun: currentState.dryRun });
     updateUI();
+  };
+  const toggleDryRunEl = document.getElementById('dryrun-toggle');
+  toggleDryRunEl?.addEventListener('click', toggleDryRunFn);
+  toggleDryRunEl?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleDryRunFn();
+    }
   });
 
   // ── Advanced panel toggle ──
@@ -499,6 +625,7 @@ async function init(): Promise<void> {
     advToggle.addEventListener('click', () => {
       const isOpen = advPanel.classList.toggle('open');
       advToggle.classList.toggle('open', isOpen);
+      advToggle.setAttribute('aria-expanded', String(isOpen));
     });
   }
 

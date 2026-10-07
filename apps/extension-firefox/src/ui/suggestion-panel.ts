@@ -303,8 +303,8 @@ function highlightFieldSuccess(selector: string): void {
   activeHighlight = selector;
 
   el.style.transition = 'outline .2s, box-shadow .2s';
-  el.style.outline = '3px solid #1e5e41';
-  el.style.boxShadow = '0 0 0 6px rgba(30, 94, 65, 0.2)';
+  el.style.outline = '3px solid #707953';
+  el.style.boxShadow = '0 0 0 6px rgba(112, 121, 83, 0.2)';
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   // Auto-clear after 2 seconds
@@ -336,9 +336,9 @@ function updateApplyCount(): void {
 }
 
 function confidenceColor(c: number): string {
-  if (c >= 0.8) return '#1e5e41';
-  if (c >= 0.6) return '#f59e0b';
-  return '#94a3b8';
+  if (c >= 0.8) return '#707953';
+  if (c >= 0.6) return '#8c9867';
+  return '#a5ad85';
 }
 
 function sourceLabel(s: string): string {
@@ -369,12 +369,12 @@ function injectStyles(): void {
   top: 0; right: 0;
   width: 380px;
   height: 100vh;
-  background: #fff;
-  box-shadow: -4px 0 24px rgba(0,0,0,.12);
+  background: #f3f5f0;
+  box-shadow: -4px 0 24px rgba(29,31,20,.12);
   z-index: 2147483647;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #1d1f14;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
@@ -387,9 +387,9 @@ function injectStyles(): void {
 /* ── Header ── */
 .osp-header {
   padding: 16px 20px;
-  background: #18181b;
-  border-bottom: 1px solid #27272a;
-  color: #f4f4f5;
+  background: #e7ebe0;
+  border-bottom: 1px solid #cfd6c2;
+  color: #1d1f14;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -398,21 +398,22 @@ function injectStyles(): void {
 .osp-header-left { display: flex; align-items: center; gap: 12px; }
 .osp-logo {
   width: 32px; height: 32px;
-  background: rgba(255,255,255,.1);
+  background: #cfd6c2;
+  color: #1d1f14;
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 16px; flex-shrink: 0;
 }
-.osp-title { font-weight: 700; font-size: 16px; line-height: 1.2; }
-.osp-subtitle { font-size: 12px; opacity: .85; margin-top: 2px; }
+.osp-title { font-weight: 700; font-size: 16px; line-height: 1.2; color: #1d1f14; }
+.osp-subtitle { font-size: 12px; color: #727a52; margin-top: 2px; }
 .osp-close {
-  background: rgba(255,255,255,.1);
-  border: none; color: #fff; width: 30px; height: 30px;
+  background: #cfd6c2;
+  border: none; color: #1d1f14; width: 30px; height: 30px;
   border-radius: 6px; cursor: pointer; font-size: 20px;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s;
 }
-.osp-close:hover { background: rgba(255,255,255,.2); }
+.osp-close:hover { background: #b8c2a3; }
 
 /* ── Scrollable body ── */
 .osp-body {
@@ -422,22 +423,22 @@ function injectStyles(): void {
 
 /* ── Card ── */
 .osp-card {
-  border: 1px solid #e5e3dc;
+  border: 1px solid #cfd6c2;
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 10px;
-  background: #fff;
+  background: #e7ebe0;
   transition: border-color .2s, opacity .2s;
 }
-.osp-card:hover { border-color: #18181b; }
+.osp-card:hover { border-color: #8c9867; }
 .osp-card--disabled { opacity: .45; }
-.osp-card--disabled:hover { border-color: #e5e3dc; }
+.osp-card--disabled:hover { border-color: #cfd6c2; }
 .osp-card--applied {
-  border-color: #1e5e41;
-  background: #edf6f1;
-  opacity: .8;
+  border-color: #707953;
+  background: #e4eae1;
+  opacity: .9;
 }
-.osp-card--applied:hover { border-color: #1e5e41; }
+.osp-card--applied:hover { border-color: #707953; }
 .osp-card--applied .osp-options { pointer-events: none; opacity: .5; }
 
 .osp-card-head {
@@ -448,40 +449,40 @@ function injectStyles(): void {
 }
 .osp-toggle {
   width: 16px; height: 16px; cursor: pointer;
-  accent-color: #0a0a0a; flex-shrink: 0;
+  accent-color: #707953; flex-shrink: 0;
 }
 .osp-card-label {
-  font-weight: 600; font-size: 13px; color: #111827;
+  font-weight: 700; font-size: 13px; color: #1d1f14;
   flex: 1; cursor: pointer;
   text-decoration: underline;
   text-decoration-color: transparent;
   transition: text-decoration-color .15s;
 }
 .osp-card-label:hover {
-  text-decoration-color: #0a0a0a;
-  color: #0a0a0a;
+  text-decoration-color: #707953;
+  color: #707953;
 }
 .osp-badge {
-  color: #fff; font-size: 10px; font-weight: 700;
+  color: #f3f5f0; font-size: 10px; font-weight: 700;
   padding: 2px 7px; border-radius: 4px;
   flex-shrink: 0;
 }
 .osp-btn-single {
-  background: #f4f3ee; color: #18181b;
-  border: 1px solid #e5e3dc; border-radius: 6px;
+  background: #f3f5f0; color: #1d1f14;
+  border: 1px solid #cfd6c2; border-radius: 6px;
   padding: 3px 10px; font-size: 11px; font-weight: 600;
   cursor: pointer; transition: all .15s;
   flex-shrink: 0; font-family: inherit;
 }
 .osp-btn-single:hover {
-  background: #18181b; color: #fff;
-  border-color: #18181b;
+  background: #cfd6c2; color: #1d1f14;
+  border-color: #8c9867;
 }
 .osp-btn-single:disabled {
   opacity: .5; cursor: default;
 }
 .osp-applied-tag {
-  color: #1e5e41; font-size: 11px; font-weight: 700;
+  color: #707953; font-size: 11px; font-weight: 700;
   flex-shrink: 0; white-space: nowrap;
 }
 
@@ -489,32 +490,33 @@ function injectStyles(): void {
 .osp-options { display: flex; flex-direction: column; gap: 6px; }
 .osp-option {
   display: flex; align-items: flex-start; gap: 8px;
-  padding: 8px 10px; border: 2px solid #e5e3dc;
+  padding: 8px 10px; border: 1px solid #cfd6c2;
   border-radius: 8px; cursor: pointer;
+  background: #f3f5f0;
   transition: border-color .15s, background .15s;
 }
-.osp-option:hover { border-color: #c8e4d6; background: #faf9f6; }
-.osp-option--selected { border-color: #1e5e41; background: #edf6f1; }
-.osp-option input[type=radio] { margin-top: 3px; accent-color: #1e5e41; flex-shrink: 0; }
+.osp-option:hover { border-color: #8c9867; background: #dfe4d7; }
+.osp-option--selected { border-color: #707953; background: #e4eae1; }
+.osp-option input[type=radio] { margin-top: 3px; accent-color: #707953; flex-shrink: 0; }
 
 .osp-option-body { flex: 1; min-width: 0; }
 .osp-option-value {
-  font-size: 13px; color: #111827;
+  font-size: 13px; color: #1d1f14;
   word-break: break-word; line-height: 1.4;
 }
 .osp-option-meta {
   display: flex; align-items: center; gap: 6px;
-  margin-top: 4px; font-size: 11px; color: #6b7280;
+  margin-top: 4px; font-size: 11px; color: #727a52;
 }
 .osp-source {
   padding: 1px 5px; border-radius: 3px;
   font-size: 10px; font-weight: 600;
-  text-transform: uppercase; color: #fff;
+  text-transform: uppercase; color: #f3f5f0;
 }
-.osp-source--profile { background: #2d68c4; }
-.osp-source--contextual { background: #18181b; }
-.osp-source--ai { background: #1e5e41; }
-.osp-source--learned { background: #1e5e41; }
+.osp-source--profile { background: #5e7953; }
+.osp-source--contextual { background: #383d29; }
+.osp-source--ai { background: #707953; }
+.osp-source--learned { background: #707953; }
 .osp-reason {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -522,29 +524,29 @@ function injectStyles(): void {
 /* ── Footer ── */
 .osp-footer {
   padding: 12px 16px;
-  border-top: 1px solid #e5e3dc;
-  background: #faf9f6;
+  border-top: 1px solid #cfd6c2;
+  background: #f3f5f0;
   display: flex; gap: 10px; justify-content: flex-end;
   flex-shrink: 0;
 }
 .osp-btn {
   padding: 9px 18px; border-radius: 8px;
-  font-size: 13px; font-weight: 600;
+  font-size: 13px; font-weight: 700;
   cursor: pointer; border: none;
   transition: all .15s; font-family: inherit;
 }
 .osp-btn-cancel {
-  background: #fff; color: #18181b;
-  border: 1px solid #e5e3dc;
+  background: #e7ebe0; color: #1d1f14;
+  border: 1px solid #cfd6c2;
 }
-.osp-btn-cancel:hover { background: #f4f3ee; }
+.osp-btn-cancel:hover { background: #dfe4d7; }
 .osp-btn-apply {
-  background: #1e5e41;
-  color: #fff;
+  background: #707953;
+  color: #f3f5f0;
 }
 .osp-btn-apply:hover {
-  background: #164932;
-  box-shadow: 0 4px 12px rgba(30, 94, 65, 0.25);
+  background: #545b3e;
+  box-shadow: 0 4px 12px rgba(112, 121, 83, 0.25);
   transform: translateY(-1px);
 }
 .osp-btn-apply:active { transform: translateY(0); }

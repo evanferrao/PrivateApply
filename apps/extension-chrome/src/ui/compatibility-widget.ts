@@ -192,7 +192,7 @@ export function enterFillMode(total: number): void {
     circle.setAttribute('cy', '38');
     circle.setAttribute('r', String(RING_RADIUS));
     circle.setAttribute('fill', 'none');
-    circle.setAttribute('stroke', '#1e5e41');
+    circle.setAttribute('stroke', '#707953');
     circle.setAttribute('stroke-width', '3.5');
     circle.setAttribute('stroke-linecap', 'round');
     circle.style.cssText = `
@@ -224,7 +224,7 @@ export function enterFillMode(total: number): void {
       textAlign: 'center',
       fontSize: '10px',
       fontWeight: '600',
-      color: '#1e5e41',
+      color: '#707953',
       marginTop: '-4px',
       whiteSpace: 'nowrap',
       opacity: '0.9',
@@ -294,7 +294,7 @@ export function enterFillMode(total: number): void {
       fillPauseOverlay.style.opacity = '0';
       setHTML(fillPauseOverlay, `<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`);
       if (fillLabelEl) {
-        fillLabelEl.style.color = '#1e5e41';
+        fillLabelEl.style.color = '#707953';
       }
     }
   }) as EventListener;
@@ -324,12 +324,12 @@ export function exitFillMode(success: boolean, filled: number, total: number): v
   // Show completion state on ring
   if (fillRingCircle) {
     fillRingCircle.style.strokeDashoffset = '0';
-    fillRingCircle.setAttribute('stroke', success ? '#1e5e41' : '#d97706');
+    fillRingCircle.setAttribute('stroke', success ? '#707953' : '#d97706');
   }
 
   if (fillLabelEl) {
     fillLabelEl.textContent = success ? `${filled} filled` : `${filled}/${total}`;
-    fillLabelEl.style.color = success ? '#1e5e41' : '#d97706';
+    fillLabelEl.style.color = success ? '#707953' : '#d97706';
   }
 
   // Remove pause overlay immediately
@@ -811,7 +811,7 @@ function buildHeroCard(): HTMLElement {
   const wrap = el('div');
   setStyles(wrap, {
     margin: '10px', padding: '16px', borderRadius: '12px',
-    background: '#1e5e41',
+    background: '#707953',
     color: '#fff',
   });
 
@@ -828,13 +828,13 @@ function buildHeroCard(): HTMLElement {
   const btn = el('button');
   setStyles(btn, {
     width: '100%', padding: '10px', borderRadius: '8px',
-    background: '#fff', color: '#1e5e41', border: 'none',
+    background: '#f3f5f0', color: '#545b3e', border: 'none',
     fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit',
     transition: 'background 0.15s, transform 0.1s',
   });
   btn.textContent = 'Auto-Fill Application';
-  btn.addEventListener('mouseenter', () => { btn.style.background = '#edf6f1'; });
-  btn.addEventListener('mouseleave', () => { btn.style.background = '#fff'; });
+  btn.addEventListener('mouseenter', () => { btn.style.background = '#e7ebe0'; });
+  btn.addEventListener('mouseleave', () => { btn.style.background = '#f3f5f0'; });
   btn.addEventListener('click', () => {
     window.dispatchEvent(new CustomEvent('privateapply-manual-autofill'));
   });
@@ -993,10 +993,10 @@ function buildProfileSection(): HTMLElement {
 
       if (score !== undefined) {
         const scorePill = el('span');
-        const pillColor = isBestFit ? '#1e5e41' : '#57554f';
+        const pillColor = isBestFit ? '#545b3e' : '#57554f';
         setStyles(scorePill, {
           fontSize: '9px', fontWeight: '600', color: pillColor,
-          background: isBestFit ? '#edf6f1' : '#f4f3ee',
+          background: isBestFit ? '#e4eae1' : '#f4f3ee',
           padding: '1px 5px', borderRadius: '8px', flexShrink: '0',
           lineHeight: '1.4',
         });
@@ -1007,7 +1007,7 @@ function buildProfileSection(): HTMLElement {
       if (isBestFit) {
         const bestTag = el('span');
         setStyles(bestTag, {
-          fontSize: '8px', fontWeight: '600', color: '#1e5e41',
+          fontSize: '8px', fontWeight: '600', color: '#707953',
           flexShrink: '0', letterSpacing: '0.02em',
         });
         bestTag.textContent = 'Best fit';
@@ -1112,7 +1112,7 @@ function buildResumeAccordion(data: CompatData): HTMLElement {
     setStyles(badges, { display: 'flex', flexWrap: 'wrap', gap: '3px' });
     matched.forEach(kw => {
       const b = el('span');
-      setStyles(b, { padding: '2px 7px', borderRadius: '20px', fontSize: '10px', fontWeight: '500', background: '#edf6f1', color: '#1e5e41', border: '1px solid #c8e4d6' });
+      setStyles(b, { padding: '2px 7px', borderRadius: '20px', fontSize: '10px', fontWeight: '500', background: '#e4eae1', color: '#545b3e', border: '1px solid #c8d6c2' });
       b.textContent = kw;
       badges.appendChild(b);
     });
@@ -1125,13 +1125,13 @@ function buildResumeAccordion(data: CompatData): HTMLElement {
   setStyles(tailorBtn, {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
     width: '100%', padding: '8px 10px', borderRadius: '8px',
-    background: '#16a34a', color: '#fff', border: 'none',
+    background: '#707953', color: '#fff', border: 'none',
     fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit',
     marginTop: '8px', transition: 'background 0.15s',
   });
   setHTML(tailorBtn, `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/></svg>` + escHtml('Tailor Resume'));
-  tailorBtn.addEventListener('mouseenter', () => { tailorBtn.style.background = '#15803d'; });
-  tailorBtn.addEventListener('mouseleave', () => { tailorBtn.style.background = '#16a34a'; });
+  tailorBtn.addEventListener('mouseenter', () => { tailorBtn.style.background = '#545b3e'; });
+  tailorBtn.addEventListener('mouseleave', () => { tailorBtn.style.background = '#707953'; });
   tailorBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     window.dispatchEvent(new CustomEvent('privateapply-tailor-resume'));
@@ -1388,7 +1388,7 @@ export function computeCompatibility(profile: UserProfile, pageText: string): Co
 
   let aiInsight = '';
   if (overall >= 85) {
-    aiInsight = `<strong style="color:#1e5e41">Strong candidate!</strong> Profile aligns well.`;
+    aiInsight = `<strong style="color:#707953">Strong candidate!</strong> Profile aligns well.`;
     if (missing.length) aiInsight += ` Consider: <em>${missing.slice(0,2).map(cap).join(', ')}</em>.`;
   } else if (overall >= 65) {
     aiInsight = `<strong style="color:#d97706">Good fit</strong> with some gaps.`;
@@ -1413,7 +1413,7 @@ export function computeCompatibility(profile: UserProfile, pageText: string): Co
 // Score helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function scoreDot(s: number)      { return s >= 80 ? '#1e5e41' : s >= 60 ? '#d97706' : '#dc2626'; }
+function scoreDot(s: number)      { return s >= 80 ? '#707953' : s >= 60 ? '#d97706' : '#dc2626'; }
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function escHtml(s: string) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 

@@ -55,15 +55,16 @@ export function showNotification(
   el.className = 'privateapply-toast privateapply-toast-enter';
   el.setAttribute('data-type', type);
   el.style.cssText = `
-    background: #fff;
+    background: #e7ebe0;
     border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(30,41,59,0.14), 0 1px 4px rgba(30,41,59,0.08);
+    box-shadow: 0 4px 20px rgba(29,31,20,0.12), 0 1px 4px rgba(29,31,20,0.06);
     padding: 14px 16px;
     min-width: 300px;
     max-width: 380px;
     pointer-events: auto;
+    border: 1px solid #cfd6c2;
     border-left: 4px solid ${accent};
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     animation: privateapply-slide-in 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
   `;
 
@@ -71,8 +72,8 @@ export function showNotification(
     <div style="display:flex;align-items:flex-start;gap:10px;">
       <div style="flex-shrink:0;margin-top:1px;">${iconSvg}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;font-size:13px;color:#0a0a0a;line-height:1.3;margin-bottom:3px;">${escapeHtml(title)}</div>
-        <div style="font-size:12px;color:#64748b;line-height:1.4;">${escapeHtml(message)}</div>
+        <div style="font-weight:700;font-size:13.5px;color:#1d1f14;line-height:1.3;margin-bottom:3px;">${escapeHtml(title)}</div>
+        <div style="font-size:12px;color:#727a52;line-height:1.4;">${escapeHtml(message)}</div>
       </div>
       <button class="privateapply-toast-close"
         style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;line-height:1;padding:0;width:18px;height:18px;flex-shrink:0;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:background 0.15s,color 0.15s;"
@@ -129,20 +130,20 @@ export function clearAllNotifications(): void {
 function getTypeStyle(type: NotificationType): { accent: string; iconSvg: string } {
   const styles = {
     success: {
-      accent: '#1e5e41',
-      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#1e5e41"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      accent: '#707953',
+      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#707953"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="#f3f5f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     },
     error: {
-      accent: '#ef4444',
-      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#ef4444"/><path d="M6 6l6 6M12 6l-6 6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      accent: '#a84242',
+      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#a84242"/><path d="M6 6l6 6M12 6l-6 6" stroke="#f3f5f0" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     },
     warning: {
-      accent: '#f59e0b',
-      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1.5l7.5 14H1.5L9 1.5z" fill="#f59e0b"/><path d="M9 7v3.5M9 12.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      accent: '#8c9867',
+      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1.5l7.5 14H1.5L9 1.5z" fill="#8c9867"/><path d="M9 7v3.5M9 12.5h.01" stroke="#f3f5f0" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     },
     info: {
-      accent: '#18181b',
-      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#18181b"/><path d="M9 8.5v4M9 5.5h.01" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      accent: '#5e7953',
+      iconSvg: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#5e7953"/><path d="M9 8.5v4M9 5.5h.01" stroke="#f3f5f0" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     },
   };
   return styles[type];
@@ -271,15 +272,15 @@ function ensureBetaBannerStyles(): void {
       z-index: 2147483646;
       display: flex;
       align-items: center;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid #0a0a0a;
+      background: #e7ebe0;
+      border: 1px solid #cfd6c2;
+      border-left: 4px solid #707953;
       border-radius: 10px;
       padding: 10px 14px 10px 12px;
       max-width: 480px;
       width: max-content;
-      box-shadow: 0 4px 20px rgba(30,41,59,0.12), 0 1px 4px rgba(30,41,59,0.07);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      box-shadow: 0 4px 20px rgba(29,31,20,0.12), 0 1px 4px rgba(29,31,20,0.06);
+      font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       pointer-events: auto;
       animation:
         privateapply-beta-banner-in 0.3s cubic-bezier(0.16,1,0.3,1) forwards,

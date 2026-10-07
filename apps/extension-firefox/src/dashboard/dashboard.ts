@@ -41,11 +41,10 @@ async function init() {
       const headerBrand = document.querySelector('.header-brand');
       if (headerBrand) {
         const badge = document.createElement('div');
-        badge.style.cssText = 'display:flex;align-items:center;gap:6px;margin-left:16px;padding:4px 12px;background:#f1f5f9;border-radius:20px;';
+        badge.className = 'profile-indicator-pill';
         const dot = document.createElement('span');
-        dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${activeMeta.color};display:inline-block;flex-shrink:0;`;
+        dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${activeMeta.color || '#707953'};display:inline-block;flex-shrink:0;`;
         const label = document.createElement('span');
-        label.style.cssText = 'font-size:12px;color:#475569;font-weight:500;white-space:nowrap;';
         label.textContent = activeMeta.name || 'My Profile';
         badge.appendChild(dot);
         badge.appendChild(label);
@@ -488,15 +487,18 @@ function isDarkMode(): boolean {
 function chartTheme() {
   const dark = isDarkMode();
   return {
-    gridColor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-    tickColor: dark ? '#a1a1aa' : '#52525b',
-    legendColor: dark ? '#f4f4f5' : '#18181b',
-    totalLine: dark ? '#34a873' : '#1e5e41',
-    totalFill: dark ? 'rgba(52,168,115,0.1)' : 'rgba(30,94,65,0.08)',
-    submittedLine: dark ? '#5a94c9' : '#2d557a',
-    submittedFill: dark ? 'rgba(90,148,201,0.1)' : 'rgba(45,85,122,0.08)',
-    interviewingLine: dark ? '#e09433' : '#b45309',
-    interviewingFill: dark ? 'rgba(224,148,51,0.1)' : 'rgba(180,83,9,0.08)',
+    gridColor: dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(112, 121, 83, 0.12)',
+    tickColor: dark ? '#a5ad85' : '#727a52',
+    legendColor: dark ? '#e9ebe0' : '#1d1f14',
+    // Total: Sophisticated Slate Indigo
+    totalLine: dark ? '#818cf8' : '#4f46e5',
+    totalFill: dark ? 'rgba(129, 140, 248, 0.18)' : 'rgba(79, 70, 229, 0.12)',
+    // Submitted: Warm Amber
+    submittedLine: dark ? '#fbbf24' : '#d97706',
+    submittedFill: dark ? 'rgba(251, 191, 36, 0.18)' : 'rgba(217, 119, 6, 0.12)',
+    // Interviewing: Royal Violet
+    interviewingLine: dark ? '#c084fc' : '#9333ea',
+    interviewingFill: dark ? 'rgba(192, 132, 252, 0.18)' : 'rgba(147, 51, 234, 0.12)',
   };
 }
 
@@ -522,24 +524,34 @@ function renderTrendChart(trends: DailyTrend[]) {
           data: trends.map(d => d.total),
           borderColor: t.totalLine,
           backgroundColor: t.totalFill,
-          tension: 0.4,
+          tension: 0.35,
           fill: true,
+          borderWidth: 2.5,
+          pointBackgroundColor: t.totalLine,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
         {
           label: 'Submitted',
           data: trends.map(d => d.submitted),
           borderColor: t.submittedLine,
           backgroundColor: t.submittedFill,
-          tension: 0.4,
+          tension: 0.35,
           fill: true,
+          borderWidth: 2,
+          pointBackgroundColor: t.submittedLine,
+          pointRadius: 3,
         },
         {
           label: 'Interviewing',
           data: trends.map(d => d.interviewing),
           borderColor: t.interviewingLine,
           backgroundColor: t.interviewingFill,
-          tension: 0.4,
+          tension: 0.35,
           fill: true,
+          borderWidth: 2,
+          pointBackgroundColor: t.interviewingLine,
+          pointRadius: 3,
         },
       ],
     },
@@ -550,17 +562,22 @@ function renderTrendChart(trends: DailyTrend[]) {
         legend: {
           display: true,
           position: 'top',
-          labels: { color: t.legendColor },
+          labels: {
+            color: t.legendColor,
+            font: { family: "'Hind Vadodara', sans-serif", size: 12, weight: 'bold' },
+            padding: 14,
+            usePointStyle: true,
+          },
         },
       },
       scales: {
         x: {
-          ticks: { color: t.tickColor },
+          ticks: { color: t.tickColor, font: { family: "'Hind Vadodara', sans-serif" } },
           grid: { color: t.gridColor },
         },
         y: {
           beginAtZero: true,
-          ticks: { stepSize: 1, color: t.tickColor },
+          ticks: { stepSize: 1, color: t.tickColor, font: { family: "'Hind Vadodara', sans-serif" } },
           grid: { color: t.gridColor },
         },
       },
@@ -594,30 +611,31 @@ function renderStatusChart() {
       datasets: [{
         data: [submitted, interviewing, rejected, accepted, withdrawn],
         backgroundColor: [
-          dark ? 'rgba(90, 148, 201, 0.85)' : 'rgba(45, 85, 122, 0.85)',
-          dark ? 'rgba(224, 148, 51, 0.85)' : 'rgba(180, 83, 9, 0.85)',
-          dark ? 'rgba(234, 91, 91, 0.85)' : 'rgba(185, 28, 28, 0.85)',
-          dark ? 'rgba(52, 168, 115, 0.85)' : 'rgba(30, 94, 65, 0.85)',
-          dark ? 'rgba(113, 113, 122, 0.85)' : 'rgba(138, 135, 128, 0.85)',
+          dark ? '#fbbf24' : '#d97706', // Submitted (Warm Amber)
+          dark ? '#c084fc' : '#9333ea', // Interviewing (Royal Violet)
+          dark ? '#f87171' : '#dc2626', // Rejected (Crimson Coral)
+          dark ? '#4ade80' : '#16a34a', // Accepted (Vibrant Emerald)
+          dark ? '#94a3b8' : '#64748b', // Withdrawn (Slate Gray)
         ],
-        borderColor: [
-          dark ? '#5a94c9' : '#2d557a',
-          dark ? '#e09433' : '#b45309',
-          dark ? '#ea5b5b' : '#b91c1c',
-          dark ? '#34a873' : '#1e5e41',
-          dark ? '#71717a' : '#8a8780',
-        ],
-        borderWidth: dark ? 0 : 2,
+        borderColor: dark ? '#1b1f14' : '#e7ebe0',
+        borderWidth: 3,
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '68%',
       plugins: {
         legend: {
           display: true,
           position: 'bottom',
-          labels: { color: t.legendColor },
+          labels: {
+            color: t.legendColor,
+            font: { family: "'Hind Vadodara', sans-serif", size: 12, weight: 'bold' },
+            padding: 16,
+            usePointStyle: true,
+            pointStyle: 'circle',
+          },
         },
       },
     },

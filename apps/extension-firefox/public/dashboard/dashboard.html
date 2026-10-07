@@ -7,7 +7,7 @@
   <title>Application Dashboard - Private Apply</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="../shared/theme-init.js"></script>
   <script src="chart.umd.min.js"></script>
   <link rel="stylesheet" href="dashboard.css">
@@ -38,41 +38,89 @@
     <!-- Stats Cards -->
     <div class="stats">
       <div class="stat-card total">
+        <div class="stat-card-header">
+          <span class="label">Total Applications</span>
+          <span class="stat-card-dots">•••</span>
+        </div>
         <div class="number" id="statTotal">0</div>
-        <div class="label">Total Applications</div>
+        <div class="stat-subtext">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>All recorded</span>
+        </div>
       </div>
       <div class="stat-card submitted">
+        <div class="stat-card-header">
+          <span class="label">Submitted</span>
+          <span class="stat-card-dots">•••</span>
+        </div>
         <div class="number" id="statSubmitted">0</div>
-        <div class="label">Submitted</div>
+        <div class="stat-subtext">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>Awaiting review</span>
+        </div>
       </div>
       <div class="stat-card interviewing">
+        <div class="stat-card-header">
+          <span class="label">Interviewing</span>
+          <span class="stat-card-dots">•••</span>
+        </div>
         <div class="number" id="statInterviewing">0</div>
-        <div class="label">Interviewing</div>
+        <div class="stat-subtext">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>In pipeline</span>
+        </div>
       </div>
       <div class="stat-card accepted">
+        <div class="stat-card-header">
+          <span class="label">Accepted</span>
+          <span class="stat-card-dots">•••</span>
+        </div>
         <div class="number" id="statAccepted">0</div>
-        <div class="label">Accepted</div>
+        <div class="stat-subtext">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>Offers received</span>
+        </div>
       </div>
       <div class="stat-card rejected">
+        <div class="stat-card-header">
+          <span class="label">Rejected</span>
+          <span class="stat-card-dots">•••</span>
+        </div>
         <div class="number" id="statRejected">0</div>
-        <div class="label">Rejected</div>
+        <div class="stat-subtext">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>Archived</span>
+        </div>
       </div>
       <div class="stat-card rate">
+        <div class="stat-card-header">
+          <span class="label">Response Rate</span>
+          <span class="stat-card-dots">•••</span>
+        </div>
         <div class="number" id="statRate">0%</div>
-        <div class="label">Response Rate</div>
+        <div class="stat-subtext">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <span>Active ratio</span>
+        </div>
       </div>
     </div>
 
     <!-- Charts -->
     <div class="charts">
       <div class="chart-card">
-        <h3>Applications Over Time</h3>
+        <div class="chart-header">
+          <h3>Applications Over Time</h3>
+          <span class="chart-dots">•••</span>
+        </div>
         <div class="chart-container">
           <canvas id="trendChart"></canvas>
         </div>
       </div>
       <div class="chart-card">
-        <h3>Status Distribution</h3>
+        <div class="chart-header">
+          <h3>Status Distribution</h3>
+          <span class="chart-dots">•••</span>
+        </div>
         <div class="chart-container">
           <canvas id="statusChart"></canvas>
         </div>

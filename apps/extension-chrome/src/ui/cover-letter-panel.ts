@@ -323,12 +323,12 @@ function injectStyles(): void {
   top: 0; right: 0;
   width: 440px;
   height: 100vh;
-  background: #fff;
+  background: #f3f5f0;
   box-shadow: -4px 0 24px rgba(0,0,0,.12);
   z-index: 2147483647;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Hind Vadodara', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #1d1f14;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
@@ -341,22 +341,22 @@ function injectStyles(): void {
 /* ── Header ── */
 .ocl-header {
   padding: 14px 18px;
-  background: #18181b;
-  border-bottom: 1px solid #27272a;
-  color: #f4f4f5;
+  background: #707953;
+  border-bottom: 1px solid #545b3e;
+  color: #f4f5f0;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
 }
 .ocl-back {
-  background: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.15);
   border: none; color: #fff; width: 32px; height: 32px;
   border-radius: 6px; cursor: pointer; font-size: 18px;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s; flex-shrink: 0;
 }
-.ocl-back:hover { background: rgba(255,255,255,.2); }
+.ocl-back:hover { background: rgba(255,255,255,.25); }
 .ocl-header-center { flex: 1; min-width: 0; }
 .ocl-title { font-weight: 700; font-size: 16px; line-height: 1.2; }
 .ocl-subtitle {
@@ -364,29 +364,30 @@ function injectStyles(): void {
   max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ocl-close {
-  background: rgba(255,255,255,.1);
+  background: rgba(255,255,255,.15);
   border: none; color: #fff; width: 32px; height: 32px;
   border-radius: 6px; cursor: pointer; font-size: 20px;
   display: flex; align-items: center; justify-content: center;
   transition: background .15s; flex-shrink: 0;
 }
-.ocl-close:hover { background: rgba(255,255,255,.2); }
+.ocl-close:hover { background: rgba(255,255,255,.25); }
 
 /* ── Body ── */
 .ocl-body {
   flex: 1; overflow-y: auto; padding: 20px;
   scrollbar-width: thin;
+  background: #f3f5f0;
 }
 .ocl-generating, .ocl-refining {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 16px; margin-bottom: 16px;
-  background: #e6f4ee; border-radius: 8px;
-  font-size: 13px; color: #0a0a0a;
+  background: #e7ebe0; border-radius: 8px;
+  font-size: 13px; color: #1d1f14;
 }
 .ocl-spinner {
   width: 16px; height: 16px;
-  border: 2px solid rgba(30, 94, 65, 0.2);
-  border-top-color: #1e5e41;
+  border: 2px solid rgba(112, 121, 83, 0.2);
+  border-top-color: #707953;
   border-radius: 50%;
   animation: oclSpin .7s linear infinite;
   flex-shrink: 0;
@@ -396,14 +397,14 @@ function injectStyles(): void {
 .ocl-body-text {
   font-size: 14px;
   line-height: 1.75;
-  color: #18181b;
+  color: #1d1f14;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .ocl-error {
-  color: #dc2626;
-  background: #fdf2f2;
+  color: #a84242;
+  background: #f7ebeb;
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -414,63 +415,63 @@ function injectStyles(): void {
 /* ── Refinement bar ── */
 .ocl-refine-bar {
   padding: 10px 20px;
-  border-top: 1px solid #e5e3dc;
-  background: #faf9f6;
+  border-top: 1px solid #cfd6c2;
+  background: #e7ebe0;
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0;
 }
 .ocl-refine-label {
-  font-size: 12px; font-weight: 600; color: #18181b;
+  font-size: 12px; font-weight: 600; color: #1d1f14;
   flex-shrink: 0;
 }
 .ocl-refine-btn {
   padding: 5px 12px; border-radius: 6px;
   font-size: 12px; font-weight: 600;
-  cursor: pointer; border: 1px solid #c8e4d6;
-  background: #fff; color: #1e5e41;
+  cursor: pointer; border: 1px solid #cfd6c2;
+  background: #f3f5f0; color: #707953;
   transition: all .15s; font-family: inherit;
 }
 .ocl-refine-btn:hover {
-  background: #1e5e41; color: #fff; border-color: #1e5e41;
+  background: #707953; color: #fff; border-color: #707953;
 }
 .ocl-refine-btn:disabled {
   opacity: .5; cursor: default;
-  background: #fff; color: #1e5e41;
+  background: #f3f5f0; color: #707953;
 }
 
 /* ── Actions ── */
 .ocl-actions {
   padding: 12px 20px;
-  border-top: 1px solid #e5e3dc;
-  background: #faf9f6;
+  border-top: 1px solid #cfd6c2;
+  background: #e7ebe0;
   display: flex; flex-wrap: wrap; gap: 8px;
   flex-shrink: 0;
 }
 .ocl-btn {
   padding: 8px 14px; border-radius: 8px;
   font-size: 12px; font-weight: 600;
-  cursor: pointer; border: 1px solid #e5e3dc;
-  background: #fff; color: #18181b;
+  cursor: pointer; border: 1px solid #cfd6c2;
+  background: #f3f5f0; color: #1d1f14;
   transition: all .15s; font-family: inherit;
   display: flex; align-items: center; gap: 4px;
 }
-.ocl-btn:hover { background: #f4f3ee; border-color: #d5d2c8; }
+.ocl-btn:hover { background: #dfe4d7; border-color: #bcc2a3; }
 .ocl-btn:disabled { opacity: .5; cursor: default; }
 
 .ocl-btn-apply {
-  background: #1e5e41;
+  background: #707953;
   color: #fff; border: none;
 }
 .ocl-btn-apply:hover {
-  background: #164932;
-  box-shadow: 0 4px 12px rgba(30, 94, 65, 0.25);
+  background: #545b3e;
+  box-shadow: 0 4px 12px rgba(112, 121, 83, 0.25);
   transform: translateY(-1px);
 }
 .ocl-btn-regen {
   margin-left: auto;
-  color: #18181b; border-color: #c8e4d6;
+  color: #1d1f14; border-color: #cfd6c2;
 }
-.ocl-btn-regen:hover { background: #edf6f1; }
+.ocl-btn-regen:hover { background: #dfe4d7; }
   `;
   document.head.appendChild(s);
 }
