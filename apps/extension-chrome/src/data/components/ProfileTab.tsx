@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   User, Mail, Phone, MapPin, Linkedin, Github, Globe,
-  Briefcase, GraduationCap, Zap, Shield, Calendar,
+  Briefcase, GraduationCap, Zap, Shield, Calendar, Compass, FileCheck,
 } from 'lucide-react';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
@@ -56,40 +56,54 @@ export function ProfileTab({ profile }: ProfileTabProps) {
           </div>
         </Card>
 
-        {/* Professional links */}
+        {/* Professional & Experience */}
         {(professional?.linkedin || professional?.github || professional?.portfolio ||
-          professional?.yearsOfExperience !== undefined) && (
+          professional?.yearsOfExperience !== undefined || profile.derivedExperience || profile.experienceOverrides) && (
           <Card title={
             <span className="flex-row">
               <Globe size={13} />
-              Professional
+              Professional &amp; Experience
             </span>
           }>
             <div className="dl-grid">
-              {professional.yearsOfExperience !== undefined && (
+              {profile.derivedExperience ? (
+                <>
+                  <DlCell label="Total Experience" value={
+                    <span>
+                      {profile.derivedExperience.displayTotalExperience}
+                      {profile.derivedExperience.isOverridden && (
+                        <Badge variant="info" style={{ marginLeft: 6 }}>Custom Override</Badge>
+                      )}
+                    </span>
+                  } />
+                  <DlCell label="Full-Time Experience" value={`${profile.derivedExperience.fullTimeYears} yrs`} />
+                  <DlCell label="Current Employer Tenure" value={`${profile.derivedExperience.currentEmployerTenureYears} yrs`} />
+                  <DlCell label="Total Employers" value={String(profile.derivedExperience.totalEmployersCount)} />
+                </>
+              ) : professional?.yearsOfExperience !== undefined ? (
                 <DlCell label="Experience" value={`${professional.yearsOfExperience}y`} />
-              )}
-              {professional.salaryExpectation && (
+              ) : null}
+              {professional?.salaryExpectation && (
                 <DlCell label="Salary" value={professional.salaryExpectation} />
               )}
-              {professional.noticePeriod && (
+              {professional?.noticePeriod && (
                 <DlCell label="Notice Period" value={professional.noticePeriod} />
               )}
-              {professional.linkedin && (
+              {professional?.linkedin && (
                 <DlCell label="LinkedIn" value={
                   <a href={professional.linkedin} target="_blank" rel="noopener noreferrer">
                     {professional.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '')}
                   </a>
                 } />
               )}
-              {professional.github && (
+              {professional?.github && (
                 <DlCell label="GitHub" value={
                   <a href={professional.github} target="_blank" rel="noopener noreferrer">
                     {professional.github.replace(/^https?:\/\/(www\.)?github\.com\//i, '')}
                   </a>
                 } />
               )}
-              {professional.portfolio && (
+              {professional?.portfolio && (
                 <DlCell label="Portfolio" value={
                   <a href={professional.portfolio} target="_blank" rel="noopener noreferrer">
                     {professional.portfolio.replace(/^https?:\/\//i, '')}
@@ -240,6 +254,81 @@ export function ProfileTab({ profile }: ProfileTabProps) {
               )}
               {selfId.ethnicity && (
                 <DlCell label="Ethnicity" value={selfId.ethnicity} />
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Work Preferences */}
+        {profile.workPreferences && (
+          <Card title={
+            <span className="flex-row">
+              <Compass size={13} />
+              Work Preferences
+            </span>
+          }>
+            <div className="dl-grid">
+              {profile.workPreferences.workplaceTypes?.length > 0 && (
+                <DlCell label="Workplace" value={profile.workPreferences.workplaceTypes.join(', ')} />
+              )}
+              {profile.workPreferences.preferredLocations?.length > 0 && (
+                <DlCell label="Preferred Locations" value={profile.workPreferences.preferredLocations.join(', ')} />
+              )}
+              <DlCell label="Willing to Relocate" value={
+                <Badge variant={profile.workPreferences.willingToRelocate ? 'success' : 'neutral'}>
+                  {String(profile.workPreferences.willingToRelocate)}
+                </Badge>
+              } />
+              <DlCell label="Willing to Travel" value={
+                <Badge variant={profile.workPreferences.willingToTravel ? 'success' : 'neutral'}>
+                  {profile.workPreferences.willingToTravel ? `Yes (${profile.workPreferences.travelPercentage ?? 0}%)` : 'No'}
+                </Badge>
+              } />
+              {profile.workPreferences.noticePeriodDays !== undefined && (
+                <DlCell label="Notice Period" value={`${profile.workPreferences.noticePeriodDays} days`} />
+              )}
+              {profile.workPreferences.targetRoleTitles && profile.workPreferences.targetRoleTitles.length > 0 && (
+                <DlCell label="Target Roles" value={profile.workPreferences.targetRoleTitles.join(', ')} />
+              )}
+              {profile.workPreferences.targetSalary && (
+                <DlCell label="Target Salary" value={`${profile.workPreferences.salaryCurrency || '$'}${profile.workPreferences.targetSalary} / ${profile.workPreferences.salaryPeriod || 'year'}`} />
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* Legal Disclosures & Screening */}
+        {profile.legalDisclosures && (
+          <Card title={
+            <span className="flex-row">
+              <FileCheck size={13} />
+              Screening &amp; Disclosures
+            </span>
+          }>
+            <div className="dl-grid">
+              <DlCell label="Over 18" value={
+                <Badge variant={profile.legalDisclosures.over18 ? 'success' : 'danger'}>
+                  {profile.legalDisclosures.over18 ? 'Yes' : 'No'}
+                </Badge>
+              } />
+              <DlCell label="Legally Authorized" value={
+                <Badge variant={profile.legalDisclosures.legallyAuthorized ? 'success' : 'danger'}>
+                  {profile.legalDisclosures.legallyAuthorized ? 'Yes' : 'No'}
+                </Badge>
+              } />
+              <DlCell label="Requires Sponsorship" value={
+                <Badge variant={profile.legalDisclosures.requiresSponsorship ? 'warning' : 'success'}>
+                  {profile.legalDisclosures.requiresSponsorship ? 'Yes' : 'No'}
+                </Badge>
+              } />
+              {profile.legalDisclosures.visaStatus && (
+                <DlCell label="Visa / Work Status" value={profile.legalDisclosures.visaStatus} />
+              )}
+              {profile.legalDisclosures.securityClearance && profile.legalDisclosures.securityClearance !== 'none' && (
+                <DlCell label="Security Clearance" value={profile.legalDisclosures.securityClearance} />
+              )}
+              {profile.legalDisclosures.referralSource && (
+                <DlCell label="Referral Source" value={profile.legalDisclosures.referralSource} />
               )}
             </div>
           </Card>

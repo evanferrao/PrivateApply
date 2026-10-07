@@ -51,9 +51,10 @@ coverage/
 
 # Temporary files
 *.tmp
-.temp/
+.temp
 .cache/
 .workday-capture/
+.impeccable/critique/
 
 # Development tracking (git-ignored per project guidelines)
 development/
