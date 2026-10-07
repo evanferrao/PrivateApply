@@ -2009,3 +2009,52 @@ html.dark {
             .install-guide-step.done .install-guide-num { background: var(--green) !important; }
             .install-guide-step.done .install-guide-num::after { content: '✓'; }
             @keyframes guidePulse { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+
+    /* ─── AI Engine & Toolchain Setup Tabs ─── */
+    .ai-setup-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: var(--bg-surface);
+      padding: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .ai-setup-tab-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .ai-setup-tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-surface-hover);
+    }
+    .ai-setup-tab-btn.active {
+      background: var(--primary-600);
+      color: var(--background-50);
+      box-shadow: var(--shadow-sm);
+    }
+    html.dark .ai-setup-tab-btn.active {
+      background: var(--primary-500);
+      color: var(--text-950);
+    }
+    .ai-setup-panel {
+      animation: fadeIn 0.2s ease-out;
+    }
+    @media (max-width: 680px) {
+      .ai-setup-tabs {
+        flex-direction: column;
+      }
+    }

@@ -340,7 +340,26 @@ async function mockTailorResume(): Promise<void> {
   try {
     const url = chrome.runtime.getURL('resume-tailor/resume-tailor.html');
     window.open(url, '_blank');
-  } catch { /* fallback: do nothing on tutorial page */ }
+  } catch {
+    window.location.href = '../resume-tailor/resume-tailor.html';
+  }
+}
+
+function mockChatWithResume(): void {
+  try {
+    const url = chrome.runtime.getURL('chat/chat.html');
+    window.open(url, '_blank');
+  } catch {
+    window.location.href = '../chat/chat.html';
+  }
+}
+
+function goToHome(): void {
+  try {
+    window.location.href = '../home/home.html';
+  } catch {
+    window.location.href = '../jobs/jobs.html';
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -351,9 +370,11 @@ async function init(): Promise<void> {
   tooltipEl = document.getElementById('tour-tooltip');
 
   document.getElementById('tour-next')?.addEventListener('click', () => showStep(currentStep + 1));
-  document.getElementById('tour-skip')?.addEventListener('click', goToJobs);
-  document.getElementById('skip-tutorial')?.addEventListener('click', goToJobs);
+  document.getElementById('tour-skip')?.addEventListener('click', goToHome);
+  document.getElementById('skip-tutorial')?.addEventListener('click', goToHome);
   document.getElementById('start-applying-btn')?.addEventListener('click', goToJobs);
+  document.getElementById('btn-tutorial-tailor')?.addEventListener('click', () => mockTailorResume());
+  document.getElementById('btn-tutorial-chat')?.addEventListener('click', () => mockChatWithResume());
 
   // Mock handlers: the widget dispatches these events but there's no content
   // script on extension pages, so we handle them here with demo behavior

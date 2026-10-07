@@ -16,6 +16,16 @@ import { classifyParseError } from '../shared/error-classify';
 import { extractPagesText } from '../shared/pdf-extract';
 import mammoth from 'mammoth';
 import { mountTriviaGame, destroyTriviaGame, mountGamePicker, destroyGamePicker, destroyAllGames } from './games';
+import {
+  AIProviderConfig,
+  PROVIDER_PRESETS,
+  getAIProvidersSettings,
+  saveAIProvidersSettings,
+  saveAIProvider,
+  testAIProviderConnection,
+  setActiveAIProviderId,
+} from '../shared/ai-provider-config';
+import { companionClient, CompanionStatus } from '../shared/companion-client';
 
 // PDF.js is loaded via CDN in the HTML
 declare const pdfjsLib: any;
@@ -947,23 +957,221 @@ function setupOllamaStepListeners(): void {
     });
   });
 
-  // Continue with AI Features
+  // ── Tab Switching between Ollama, Online AI, and LaTeX ──
+  const setupTabs = document.querySelectorAll('.ai-setup-tab-btn');
+  const setupPanels = document.querySelectorAll('.ai-setup-panel');
+  setupTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-target');
+      setupTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      setupPanels.forEach(p => {
+        (p as HTMLElement).style.display = p.id === targetId ? '' : 'none';
+      });
+      const continueBtn = document.getElementById('continueWithOllamaBtn') as HTMLButtonElement | null;
+      if (continueBtn && (targetId === 'panel-online-ai' || targetId === 'panel-latex-setup')) {
+        continueBtn.disabled = false;
+      }
+      if (targetId === 'panel-latex-setup') {
+        checkCompanionStatusOnboarding();
+      }
+    });
+  });
+
+  // ── Online AI Form Setup ──
+  const presetSelect = document.getElementById('online-preset-select') as HTMLSelectElement | null;
+  const nicknameInput = document.getElementById('online-provider-nickname') as HTMLInputElement | null;
+  const baseUrlInput = document.getElementById('online-provider-baseurl') as HTMLInputElement | null;
+  const apiKeyInput = document.getElementById('online-provider-key') as HTMLInputElement | null;
+  const modelInput = document.getElementById('online-provider-model') as HTMLInputElement | null;
+  const embedInput = document.getElementById('online-provider-embedding') as HTMLInputElement | null;
+  const keyHelp = document.getElementById('online-key-help');
+  const toggleKeyBtn = document.getElementById('btn-toggle-key-visibility');
+
+  toggleKeyBtn?.addEventListener('click', () => {
+    if (apiKeyInput) {
+      if (apiKeyInput.type === 'password') {
+        apiKeyInput.type = 'text';
+        toggleKeyBtn.textContent = 'Hide Key';
+      } else {
+        apiKeyInput.type = 'password';
+        toggleKeyBtn.textContent = 'Show Key';
+      }
+    }
+  });
+
+  presetSelect?.addEventListener('change', () => {
+    const val = presetSelect.value;
+    const preset = PROVIDER_PRESETS[val];
+    if (preset) {
+      if (nicknameInput) nicknameInput.value = preset.nickname;
+      if (baseUrlInput) baseUrlInput.value = preset.baseUrl;
+      if (modelInput) modelInput.value = preset.defaultChatModel;
+      if (embedInput) embedInput.value = preset.defaultEmbeddingModel || '';
+      if (keyHelp && preset.apiKeyHelp) keyHelp.textContent = preset.apiKeyHelp;
+    } else if (val === 'custom') {
+      if (nicknameInput) nicknameInput.value = 'Custom Endpoint';
+      if (baseUrlInput) baseUrlInput.value = 'https://api.openai.com/v1';
+      if (modelInput) modelInput.value = 'gpt-4o-mini';
+      if (embedInput) embedInput.value = '';
+      if (keyHelp) keyHelp.textContent = 'Bearer token or custom API key';
+    }
+  });
+
+  // Prepopulate if settings already exist
+  getAIProvidersSettings().then(settings => {
+    const active = settings.providers.find(p => p.id === settings.activeProviderId);
+    if (active && active.protocol === 'openai') {
+      if (nicknameInput) nicknameInput.value = active.nickname || '';
+      if (baseUrlInput) baseUrlInput.value = active.baseUrl || '';
+      if (apiKeyInput) apiKeyInput.value = active.apiKey || '';
+      if (modelInput) modelInput.value = active.chatModel || '';
+      if (embedInput) embedInput.value = active.embeddingModel || '';
+      const continueBtn = document.getElementById('continueWithOllamaBtn') as HTMLButtonElement | null;
+      if (continueBtn) continueBtn.disabled = false;
+    }
+  }).catch(() => {});
+
+  // Test & Save Online Provider button
+  const testSaveBtn = document.getElementById('btn-test-save-online') as HTMLButtonElement | null;
+  const testFeedback = document.getElementById('onlineTestFeedback');
+
+  testSaveBtn?.addEventListener('click', async () => {
+    const nickname = nicknameInput?.value.trim() || 'Cloud Provider';
+    const baseUrl = baseUrlInput?.value.trim() || '';
+    const apiKey = apiKeyInput?.value.trim() || '';
+    const chatModel = modelInput?.value.trim() || '';
+    const embeddingModel = embedInput?.value.trim() || undefined;
+
+    if (!baseUrl) {
+      if (testFeedback) {
+        testFeedback.style.display = 'block';
+        testFeedback.style.background = '#fef2f2';
+        testFeedback.style.color = '#dc2626';
+        testFeedback.style.border = '1px solid #fecaca';
+        testFeedback.textContent = 'Please enter an API Base URL.';
+      }
+      return;
+    }
+    if (!chatModel) {
+      if (testFeedback) {
+        testFeedback.style.display = 'block';
+        testFeedback.style.background = '#fef2f2';
+        testFeedback.style.color = '#dc2626';
+        testFeedback.style.border = '1px solid #fecaca';
+        testFeedback.textContent = 'Please specify a Chat Model name.';
+      }
+      return;
+    }
+
+    if (testSaveBtn) {
+      testSaveBtn.disabled = true;
+      testSaveBtn.textContent = 'Testing connection...';
+    }
+
+    const provider: AIProviderConfig = {
+      id: `online_${presetSelect?.value || 'custom'}_${Date.now()}`,
+      nickname,
+      protocol: 'openai',
+      baseUrl,
+      apiKey: apiKey || undefined,
+      chatModel,
+      embeddingModel,
+      enabled: true,
+      createdAt: Date.now(),
+    };
+
+    try {
+      const res = await testAIProviderConnection(provider);
+      await saveAIProvider(provider);
+      await setActiveAIProviderId(provider.id);
+      const settings = await getAIProvidersSettings();
+      settings.enabled = true;
+      await saveAIProvidersSettings(settings);
+
+      if (testFeedback) {
+        testFeedback.style.display = 'block';
+        if (res.ok) {
+          testFeedback.style.background = '#f0fdf4';
+          testFeedback.style.color = '#15803d';
+          testFeedback.style.border = '1px solid #bbf7d0';
+          testFeedback.textContent = `✓ Connected successfully (${res.latencyMs || 0}ms)! Model "${chatModel}" saved and set as active.`;
+        } else {
+          testFeedback.style.background = '#fef2f2';
+          testFeedback.style.color = '#dc2626';
+          testFeedback.style.border = '1px solid #fecaca';
+          testFeedback.textContent = `✕ Connection test: ${res.error || 'Endpoint failed to respond'}. Settings saved anyway.`;
+        }
+      }
+      const continueBtn = document.getElementById('continueWithOllamaBtn') as HTMLButtonElement | null;
+      if (continueBtn) continueBtn.disabled = false;
+    } catch (err: any) {
+      if (testFeedback) {
+        testFeedback.style.display = 'block';
+        testFeedback.style.background = '#fef2f2';
+        testFeedback.style.color = '#dc2626';
+        testFeedback.style.border = '1px solid #fecaca';
+        testFeedback.textContent = `✕ Error: ${err?.message || err}. Settings saved.`;
+      }
+      await saveAIProvider(provider);
+      await setActiveAIProviderId(provider.id);
+      const continueBtn = document.getElementById('continueWithOllamaBtn') as HTMLButtonElement | null;
+      if (continueBtn) continueBtn.disabled = false;
+    } finally {
+      if (testSaveBtn) {
+        testSaveBtn.disabled = false;
+        testSaveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Test Connection &amp; Save`;
+      }
+    }
+  });
+
+  // ── LaTeX Companion Recheck button ──
+  document.getElementById('btn-recheck-companion')?.addEventListener('click', () => {
+    checkCompanionStatusOnboarding();
+  });
+
+  // ── Prominent "Skip Setup for Now" button ──
+  document.getElementById('skipAiSetupBtn')?.addEventListener('click', () => {
+    stopPolling();
+    showStep('step-upload');
+  });
+
+  // ── Continue to Resume Upload ──
   document.getElementById('continueWithOllamaBtn')?.addEventListener('click', async () => {
     const errEl = document.getElementById('ollamaErrorMsg') as HTMLElement | null;
     if (errEl) errEl.style.display = 'none';
-    try {
-      const config = await getOllamaConfig();
-      config.enabled = true;
-      config.lastChecked = Date.now();
-      await saveOllamaConfig(config);
-      stopPolling();
-      showStep('step-upload');
-    } catch (err) {
-      if (errEl) {
-        errEl.textContent = `Failed to save AI config: ${String(err)}`;
-        errEl.style.display = '';
+
+    // Check which tab is currently active
+    const activeTab = document.querySelector('.ai-setup-tab-btn.active')?.getAttribute('data-target');
+    if (activeTab === 'panel-online-ai') {
+      const baseUrl = baseUrlInput?.value.trim();
+      const chatModel = modelInput?.value.trim();
+      if (baseUrl && chatModel) {
+        const provider: AIProviderConfig = {
+          id: `online_${presetSelect?.value || 'custom'}_${Date.now()}`,
+          nickname: nicknameInput?.value.trim() || 'Cloud Provider',
+          protocol: 'openai',
+          baseUrl,
+          apiKey: apiKeyInput?.value.trim() || undefined,
+          chatModel,
+          embeddingModel: embedInput?.value.trim() || undefined,
+          enabled: true,
+          createdAt: Date.now(),
+        };
+        await saveAIProvider(provider);
+        await setActiveAIProviderId(provider.id);
       }
+    } else if (activeTab === 'panel-local-ollama') {
+      try {
+        const config = await getOllamaConfig();
+        config.enabled = true;
+        config.lastChecked = Date.now();
+        await saveOllamaConfig(config);
+      } catch { /* optional */ }
     }
+
+    stopPolling();
+    showStep('step-upload');
   });
 
   // Retry / Test Connection button (fallback section)
@@ -982,9 +1190,11 @@ function setupOllamaStepListeners(): void {
   document.getElementById('closeTroubleshootingBtn')?.addEventListener('click', closeModal);
   document.getElementById('tsOverlay')?.addEventListener('click', closeModal);
 
-  // Close troubleshooting modal via skip button (AI setup is required, just close)
+  // Close troubleshooting modal via skip button (actually skip to upload)
   document.getElementById('skipFromTroubleshootingBtn')?.addEventListener('click', () => {
     closeModal();
+    stopPolling();
+    showStep('step-upload');
   });
 
   // Copy buttons (command snippets)
@@ -1000,6 +1210,41 @@ function setupOllamaStepListeners(): void {
       }
     });
   });
+}
+
+async function checkCompanionStatusOnboarding(): Promise<void> {
+  const dot = document.getElementById('companionOnboardingDot');
+  const title = document.getElementById('companionOnboardingTitle');
+  const desc = document.getElementById('companionOnboardingDesc');
+  if (!dot || !title || !desc) return;
+
+  dot.style.background = 'var(--amber)';
+  title.textContent = 'Checking Native Companion...';
+  desc.textContent = 'Detecting Linux companion & installed TeX engines';
+
+  try {
+    const status: CompanionStatus = await companionClient.getStatus();
+    if (status.installed) {
+      const engines = status.engines ? Object.keys(status.engines).filter(e => status.engines![e].available) : [];
+      if (engines.length > 0) {
+        dot.style.background = 'var(--green)';
+        title.textContent = `Ready (${engines.join(', ')})`;
+        desc.textContent = `Native companion connected with ${engines.length} LaTeX engine(s) ready.`;
+      } else {
+        dot.style.background = 'var(--amber)';
+        title.textContent = 'Companion Connected (TeX Engines Missing)';
+        desc.textContent = 'Host companion responded, but pdflatex or latexmk was not found in PATH.';
+      }
+    } else {
+      dot.style.background = 'var(--text-muted)';
+      title.textContent = 'Not Installed';
+      desc.textContent = 'Linux companion not detected. Follow instructions below to enable local compilation.';
+    }
+  } catch {
+    dot.style.background = 'var(--text-muted)';
+    title.textContent = 'Not Installed';
+    desc.textContent = 'Linux companion not detected. (Optional)';
+  }
 }
 
 /**

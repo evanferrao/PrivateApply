@@ -137,8 +137,16 @@ html.dark .tutorial-header-badge {
 .mock-tool-btn {
   display: flex; align-items: center; gap: 6px;
   padding: 8px 14px; border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm); background: var(--bg-page); color: var(--text-muted);
-  font-size: 12px; font-weight: 600; cursor: default; font-family: inherit;
+  border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-primary);
+  font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: all .15s ease;
+}
+.mock-tool-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary-500);
+  color: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 .mock-tool-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--primary-600); }
 
