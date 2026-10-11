@@ -237,3 +237,49 @@ html.dark ::selection {
 html.dark ::-webkit-scrollbar-thumb {
   background: var(--background-300);
 }
+
+/* ── Global Disabled Button & Interactive Element Styling ── */
+button:disabled,
+button[disabled],
+.btn:disabled,
+.btn[disabled],
+.btn-primary:disabled,
+.btn-primary[disabled],
+.btn-secondary:disabled,
+.btn-secondary[disabled],
+.btn-outline:disabled,
+.btn-outline[disabled],
+.btn-action-primary:disabled,
+.btn-action-primary[disabled],
+.btn-action-secondary:disabled,
+.btn-action-secondary[disabled] {
+  background: #14170f !important;
+  background-color: #14170f !important;
+  color: #727a52 !important;
+  border: 1px solid #262c1a !important;
+  cursor: not-allowed !important;
+  opacity: 0.65;
+  box-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+html.dark button:disabled,
+html.dark button[disabled],
+html.dark .btn:disabled,
+html.dark .btn[disabled],
+html.dark .btn-primary:disabled,
+html.dark .btn-primary[disabled],
+html.dark .btn-secondary:disabled,
+html.dark .btn-secondary[disabled],
+html.dark .btn-outline:disabled,
+html.dark .btn-outline[disabled],
+html.dark .btn-action-primary:disabled,
+html.dark .btn-action-primary[disabled],
+html.dark .btn-action-secondary:disabled,
+html.dark .btn-action-secondary[disabled] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  color: #555d44 !important;
+  border: 1px solid #202416 !important;
+}

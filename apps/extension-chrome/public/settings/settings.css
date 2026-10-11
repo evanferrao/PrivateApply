@@ -105,14 +105,15 @@ body {
 .toggle {
   position: relative;
   width: 44px; height: 24px;
-  background: var(--background-200);
+  background: #cbd5e1;
+  border: 1px solid #94a3b8;
   border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
   flex-shrink: 0;
   margin-left: 16px;
 }
-.toggle.active { background: var(--primary-600); }
+.toggle.active { background: var(--primary-600); border-color: var(--primary-600); }
     .toggle::after {
       content: '';
       position: absolute;
@@ -617,9 +618,10 @@ body {
     }
     .dark-mode-toggle:hover { background: rgba(255,255,255,0.1); }
 
-    /* Dark mode — mostly handled by CSS tokens */
-    html.dark .toggle { background: var(--gray-400); }
-    html.dark .toggle.active { background: var(--green); }
+    /* Dark mode — toggle switch is black when inactive, green when active */
+    html.dark .toggle { background: #000000; border: 1px solid #2d3420; }
+    html.dark .toggle.active { background: var(--green); border-color: var(--green); }
+    html.dark .toggle:disabled, html.dark .toggle[disabled] { background: #000000 !important; border-color: #202416 !important; opacity: 0.5; }
     html.dark .action-btn--danger { color: #f87171; border-color: #7f1d1d; }
     html.dark .action-btn--danger:hover { background: #2d1515; border-color: #dc2626; }
     html.dark .danger-zone { border-color: #7f1d1d; }

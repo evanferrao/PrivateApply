@@ -37,7 +37,8 @@ export interface SemanticMatchResult {
     | 'custom_field'
     | 'question_bank'
     | 'work_preferences'
-    | 'legal_disclosures';
+    | 'legal_disclosures'
+    | 'passport_details';
   fieldKey: string;
   fieldLabel: string;
   entity?: string; // e.g. "father", "mother", "applicant", "school"
@@ -710,6 +711,83 @@ export class SemanticProfileMatcher {
         requiresConfirmation: true,
         aiAccessPermitted: false, // Strict privacy: never transmit to remote AI!
         selectionReason: 'PAN number detected — gated with restricted confirmation',
+      };
+    }
+
+    // Passport Issuing Country / Authority
+    if (matchesAny(combined, [/\bpassport\s*(issuing\s*country|country\s*of\s*issue|issue\s*country|issued\s*by|authority)\b/, /\bpassport\s*country\b/]) && profile.passport?.issuingCountry) {
+      return {
+        value: profile.passport.issuingCountry,
+        confidence: 0.92,
+        source: 'passport_details',
+        fieldKey: 'passport_issuing_country',
+        fieldLabel: 'Passport Issuing Country',
+        sensitivity: 'sensitive_personal',
+        requiresConfirmation: false,
+        aiAccessPermitted: true,
+        selectionReason: 'Passport issuing country resolved',
+      };
+    }
+
+    // Passport Expiration Date
+    if (matchesAny(combined, [/\bpassport\s*(expiry|expiration|valid\s*until|expires)\b/, /\bpassport\s*exp(ir)?\s*(date)?\b/]) && profile.passport?.expiryDate) {
+      return {
+        value: profile.passport.expiryDate,
+        confidence: 0.92,
+        source: 'passport_details',
+        fieldKey: 'passport_expiry_date',
+        fieldLabel: 'Passport Expiration Date',
+        sensitivity: 'sensitive_personal',
+        requiresConfirmation: false,
+        aiAccessPermitted: true,
+        selectionReason: 'Passport expiration date resolved',
+      };
+    }
+
+    // Passport Issue Date
+    if (matchesAny(combined, [/\bpassport\s*(issue\s*date|date\s*of\s*issue|issued\s*date)\b/]) && profile.passport?.issueDate) {
+      return {
+        value: profile.passport.issueDate,
+        confidence: 0.92,
+        source: 'passport_details',
+        fieldKey: 'passport_issue_date',
+        fieldLabel: 'Passport Issue Date',
+        sensitivity: 'sensitive_personal',
+        requiresConfirmation: false,
+        aiAccessPermitted: true,
+        selectionReason: 'Passport issue date resolved',
+      };
+    }
+
+    // Passport Nationality / Citizenship
+    if (matchesAny(combined, [/\bpassport\s*(nationality|citizenship)\b/]) && (profile.passport?.nationality || profile.personal?.nationality || profile.personal?.citizenship)) {
+      const natVal = profile.passport?.nationality || profile.personal?.nationality || profile.personal?.citizenship || '';
+      return {
+        value: natVal,
+        confidence: 0.92,
+        source: 'passport_details',
+        fieldKey: 'passport_nationality',
+        fieldLabel: 'Passport Nationality',
+        sensitivity: 'sensitive_personal',
+        requiresConfirmation: false,
+        aiAccessPermitted: true,
+        selectionReason: 'Passport nationality resolved',
+      };
+    }
+
+    // Passport Number — strictly protected identifier (never sent to remote AI, requires explicit user confirmation)
+    const isSpecificPassportNonNumber = matchesAny(combined, [/\b(country|issue|expiry|expiration|valid|authority|photo|upload|file|date)\b/]);
+    if (!isSpecificPassportNonNumber && matchesAny(combined, [/\bpassport\s*(number|no|#|id|num)?\b/, /\btravel\s*doc(ument)?\s*(number|no|#)?\b/]) && profile.passport?.passportNumber) {
+      return {
+        value: profile.passport.passportNumber,
+        confidence: 0.95,
+        source: 'passport_details',
+        fieldKey: 'passport_number',
+        fieldLabel: 'Passport Number',
+        sensitivity: 'restricted_identifier',
+        requiresConfirmation: true,
+        aiAccessPermitted: false, // Strict privacy: never transmit to remote AI!
+        selectionReason: 'Passport number detected — strictly protected identifier requiring explicit confirmation',
       };
     }
 

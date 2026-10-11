@@ -160,6 +160,53 @@
       <div class="hub-card">
         <div class="hub-card-header">
           <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="hub-card-title">Official Identification & Passport</div>
+              <span class="field-badge-restricted" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 600;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Protected Field
+              </span>
+            </div>
+            <div class="hub-card-desc">Government-issued passport information for international applications and visa verification. The passport number is strictly protected: masked on-screen, never transmitted to remote AI, and requires explicit confirmation prior to auto-filling.</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-save-passport">Save Passport Info</button>
+        </div>
+        <div class="form-grid-3">
+          <div class="field-group">
+            <label for="core-passport-num" style="display: flex; align-items: center; justify-content: space-between;">
+              <span>Passport Number</span>
+              <span style="font-size: 10.5px; color: #ef4444; font-weight: 600;">RESTRICTED</span>
+            </label>
+            <div style="position: relative; display: flex; align-items: center;">
+              <input type="password" id="core-passport-num" class="field-input" placeholder="e.g. A12345678" autocomplete="off" style="font-family: var(--font-mono); letter-spacing: 0.5px; padding-right: 38px; width: 100%;">
+              <button type="button" id="btn-toggle-passport-mask" class="btn-mask-toggle" title="Toggle visibility" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-500); padding: 4px; display: flex; align-items: center;">
+                <svg id="eye-icon-passport" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="field-help-text" style="color: #ef4444;">Never shared with remote AI. Autofill requires explicit user confirmation.</span>
+          </div>
+          <div class="field-group">
+            <label for="core-passport-country">Issuing Country / Authority</label>
+            <input type="text" id="core-passport-country" class="field-input" placeholder="e.g. United States, India, Germany">
+          </div>
+          <div class="field-group">
+            <label for="core-passport-expiry">Expiration Date</label>
+            <input type="date" id="core-passport-expiry" class="field-input">
+          </div>
+          <div class="field-group">
+            <label for="core-passport-issue-date">Date of Issue (optional)</label>
+            <input type="date" id="core-passport-issue-date" class="field-input">
+          </div>
+          <div class="field-group">
+            <label for="core-passport-nationality">Nationality on Passport</label>
+            <input type="text" id="core-passport-nationality" class="field-input" placeholder="e.g. Citizen of United States">
+          </div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
             <div class="hub-card-title">Professional Links & Profiles</div>
             <div class="hub-card-desc">Social links and portfolio websites.</div>
           </div>

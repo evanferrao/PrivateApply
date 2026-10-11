@@ -26,9 +26,35 @@
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode"></button>
-      <button class="top-nav-exit" id="exitBtn" title="Close">&larr; Exit</button>
+      <button class="top-nav-exit" id="exitBtn" title="Exit Onboarding" onclick="handleExitOnboarding(event)">&larr; Exit</button>
     </div>
   </div>
+
+  <script>
+    function handleExitOnboarding(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      try {
+        if (window.history.length > 1) {
+          window.history.back();
+        }
+      } catch (_) {}
+      try {
+        window.close();
+      } catch (_) {}
+      setTimeout(function() {
+        window.location.href = '../home/home.html';
+      }, 100);
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.getElementById('exitBtn');
+      if (btn) {
+        btn.onclick = handleExitOnboarding;
+      }
+    });
+  </script>
 
   <!-- Step wizard -->
   <div class="step-wizard" id="stepWizard">

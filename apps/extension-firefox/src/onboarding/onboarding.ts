@@ -2808,6 +2808,23 @@ async function saveResumeWithChunking(file: File): Promise<void> {
 }
 
 async function init(): Promise<void> {
+  // --- Early Exit button setup — ensure user can always exit at any time ---
+  const earlyExitBtn = document.getElementById('exitBtn');
+  if (earlyExitBtn) {
+    earlyExitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      try {
+        if (window.history.length > 1) window.history.back();
+      } catch (_) {}
+      try {
+        window.close();
+      } catch (_) {}
+      setTimeout(() => {
+        window.location.href = '../home/home.html';
+      }, 100);
+    });
+  }
+
   // If opened with ?profileId=<id>, switch to that profile first
   const urlParams = new URLSearchParams(window.location.search);
   const targetProfileId = urlParams.get('profileId');
@@ -3264,11 +3281,20 @@ async function init(): Promise<void> {
     });
   }
 
-  // --- Exit button - navigate to home page ---
+  // --- Exit button - navigate to home page / close tab ---
   const exitBtn = document.getElementById('exitBtn');
   if (exitBtn) {
-    exitBtn.addEventListener('click', () => {
-      window.location.href = '../home/home.html';
+    exitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      try {
+        if (window.history.length > 1) window.history.back();
+      } catch (_) {}
+      try {
+        window.close();
+      } catch (_) {}
+      setTimeout(() => {
+        window.location.href = '../home/home.html';
+      }, 100);
     });
   }
 

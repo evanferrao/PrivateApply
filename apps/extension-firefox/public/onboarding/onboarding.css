@@ -735,9 +735,18 @@ html.dark {
       background: var(--gray-100);
     }
     
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .btn:disabled,
+    .btn-primary:disabled,
+    .btn-secondary:disabled,
+    .btn-outline:disabled,
+    button:disabled {
+      background: #000000 !important;
+      color: #666666 !important;
+      border: 1px solid #222222 !important;
+      opacity: 0.65;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+      transform: none !important;
     }
 
     /* Select styling to match inputs */

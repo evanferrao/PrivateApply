@@ -248,6 +248,20 @@ function populatePersonalForm(): void {
   (document.getElementById('core-linkedin') as HTMLInputElement).value = prof?.linkedin || '';
   (document.getElementById('core-github') as HTMLInputElement).value = prof?.github || '';
   (document.getElementById('core-portfolio') as HTMLInputElement).value = prof?.portfolio || prof?.website || '';
+
+  // Passport (Protected Field)
+  const pass = activeProfileData.passport;
+  const passNumEl = document.getElementById('core-passport-num') as HTMLInputElement | null;
+  const passCountryEl = document.getElementById('core-passport-country') as HTMLInputElement | null;
+  const passExpiryEl = document.getElementById('core-passport-expiry') as HTMLInputElement | null;
+  const passIssueEl = document.getElementById('core-passport-issue-date') as HTMLInputElement | null;
+  const passNatEl = document.getElementById('core-passport-nationality') as HTMLInputElement | null;
+
+  if (passNumEl) passNumEl.value = pass?.passportNumber || '';
+  if (passCountryEl) passCountryEl.value = pass?.issuingCountry || '';
+  if (passExpiryEl) passExpiryEl.value = pass?.expiryDate || '';
+  if (passIssueEl) passIssueEl.value = pass?.issueDate || '';
+  if (passNatEl) passNatEl.value = pass?.nationality || p.nationality || p.citizenship || '';
 }
 
 async function savePersonal(): Promise<void> {
@@ -293,8 +307,51 @@ async function savePersonal(): Promise<void> {
   p.permanentAddress = (document.getElementById('core-permanent-address') as HTMLInputElement).value.trim() || undefined;
   p.nationality = (document.getElementById('core-nationality') as HTMLInputElement).value.trim() || undefined;
 
+  // Also sync passport details from form
+  const passNum = (document.getElementById('core-passport-num') as HTMLInputElement)?.value.trim() || '';
+  const passCountry = (document.getElementById('core-passport-country') as HTMLInputElement)?.value.trim() || '';
+  const passExpiry = (document.getElementById('core-passport-expiry') as HTMLInputElement)?.value || undefined;
+  const passIssue = (document.getElementById('core-passport-issue-date') as HTMLInputElement)?.value || undefined;
+  const passNat = (document.getElementById('core-passport-nationality') as HTMLInputElement)?.value.trim() || undefined;
+
+  if (passNum || passCountry || passExpiry || passIssue || passNat) {
+    activeProfileData.passport = {
+      passportNumber: passNum,
+      issuingCountry: passCountry,
+      expiryDate: passExpiry,
+      issueDate: passIssue,
+      nationality: passNat,
+    };
+  } else {
+    activeProfileData.passport = undefined;
+  }
+
   await saveUserProfile(activeProfileData);
   showToast('✓ Personal details saved');
+}
+
+async function savePassport(): Promise<void> {
+  if (!activeProfileData) return;
+  const passNum = (document.getElementById('core-passport-num') as HTMLInputElement)?.value.trim() || '';
+  const passCountry = (document.getElementById('core-passport-country') as HTMLInputElement)?.value.trim() || '';
+  const passExpiry = (document.getElementById('core-passport-expiry') as HTMLInputElement)?.value || undefined;
+  const passIssue = (document.getElementById('core-passport-issue-date') as HTMLInputElement)?.value || undefined;
+  const passNat = (document.getElementById('core-passport-nationality') as HTMLInputElement)?.value.trim() || undefined;
+
+  if (passNum || passCountry || passExpiry || passIssue || passNat) {
+    activeProfileData.passport = {
+      passportNumber: passNum,
+      issuingCountry: passCountry,
+      expiryDate: passExpiry,
+      issueDate: passIssue,
+      nationality: passNat,
+    };
+  } else {
+    activeProfileData.passport = undefined;
+  }
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Passport details saved (Protected)');
 }
 
 async function saveLinks(): Promise<void> {
@@ -1672,6 +1729,22 @@ function renderProfilesGrid(): void {
 
 function setupActionButtons(): void {
   document.getElementById('btn-save-personal')?.addEventListener('click', savePersonal);
+  document.getElementById('btn-save-passport')?.addEventListener('click', savePassport);
+
+  const togglePassportMaskBtn = document.getElementById('btn-toggle-passport-mask');
+  const passportInput = document.getElementById('core-passport-num') as HTMLInputElement | null;
+  togglePassportMaskBtn?.addEventListener('click', () => {
+    if (!passportInput) return;
+    const isPassword = passportInput.type === 'password';
+    passportInput.type = isPassword ? 'text' : 'password';
+    const icon = document.getElementById('eye-icon-passport');
+    if (icon) {
+      icon.innerHTML = isPassword
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  });
+
   document.getElementById('btn-save-links')?.addEventListener('click', saveLinks);
   document.getElementById('btn-add-education')?.addEventListener('click', openEducationModal);
   document.getElementById('btn-add-employment')?.addEventListener('click', () => openJobModal(undefined, 'full_time'));

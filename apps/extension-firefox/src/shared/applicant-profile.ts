@@ -75,6 +75,14 @@ export type SensitivityLevel =
   | 'sensitive_personal'   // Demographic, family, disability: confirmation recommended
   | 'restricted_identifier'; // Aadhaar, PAN, SSN, bank, passport: never sent to remote AI, requires explicit user confirmation
 
+export interface PassportDetails {
+  passportNumber: string;        // Masked, restricted identifier
+  issuingCountry: string;        // Issuing country/authority
+  expiryDate?: string;           // Expiration date
+  issueDate?: string;            // Date of issue
+  nationality?: string;          // Nationality as printed on passport
+}
+
 export type CustomFieldValueType =
   | 'text'
   | 'number'

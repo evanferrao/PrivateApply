@@ -313,6 +313,24 @@ body {
       font-family: inherit;
     }
     .btn-action-primary:hover { background: var(--primary-700); }
+    .btn-action-primary:disabled,
+    .btn-action-secondary:disabled,
+    button:disabled {
+      background: #14170f !important;
+      color: #727a52 !important;
+      border: 1px solid #262c1a !important;
+      cursor: not-allowed !important;
+      opacity: 0.65;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    html.dark .btn-action-primary:disabled,
+    html.dark .btn-action-secondary:disabled,
+    html.dark button:disabled {
+      background: #000000 !important;
+      color: #555d44 !important;
+      border: 1px solid #202416 !important;
+    }
 
     .btn-action-secondary {
       background: var(--bg-page);

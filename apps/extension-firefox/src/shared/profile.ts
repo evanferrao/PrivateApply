@@ -85,7 +85,9 @@ import type {
   ExperienceOverrides,
   WorkPreferences,
   LegalAndDisclosures,
+  PassportDetails,
 } from './applicant-profile';
+export type { PassportDetails } from './applicant-profile';
 
 export interface UserProfile {
   personal: {
@@ -159,6 +161,7 @@ export interface UserProfile {
   compensation?: CompensationDetails;
   indiaPack?: IndiaRecruitmentPack;
   countryPacksData?: Record<string, Record<string, any>>;
+  passport?: PassportDetails; // Government identification & passport (strictly protected)
   customFields?: CustomFieldDefinition[];
   questionBank?: QuestionBankItem[];
   documents?: DocumentMetadata[];

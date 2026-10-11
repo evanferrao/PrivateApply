@@ -103,6 +103,14 @@ describe('SemanticProfileMatcher', () => {
       panNumberMasked: 'ABCPS1234D',
     },
 
+    passport: {
+      passportNumber: 'Z9876543',
+      issuingCountry: 'India',
+      expiryDate: '2032-12-31',
+      issueDate: '2022-12-31',
+      nationality: 'Indian',
+    },
+
     customFields: [
       {
         id: 'cf_1',
@@ -285,6 +293,36 @@ describe('SemanticProfileMatcher', () => {
       expect(match?.aiAccessPermitted).toBe(false);
       expect(match?.requiresConfirmation).toBe(true);
       expect(match?.value).toBe('ABCPS1234D');
+    });
+
+    it('restricts passport number transmission and requires explicit confirmation', () => {
+      const match = semanticProfileMatcher.match(
+        createMockField('Passport Number', 'passport_no'),
+        mockProfile
+      );
+      expect(match).not.toBeNull();
+      expect(match?.sensitivity).toBe('restricted_identifier');
+      expect(match?.aiAccessPermitted).toBe(false);
+      expect(match?.requiresConfirmation).toBe(true);
+      expect(match?.value).toBe('Z9876543');
+    });
+
+    it('matches passport issuing country and expiration date', () => {
+      const countryMatch = semanticProfileMatcher.match(
+        createMockField('Passport Issuing Country', 'passport_issuing_country'),
+        mockProfile
+      );
+      expect(countryMatch).not.toBeNull();
+      expect(countryMatch?.value).toBe('India');
+      expect(countryMatch?.sensitivity).toBe('sensitive_personal');
+      expect(countryMatch?.aiAccessPermitted).toBe(true);
+
+      const expiryMatch = semanticProfileMatcher.match(
+        createMockField('Passport Expiration Date', 'passport_exp_date'),
+        mockProfile
+      );
+      expect(expiryMatch).not.toBeNull();
+      expect(expiryMatch?.value).toBe('2032-12-31');
     });
   });
 
