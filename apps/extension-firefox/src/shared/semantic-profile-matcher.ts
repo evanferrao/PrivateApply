@@ -40,7 +40,9 @@ export interface SemanticMatchResult {
     | 'question_bank'
     | 'work_preferences'
     | 'legal_disclosures'
-    | 'passport_details';
+    | 'passport_details'
+    | 'certification'
+    | 'social_link';
   fieldKey: string;
   fieldLabel: string;
   entity?: string; // e.g. "father", "mother", "applicant", "school"
@@ -738,6 +740,318 @@ export class SemanticProfileMatcher {
           selectionReason: `Calculated total experience (${derived.displayTotalExperience}) from employment history`,
         };
       }
+    }
+
+    // ── 7.5. PROFESSIONAL & SOCIAL MEDIA LINKS ─────────────────────────────────
+    const prof = profile.professional;
+    if (prof) {
+      // LinkedIn
+      if (matchesAny(combined, ['linkedin', 'linked-in', 'linkedin profile', 'linkedin url', 'linkedin link']) && prof.linkedin) {
+        return {
+          value: prof.linkedin,
+          confidence: 0.96,
+          source: 'canonical_professional',
+          fieldKey: 'linkedin',
+          fieldLabel: 'LinkedIn Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate LinkedIn profile URL',
+        };
+      }
+
+      // GitHub
+      if (matchesAny(combined, ['github', 'github url', 'github profile', 'github link', 'git repo', 'github repository']) && prof.github) {
+        return {
+          value: prof.github,
+          confidence: 0.95,
+          source: 'canonical_professional',
+          fieldKey: 'github',
+          fieldLabel: 'GitHub Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate GitHub profile URL',
+        };
+      }
+
+      // Twitter / X
+      if (matchesAny(combined, ['twitter', 'twitter url', 'twitter profile', 'twitter handle', 'x profile', 'x url', 'x handle', 'twitter/x', 'x/twitter']) && prof.twitter) {
+        return {
+          value: prof.twitter,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'twitter',
+          fieldLabel: 'Twitter / X Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate Twitter / X profile URL',
+        };
+      }
+
+      // YouTube
+      if (matchesAny(combined, ['youtube', 'youtube url', 'youtube channel', 'video portfolio']) && prof.youtube) {
+        return {
+          value: prof.youtube,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'youtube',
+          fieldLabel: 'YouTube Channel',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate YouTube channel URL',
+        };
+      }
+
+      // Instagram
+      if (matchesAny(combined, ['instagram', 'instagram url', 'instagram profile', 'instagram handle', 'ig profile']) && prof.instagram) {
+        return {
+          value: prof.instagram,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'instagram',
+          fieldLabel: 'Instagram Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate Instagram profile URL',
+        };
+      }
+
+      // Facebook
+      if (matchesAny(combined, ['facebook', 'facebook url', 'facebook profile', 'fb profile']) && prof.facebook) {
+        return {
+          value: prof.facebook,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'facebook',
+          fieldLabel: 'Facebook Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate Facebook profile URL',
+        };
+      }
+
+      // Threads
+      if (matchesAny(combined, ['threads', 'threads url', 'threads profile', 'meta threads']) && prof.threads) {
+        return {
+          value: prof.threads,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'threads',
+          fieldLabel: 'Threads Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate Threads profile URL',
+        };
+      }
+
+      // Bluesky
+      if (matchesAny(combined, ['bluesky', 'bsky', 'bluesky url', 'bluesky profile']) && prof.bluesky) {
+        return {
+          value: prof.bluesky,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'bluesky',
+          fieldLabel: 'Bluesky Profile',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate Bluesky profile URL',
+        };
+      }
+
+      // Medium / Blog
+      if (matchesAny(combined, ['medium', 'medium url', 'medium profile', 'tech blog', 'blog url']) && prof.medium) {
+        return {
+          value: prof.medium,
+          confidence: 0.95,
+          source: 'social_link',
+          fieldKey: 'medium',
+          fieldLabel: 'Medium / Tech Blog',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate Medium/blog URL',
+        };
+      }
+
+      // Portfolio / Website (guard against referral source "how did you hear")
+      if (matchesAny(combined, ['portfolio', 'portfolio url', 'personal website', 'website url', 'personal site', 'online portfolio', 'web page']) &&
+          !matchesAny(combined, ['hear', 'find', 'referral', 'source']) &&
+          (prof.portfolio || prof.website)) {
+        return {
+          value: prof.portfolio || prof.website!,
+          confidence: 0.94,
+          source: 'canonical_professional',
+          fieldKey: 'portfolio',
+          fieldLabel: 'Portfolio / Website',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved candidate portfolio/website URL',
+        };
+      }
+    }
+
+    // ── 7.6. CERTIFICATIONS & LICENSES ─────────────────────────────────────────
+    const certs = profile.certifications;
+    if (certs && certs.length > 0) {
+      // Check for matching specific certifications by name, issuer, issuer aliases, or exam code
+      for (const cert of certs) {
+        const issuerTerms = [cert.issuer, ...(cert.issuerAliases || [])].filter(Boolean);
+        const isIssuerMatch = issuerTerms.length > 0 && matchesAny(combined, issuerTerms);
+        const isNameMatch = matchesAny(combined, [cert.name]);
+        const isExamMatch = Boolean(cert.examCode && matchesAny(combined, [cert.examCode]));
+
+        if (isNameMatch || isExamMatch || isIssuerMatch) {
+          // Specific sub-field queries
+          if (matchesAny(combined, ['verification', 'verify', 'badge link', 'badge url', 'credential url', 'credential link', 'credly', 'verify credential']) && cert.verificationUrl) {
+            return {
+              value: cert.verificationUrl,
+              confidence: 0.95,
+              source: 'certification',
+              fieldKey: `cert_${cert.id}_verification_url`,
+              fieldLabel: `${cert.name} Verification URL`,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Resolved verification link for "${cert.name}"`,
+            };
+          }
+
+          if (matchesAny(combined, ['credential id', 'credential #', 'license number', 'license no', 'license #', 'certificate number', 'certificate id']) && cert.credentialId) {
+            return {
+              value: cert.credentialId,
+              confidence: 0.95,
+              source: 'certification',
+              fieldKey: `cert_${cert.id}_credential_id`,
+              fieldLabel: `${cert.name} Credential ID`,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Resolved credential ID / license number for "${cert.name}"`,
+            };
+          }
+
+          if (matchesAny(combined, ['exam code', 'exam #', 'exam number']) && cert.examCode) {
+            return {
+              value: cert.examCode,
+              confidence: 0.95,
+              source: 'certification',
+              fieldKey: `cert_${cert.id}_exam_code`,
+              fieldLabel: `${cert.name} Exam Code`,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Resolved exam code for "${cert.name}"`,
+            };
+          }
+
+          if (matchesAny(combined, ['issue date', 'date of issue', 'date achieved', 'certification date', 'issued date']) && cert.issueDate) {
+            return {
+              value: cert.issueDate,
+              confidence: 0.93,
+              source: 'certification',
+              fieldKey: `cert_${cert.id}_issue_date`,
+              fieldLabel: `${cert.name} Issue Date`,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Resolved issue date for "${cert.name}"`,
+            };
+          }
+
+          if (matchesAny(combined, ['expiry date', 'expiration date', 'valid until', 'expiry', 'expiration'])) {
+            const expVal = cert.doesNotExpire ? 'Does not expire' : (cert.expiryDate || 'Does not expire');
+            return {
+              value: expVal,
+              confidence: 0.93,
+              source: 'certification',
+              fieldKey: `cert_${cert.id}_expiry_date`,
+              fieldLabel: `${cert.name} Expiration Date`,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Resolved expiration date for "${cert.name}"`,
+            };
+          }
+
+          // If it's a yes/no / checkbox question about having this certification
+          if (field.type === 'checkbox' || matchesAny(combined, ['do you have', 'do you hold', 'are you certified', 'certified in', 'holder of'])) {
+            return {
+              value: field.type === 'checkbox' ? true : 'Yes',
+              confidence: 0.94,
+              source: 'certification',
+              fieldKey: `cert_${cert.id}_status`,
+              fieldLabel: `${cert.name} Certified Status`,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Confirmed active certification "${cert.name}"`,
+            };
+          }
+
+          // General return: certification title or full reference
+          return {
+            value: cert.name,
+            confidence: 0.93,
+            source: 'certification',
+            fieldKey: `cert_${cert.id}_name`,
+            fieldLabel: cert.name,
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: `Matched certification "${cert.name}" via ${isNameMatch ? 'name' : isExamMatch ? 'exam code' : 'organization alias'}`,
+          };
+        }
+      }
+
+      // General certifications questions (e.g. "Certifications", "Licenses and Certifications", "Do you hold any certifications?")
+      if (matchesAny(combined, ['certifications', 'licenses', 'professional certifications', 'credentials', 'certifications and licenses', 'licenses & certifications', 'do you hold any certifications', 'do you have any certifications'])) {
+        if (field.type === 'checkbox') {
+          return {
+            value: true,
+            confidence: 0.95,
+            source: 'certification',
+            fieldKey: 'certifications_held',
+            fieldLabel: 'Certifications Held',
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: 'Confirmed candidate holds professional certifications',
+          };
+        }
+
+        const summary = certs.map(c => `${c.name} (${c.issuer}${c.credentialId ? `, ID: ${c.credentialId}` : ''})`).join('; ');
+        return {
+          value: summary,
+          confidence: 0.92,
+          source: 'certification',
+          fieldKey: 'certifications_summary',
+          fieldLabel: 'Certifications & Licenses Summary',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Summarized candidate professional certifications and licenses',
+        };
+      }
+    } else if (matchesAny(combined, ['do you hold any certifications', 'do you have any certifications']) && field.type === 'checkbox') {
+      return {
+        value: false,
+        confidence: 0.9,
+        source: 'certification',
+        fieldKey: 'certifications_held',
+        fieldLabel: 'Certifications Held',
+        sensitivity: 'ordinary',
+        requiresConfirmation: false,
+        aiAccessPermitted: true,
+        selectionReason: 'No certifications registered in profile',
+      };
     }
 
     // ── 8. RESTRICTED SENSITIVE IDENTIFIERS (Aadhaar / PAN / SSN / Passport) ───

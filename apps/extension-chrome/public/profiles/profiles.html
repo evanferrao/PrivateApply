@@ -52,6 +52,10 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
         Education
       </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-certifications">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        Certifications
+      </button>
       <button type="button" class="hub-tab-btn" data-tab="tab-experience">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         Experience & CTC
@@ -211,23 +215,57 @@
       <div class="hub-card">
         <div class="hub-card-header">
           <div>
-            <div class="hub-card-title">Professional Links & Profiles</div>
-            <div class="hub-card-desc">Social links and portfolio websites.</div>
+            <div class="hub-card-title">Professional &amp; Social Links</div>
+            <div class="hub-card-desc">Professional portfolios, code repositories, and social channels requested by employers.</div>
           </div>
           <button type="button" class="btn-action-primary" id="btn-save-links">Save Links</button>
         </div>
-        <div class="form-grid-3">
+        <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Professional Profiles &amp; Portfolios</div>
+        <div class="form-grid-3" style="margin-bottom: 16px;">
           <div class="field-group">
-            <label>LinkedIn URL</label>
+            <label for="core-linkedin">LinkedIn URL</label>
             <input type="url" id="core-linkedin" class="field-input" placeholder="https://linkedin.com/in/username">
           </div>
           <div class="field-group">
-            <label>GitHub URL</label>
+            <label for="core-github">GitHub URL</label>
             <input type="url" id="core-github" class="field-input" placeholder="https://github.com/username">
           </div>
           <div class="field-group">
-            <label>Portfolio / Personal Website</label>
+            <label for="core-portfolio">Portfolio / Personal Website</label>
             <input type="url" id="core-portfolio" class="field-input" placeholder="https://yourportfolio.dev">
+          </div>
+        </div>
+        <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Social Media &amp; Content Channels</div>
+        <div class="form-grid-3" style="margin-bottom: 14px;">
+          <div class="field-group">
+            <label for="core-twitter">Twitter / X URL</label>
+            <input type="url" id="core-twitter" class="field-input" placeholder="https://x.com/username">
+          </div>
+          <div class="field-group">
+            <label for="core-youtube">YouTube Channel</label>
+            <input type="url" id="core-youtube" class="field-input" placeholder="https://youtube.com/@channel">
+          </div>
+          <div class="field-group">
+            <label for="core-instagram">Instagram Profile</label>
+            <input type="url" id="core-instagram" class="field-input" placeholder="https://instagram.com/username">
+          </div>
+        </div>
+        <div class="form-grid-4">
+          <div class="field-group">
+            <label for="core-facebook">Facebook Profile</label>
+            <input type="url" id="core-facebook" class="field-input" placeholder="https://facebook.com/username">
+          </div>
+          <div class="field-group">
+            <label for="core-threads">Threads Profile</label>
+            <input type="url" id="core-threads" class="field-input" placeholder="https://threads.net/@username">
+          </div>
+          <div class="field-group">
+            <label for="core-bluesky">Bluesky Profile</label>
+            <input type="url" id="core-bluesky" class="field-input" placeholder="https://bsky.app/profile/username.bsky.social">
+          </div>
+          <div class="field-group">
+            <label for="core-medium">Medium / Tech Blog</label>
+            <input type="url" id="core-medium" class="field-input" placeholder="https://medium.com/@username">
           </div>
         </div>
       </div>
@@ -245,6 +283,21 @@
         </div>
 
         <div id="education-records-container" class="records-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: Certifications & Licenses -->
+    <div id="tab-certifications" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Certifications &amp; Licenses</div>
+            <div class="hub-card-desc">Professional credentials, certifications, and licenses from any authority with multi-alias organization matching (e.g. AWS / Amazon Web Services).</div>
+          </div>
+          <button type="button" class="btn-action-primary" id="btn-add-certification">+ Add Certification</button>
+        </div>
+
+        <div id="certifications-records-container" class="records-list"></div>
       </div>
     </div>
 
@@ -1221,6 +1274,78 @@
         <div style="display: flex; gap: 10px;">
           <button type="submit" class="btn-action-primary" id="qb-modal-submit" style="flex:1;">Save Question</button>
           <button type="button" class="btn-action-secondary" id="qb-modal-cancel" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Certification & License Modal -->
+  <div id="cert-modal" class="modal">
+    <div class="modal-content" style="max-width: 560px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 16px; font-weight: 600;" id="cert-modal-title">Add Certification / License</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Record professional certifications from any vendor or issuing authority. Support organization aliases (e.g. AWS, Amazon Web Services) for smart form matching.</p>
+      <form id="cert-modal-form">
+        <input type="hidden" id="cert-modal-id">
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="cert-modal-name">Certification Name *</label>
+          <input type="text" id="cert-modal-name" class="field-input" placeholder="e.g. AWS Certified Solutions Architect – Associate" required>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="field-group">
+            <label for="cert-modal-issuer">Issuing Organization *</label>
+            <input type="text" id="cert-modal-issuer" class="field-input" placeholder="e.g. Amazon Web Services" required>
+          </div>
+          <div class="field-group">
+            <label for="cert-modal-exam-code">Exam Code (Optional)</label>
+            <input type="text" id="cert-modal-exam-code" class="field-input" placeholder="e.g. SAA-C03, AZ-104">
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="cert-modal-alias-input">Organization Aliases (e.g. AWS, Amazon - press Enter or Add)</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="cert-modal-alias-input" class="field-input" placeholder="Type alias and click Add or press Enter">
+            <button type="button" class="btn-action-secondary" id="btn-add-cert-alias" style="padding: 6px 14px; white-space: nowrap;">+ Add Alias</button>
+          </div>
+          <div id="cert-modal-aliases-container" class="record-tags" style="margin-top: 8px; min-height: 24px;"></div>
+          <span class="field-help-text">Add any abbreviations or alternate names. Forms asking for "AWS" or "Amazon" will auto-match this certification.</span>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="field-group">
+            <label for="cert-modal-credential-id">Credential ID / License Number (Optional)</label>
+            <input type="text" id="cert-modal-credential-id" class="field-input" placeholder="e.g. AWS-ASA-938210">
+          </div>
+          <div class="field-group">
+            <label for="cert-modal-score">Score / Grade (Optional)</label>
+            <input type="text" id="cert-modal-score" class="field-input" placeholder="e.g. 890 / 1000 or Pass">
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="cert-modal-verification-url">Verification Link / Credly / Badge URL (Optional)</label>
+          <input type="url" id="cert-modal-verification-url" class="field-input" placeholder="https://www.credly.com/badges/...">
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 12px;">
+          <div class="field-group">
+            <label for="cert-modal-issue-date">Date Achieved / Issue Date *</label>
+            <input type="date" id="cert-modal-issue-date" class="field-input" required>
+          </div>
+          <div class="field-group">
+            <label for="cert-modal-expiry-date">Expiration Date</label>
+            <input type="date" id="cert-modal-expiry-date" class="field-input">
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+            <input type="checkbox" id="cert-modal-no-expire" style="width: 16px; height: 16px; accent-color: var(--primary-600);">
+            This credential does not expire (lifetime validity)
+          </label>
+        </div>
+        <div class="field-group" style="margin-bottom: 16px;">
+          <label for="cert-modal-skills">Skills / Topics Covered (Optional)</label>
+          <input type="text" id="cert-modal-skills" class="field-input" placeholder="e.g. Cloud Architecture, AWS, IAM, Security">
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="cert-modal-submit" style="flex:1;">Save Certification</button>
+          <button type="button" class="btn-action-secondary" id="cert-modal-cancel" style="flex:1;">Cancel</button>
         </div>
       </form>
     </div>

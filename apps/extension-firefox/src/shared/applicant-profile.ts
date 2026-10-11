@@ -83,6 +83,22 @@ export interface PassportDetails {
   nationality?: string;          // Nationality as printed on passport
 }
 
+export interface CertificationRecord {
+  id: string;                      // Unique identifier e.g. "cert_1697000000000_abc"
+  name: string;                    // Certification name, e.g. "AWS Certified Solutions Architect – Associate"
+  issuer: string;                  // Organization name, e.g. "Amazon Web Services"
+  issuerAliases: string[];         // Aliases for the organization name, e.g. ["AWS", "Amazon", "Amazon Web Services"]
+  examCode?: string;               // Exam code (optional), e.g. "SAA-C03", "AZ-104", "CKA"
+  credentialId?: string;           // Credential ID / License Number (optional), e.g. "AWS-1234567"
+  verificationUrl?: string;        // Verification link / Credly / badge URL (optional)
+  issueDate: string;               // Date achieved (YYYY-MM-DD or YYYY-MM)
+  expiryDate?: string;             // Expiry date (optional, YYYY-MM-DD or YYYY-MM)
+  doesNotExpire?: boolean;         // True if credential has no expiration date / lifetime valid
+  scoreOrGrade?: string;           // Score, percent or grade achieved (optional), e.g. "890 / 1000"
+  skillsCovered?: string[];        // Key skills or topics covered (optional)
+  description?: string;            // Overview / notes (optional)
+}
+
 export type CustomFieldValueType =
   | 'text'
   | 'number'
@@ -100,6 +116,7 @@ export interface CustomFieldDefinition {
   sectionId:
     | 'personal'
     | 'education'
+    | 'certifications'
     | 'employment'
     | 'compensation'
     | 'work_auth'

@@ -477,7 +477,7 @@ export function resolveIsHispanicLatino(
 /**
  * Match a form field to profile data
  */
-function matchFieldToProfile(field: FieldSchema, profile: UserProfile): string | boolean | null {
+export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): string | boolean | null {
   const label = (field.label || field.name || field.id || '').toLowerCase();
   const name = (field.name || '').toLowerCase();
   const id = (field.id || '').toLowerCase();
@@ -2101,6 +2101,52 @@ function matchFieldToProfile(field: FieldSchema, profile: UserProfile): string |
       const portfolioValue = profile.professional.portfolio || profile.professional.github || '';
       console.log('[Autofill] Website/Portfolio field matched:', portfolioValue || '(empty)');
       return portfolioValue;
+    }
+  }
+
+  // Twitter / X
+  if (matchesAny([label, name, id], ['twitter', 'twitter url', 'twitter handle', 'twitter profile', 'x profile', 'x url', 'x handle'])) {
+    return profile.professional?.twitter || '';
+  }
+
+  // YouTube
+  if (matchesAny([label, name, id], ['youtube', 'youtube url', 'youtube channel', 'video portfolio'])) {
+    return profile.professional?.youtube || '';
+  }
+
+  // Instagram
+  if (matchesAny([label, name, id], ['instagram', 'instagram url', 'instagram profile', 'instagram handle'])) {
+    return profile.professional?.instagram || '';
+  }
+
+  // Facebook
+  if (matchesAny([label, name, id], ['facebook', 'facebook url', 'facebook profile'])) {
+    return profile.professional?.facebook || '';
+  }
+
+  // Threads
+  if (matchesAny([label, name, id], ['threads', 'threads url', 'threads profile'])) {
+    return profile.professional?.threads || '';
+  }
+
+  // Bluesky
+  if (matchesAny([label, name, id], ['bluesky', 'bsky', 'bluesky profile', 'bluesky url'])) {
+    return profile.professional?.bluesky || '';
+  }
+
+  // Medium
+  if (matchesAny([label, name, id], ['medium', 'medium url', 'medium profile'])) {
+    return profile.professional?.medium || '';
+  }
+
+  // Certifications / Licenses
+  if (matchesAny([label, name, id], ['certifications', 'licenses', 'credential id', 'certification name'])) {
+    const certs = profile.certifications || [];
+    if (certs.length > 0) {
+      if (matchesAny([label, name, id], ['credential id', 'license number'])) {
+        return certs.find(c => c.credentialId)?.credentialId || '';
+      }
+      return certs.map(c => `${c.name} (${c.issuer})`).join(', ');
     }
   }
   

@@ -86,8 +86,9 @@ import type {
   WorkPreferences,
   LegalAndDisclosures,
   PassportDetails,
+  CertificationRecord,
 } from './applicant-profile';
-export type { PassportDetails } from './applicant-profile';
+export type { PassportDetails, CertificationRecord } from './applicant-profile';
 
 export interface UserProfile {
   personal: {
@@ -118,6 +119,13 @@ export interface UserProfile {
     github?: string;
     portfolio?: string;
     website?: string;
+    twitter?: string;
+    youtube?: string;
+    instagram?: string;
+    facebook?: string;
+    threads?: string;
+    bluesky?: string;
+    medium?: string;
     otherLinks?: string[];
     yearsOfExperience?: number;
     currentRole?: string;
@@ -155,6 +163,7 @@ export interface UserProfile {
 
   // ── Extended Catalogue & Extensibility ──
   educationHistory?: EducationRecord[];
+  certifications?: CertificationRecord[];
   employmentHistory?: DetailedEmploymentRecord[];
   familyContacts?: FamilyContact[];
   references?: ApplicantReference[];

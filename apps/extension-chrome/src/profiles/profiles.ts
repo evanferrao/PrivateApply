@@ -26,6 +26,7 @@ import {
   createDefaultLegalAndDisclosures,
   createDefaultQuestionBank,
   type EducationRecord,
+  type CertificationRecord,
   type DetailedEmploymentRecord,
   type FamilyContact,
   type CustomFieldDefinition,
@@ -179,6 +180,7 @@ async function init(): Promise<void> {
   renderActiveBanner();
   populatePersonalForm();
   populateEducationList();
+  populateCertificationsList();
   populateExperienceList();
   populateWorkPreferencesForm();
   populateScreeningForm();
@@ -250,6 +252,23 @@ function populatePersonalForm(): void {
   (document.getElementById('core-linkedin') as HTMLInputElement).value = prof?.linkedin || '';
   (document.getElementById('core-github') as HTMLInputElement).value = prof?.github || '';
   (document.getElementById('core-portfolio') as HTMLInputElement).value = prof?.portfolio || prof?.website || '';
+
+  // Social Links
+  const twitterEl = document.getElementById('core-twitter') as HTMLInputElement | null;
+  const youtubeEl = document.getElementById('core-youtube') as HTMLInputElement | null;
+  const instagramEl = document.getElementById('core-instagram') as HTMLInputElement | null;
+  const facebookEl = document.getElementById('core-facebook') as HTMLInputElement | null;
+  const threadsEl = document.getElementById('core-threads') as HTMLInputElement | null;
+  const blueskyEl = document.getElementById('core-bluesky') as HTMLInputElement | null;
+  const mediumEl = document.getElementById('core-medium') as HTMLInputElement | null;
+
+  if (twitterEl) twitterEl.value = prof?.twitter || '';
+  if (youtubeEl) youtubeEl.value = prof?.youtube || '';
+  if (instagramEl) instagramEl.value = prof?.instagram || '';
+  if (facebookEl) facebookEl.value = prof?.facebook || '';
+  if (threadsEl) threadsEl.value = prof?.threads || '';
+  if (blueskyEl) blueskyEl.value = prof?.bluesky || '';
+  if (mediumEl) mediumEl.value = prof?.medium || '';
 
   // Passport (Protected Field)
   const pass = activeProfileData.passport;
@@ -359,12 +378,21 @@ async function savePassport(): Promise<void> {
 async function saveLinks(): Promise<void> {
   if (!activeProfileData) return;
   if (!activeProfileData.professional) activeProfileData.professional = {};
-  activeProfileData.professional.linkedin = (document.getElementById('core-linkedin') as HTMLInputElement).value.trim() || undefined;
-  activeProfileData.professional.github = (document.getElementById('core-github') as HTMLInputElement).value.trim() || undefined;
-  activeProfileData.professional.portfolio = (document.getElementById('core-portfolio') as HTMLInputElement).value.trim() || undefined;
+  activeProfileData.professional.linkedin = (document.getElementById('core-linkedin') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.github = (document.getElementById('core-github') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.portfolio = (document.getElementById('core-portfolio') as HTMLInputElement)?.value.trim() || undefined;
+
+  // Social Links
+  activeProfileData.professional.twitter = (document.getElementById('core-twitter') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.youtube = (document.getElementById('core-youtube') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.instagram = (document.getElementById('core-instagram') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.facebook = (document.getElementById('core-facebook') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.threads = (document.getElementById('core-threads') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.bluesky = (document.getElementById('core-bluesky') as HTMLInputElement)?.value.trim() || undefined;
+  activeProfileData.professional.medium = (document.getElementById('core-medium') as HTMLInputElement)?.value.trim() || undefined;
 
   await saveUserProfile(activeProfileData);
-  showToast('✓ Professional links saved');
+  showToast('✓ Professional and social links saved');
 }
 
 // ── Education History ──────────────────────────────────────────────────────
@@ -481,6 +509,297 @@ function setupEducationModalEvents(): void {
     closeEducationModal();
     populateEducationList();
     showToast('✓ Education record added');
+  });
+}
+
+// ── Certifications & Licenses ─────────────────────────────────────────────
+
+let currentCertModalAliases: string[] = [];
+
+function renderCertModalAliases(): void {
+  const container = document.getElementById('cert-modal-aliases-container');
+  if (!container) return;
+  if (currentCertModalAliases.length === 0) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text-muted);font-style:italic;">No aliases added yet.</span>';
+    return;
+  }
+  container.innerHTML = currentCertModalAliases
+    .map(
+      (alias, idx) =>
+        `<span class="alias-pill">${escapeHtml(alias)} <button type="button" class="alias-pill-remove" data-del-alias="${idx}" title="Remove alias">&times;</button></span>`
+    )
+    .join(' ');
+
+  container.querySelectorAll('.alias-pill-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt((btn as HTMLElement).dataset.delAlias || '0', 10);
+      currentCertModalAliases.splice(idx, 1);
+      renderCertModalAliases();
+    });
+  });
+}
+
+function addCertAliasFromInput(): void {
+  const input = document.getElementById('cert-modal-aliases-input') as HTMLInputElement | null;
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+  for (const p of parts) {
+    if (!currentCertModalAliases.some(a => a.toLowerCase() === p.toLowerCase())) {
+      currentCertModalAliases.push(p);
+    }
+  }
+  input.value = '';
+  renderCertModalAliases();
+  input.focus();
+}
+
+function populateCertificationsList(): void {
+  const container = document.getElementById('certifications-records-container');
+  if (!container) return;
+  const records = activeProfileData?.certifications || [];
+
+  if (records.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 28px; color: var(--text-muted); font-size: 13.5px;">
+        No certifications added yet. Click "+ Add Certification" to record professional certifications, licenses, and verified credentials with organization aliases.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  records.forEach((cert) => {
+    const aliasesHtml =
+      cert.issuerAliases && cert.issuerAliases.length > 0
+        ? `<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+             <span style="font-size:11.5px;color:var(--text-muted);font-weight:600;">Aliases:</span>
+             ${cert.issuerAliases.map(a => `<span class="alias-pill">${escapeHtml(a)}</span>`).join('')}
+           </div>`
+        : '';
+
+    const tags: string[] = [];
+    if (cert.examCode) tags.push(`<span class="record-tag">Exam: ${escapeHtml(cert.examCode)}</span>`);
+    if (cert.credentialId) tags.push(`<span class="record-tag">ID: ${escapeHtml(cert.credentialId)}</span>`);
+    if (cert.scoreOrGrade) tags.push(`<span class="record-tag">Score: ${escapeHtml(cert.scoreOrGrade)}</span>`);
+    if (cert.issueDate) tags.push(`<span class="record-tag">Issued: ${escapeHtml(cert.issueDate)}</span>`);
+    if (cert.doesNotExpire) {
+      tags.push(`<span class="record-tag" style="background:var(--success-100, #dcfce7);color:var(--success-800, #15803d);font-weight:600;">Lifetime Valid</span>`);
+    } else if (cert.expiryDate) {
+      tags.push(`<span class="record-tag">Expires: ${escapeHtml(cert.expiryDate)}</span>`);
+    }
+    if (cert.skillsCovered && cert.skillsCovered.length > 0) {
+      tags.push(`<span class="record-tag">Skills: ${escapeHtml(cert.skillsCovered.join(', '))}</span>`);
+    }
+
+    const verifyHtml = cert.verificationUrl
+      ? `<div style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+           <a href="${escapeHtml(cert.verificationUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary-600); text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-weight:500;">
+             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+             Verify Credential
+           </a>
+           <button type="button" class="btn-copy-cert-link" data-url="${escapeHtml(cert.verificationUrl)}" style="background:none; border:none; cursor:pointer; font-size:11.5px; color:var(--text-muted); padding:0 4px; text-decoration:underline;">Copy URL</button>
+         </div>`
+      : '';
+
+    html += `
+      <div class="record-item">
+        <div class="record-details">
+          <div class="record-title">${escapeHtml(cert.name)}</div>
+          <div class="record-subtitle">Issued by <strong>${escapeHtml(cert.issuer)}</strong></div>
+          ${aliasesHtml}
+          ${verifyHtml}
+          <div class="record-tags" style="margin-top:8px;">
+            ${tags.join('')}
+          </div>
+        </div>
+        <div class="record-actions" style="display:flex; gap:6px;">
+          <button type="button" class="btn-edit-record" data-edit-cert="${escapeHtml(cert.id)}" style="background:none;border:none;cursor:pointer;color:var(--primary-600);font-size:12.5px;font-weight:600;">Edit</button>
+          <button type="button" class="btn-delete-record" data-delete-cert="${escapeHtml(cert.id)}" style="background:none;border:none;cursor:pointer;color:var(--danger-600, #dc2626);font-size:12.5px;font-weight:600;">Delete</button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('[data-edit-cert]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).dataset.editCert;
+      openCertificationModal(id);
+    });
+  });
+
+  container.querySelectorAll('[data-delete-cert]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).dataset.deleteCert;
+      if (!activeProfileData || !id) return;
+      if (confirm('Are you sure you want to delete this certification?')) {
+        activeProfileData.certifications = (activeProfileData.certifications || []).filter(c => c.id !== id);
+        await saveUserProfile(activeProfileData);
+        populateCertificationsList();
+        showToast('✓ Certification deleted');
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-copy-cert-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = (btn as HTMLElement).dataset.url || '';
+      if (url) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('✓ Verification URL copied to clipboard');
+        });
+      }
+    });
+  });
+}
+
+function openCertificationModal(certId?: string): void {
+  const modal = document.getElementById('cert-modal');
+  if (!modal) return;
+  const idInput = document.getElementById('cert-modal-id') as HTMLInputElement;
+  const nameInput = document.getElementById('cert-modal-name') as HTMLInputElement;
+  const issuerInput = document.getElementById('cert-modal-issuer') as HTMLInputElement;
+  const examInput = document.getElementById('cert-modal-exam-code') as HTMLInputElement;
+  const credIdInput = document.getElementById('cert-modal-credential-id') as HTMLInputElement;
+  const scoreInput = document.getElementById('cert-modal-score') as HTMLInputElement;
+  const urlInput = document.getElementById('cert-modal-verification-url') as HTMLInputElement;
+  const issueInput = document.getElementById('cert-modal-issue-date') as HTMLInputElement;
+  const expiryInput = document.getElementById('cert-modal-expiry-date') as HTMLInputElement;
+  const noExpireCheckbox = document.getElementById('cert-modal-no-expire') as HTMLInputElement;
+  const skillsInput = document.getElementById('cert-modal-skills') as HTMLInputElement;
+  const titleEl = document.getElementById('cert-modal-title');
+
+  if (certId && activeProfileData?.certifications) {
+    const existing = activeProfileData.certifications.find(c => c.id === certId);
+    if (existing) {
+      if (titleEl) titleEl.textContent = 'Edit Certification / License';
+      idInput.value = existing.id;
+      nameInput.value = existing.name;
+      issuerInput.value = existing.issuer;
+      examInput.value = existing.examCode || '';
+      credIdInput.value = existing.credentialId || '';
+      scoreInput.value = existing.scoreOrGrade || '';
+      urlInput.value = existing.verificationUrl || '';
+      issueInput.value = existing.issueDate || '';
+      expiryInput.value = existing.expiryDate || '';
+      noExpireCheckbox.checked = Boolean(existing.doesNotExpire);
+      expiryInput.disabled = Boolean(existing.doesNotExpire);
+      skillsInput.value = (existing.skillsCovered || []).join(', ');
+      currentCertModalAliases = [...(existing.issuerAliases || [])];
+      renderCertModalAliases();
+      modal.classList.add('active');
+      return;
+    }
+  }
+
+  if (titleEl) titleEl.textContent = 'Add Certification / License';
+  idInput.value = '';
+  nameInput.value = '';
+  issuerInput.value = '';
+  examInput.value = '';
+  credIdInput.value = '';
+  scoreInput.value = '';
+  urlInput.value = '';
+  issueInput.value = '';
+  expiryInput.value = '';
+  expiryInput.disabled = false;
+  noExpireCheckbox.checked = false;
+  skillsInput.value = '';
+  currentCertModalAliases = [];
+  renderCertModalAliases();
+  modal.classList.add('active');
+}
+
+function closeCertificationModal(): void {
+  document.getElementById('cert-modal')?.classList.remove('active');
+}
+
+function setupCertificationModalEvents(): void {
+  const modal = document.getElementById('cert-modal');
+  const form = document.getElementById('cert-modal-form') as HTMLFormElement | null;
+  const cancelBtn = document.getElementById('cert-modal-cancel');
+  const addAliasBtn = document.getElementById('btn-add-cert-alias');
+  const aliasInput = document.getElementById('cert-modal-aliases-input') as HTMLInputElement | null;
+  const noExpireCheckbox = document.getElementById('cert-modal-no-expire') as HTMLInputElement | null;
+  const expiryInput = document.getElementById('cert-modal-expiry-date') as HTMLInputElement | null;
+
+  cancelBtn?.addEventListener('click', closeCertificationModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeCertificationModal();
+  });
+
+  addAliasBtn?.addEventListener('click', addCertAliasFromInput);
+  aliasInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCertAliasFromInput();
+    }
+  });
+
+  noExpireCheckbox?.addEventListener('change', () => {
+    if (expiryInput) {
+      expiryInput.disabled = Boolean(noExpireCheckbox.checked);
+      if (noExpireCheckbox.checked) {
+        expiryInput.value = '';
+      }
+    }
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeProfileData) return;
+    if (!activeProfileData.certifications) activeProfileData.certifications = [];
+
+    const idInput = (document.getElementById('cert-modal-id') as HTMLInputElement).value.trim();
+    const name = (document.getElementById('cert-modal-name') as HTMLInputElement).value.trim();
+    const issuer = (document.getElementById('cert-modal-issuer') as HTMLInputElement).value.trim();
+    const examCode = (document.getElementById('cert-modal-exam-code') as HTMLInputElement).value.trim() || undefined;
+    const credentialId = (document.getElementById('cert-modal-credential-id') as HTMLInputElement).value.trim() || undefined;
+    const scoreOrGrade = (document.getElementById('cert-modal-score') as HTMLInputElement).value.trim() || undefined;
+    const verificationUrl = (document.getElementById('cert-modal-verification-url') as HTMLInputElement).value.trim() || undefined;
+    const issueDate = (document.getElementById('cert-modal-issue-date') as HTMLInputElement).value.trim();
+    const doesNotExpire = Boolean(noExpireCheckbox?.checked);
+    const expiryDate = doesNotExpire ? undefined : ((document.getElementById('cert-modal-expiry-date') as HTMLInputElement).value.trim() || undefined);
+    const rawSkills = (document.getElementById('cert-modal-skills') as HTMLInputElement).value.trim();
+    const skillsCovered = rawSkills ? rawSkills.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+
+    if (aliasInput && aliasInput.value.trim()) {
+      addCertAliasFromInput();
+    }
+
+    const certRecord: CertificationRecord = {
+      id: idInput || `cert_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      issuer,
+      issuerAliases: [...currentCertModalAliases],
+      examCode,
+      credentialId,
+      verificationUrl,
+      issueDate,
+      expiryDate,
+      doesNotExpire,
+      scoreOrGrade,
+      skillsCovered,
+    };
+
+    if (idInput) {
+      const idx = activeProfileData.certifications.findIndex(c => c.id === idInput);
+      if (idx >= 0) {
+        activeProfileData.certifications[idx] = certRecord;
+      } else {
+        activeProfileData.certifications.push(certRecord);
+      }
+    } else {
+      activeProfileData.certifications.push(certRecord);
+    }
+
+    await saveUserProfile(activeProfileData);
+    closeCertificationModal();
+    populateCertificationsList();
+    showToast(idInput ? '✓ Certification updated' : '✓ Certification added');
   });
 }
 
@@ -1913,6 +2232,7 @@ function setupActionButtons(): void {
 
   document.getElementById('btn-save-links')?.addEventListener('click', saveLinks);
   document.getElementById('btn-add-education')?.addEventListener('click', openEducationModal);
+  document.getElementById('btn-add-certification')?.addEventListener('click', () => openCertificationModal());
   document.getElementById('btn-add-employment')?.addEventListener('click', () => openJobModal(undefined, 'full_time'));
   document.getElementById('btn-add-internship')?.addEventListener('click', () => openJobModal(undefined, 'internship'));
   document.getElementById('btn-save-work-preferences')?.addEventListener('click', saveWorkPreferences);
@@ -1922,6 +2242,8 @@ function setupActionButtons(): void {
   document.getElementById('btn-save-india-pack')?.addEventListener('click', saveCountryPacks);
   document.getElementById('btn-save-employment-packs')?.addEventListener('click', saveEmploymentPacks);
   document.getElementById('btn-add-question')?.addEventListener('click', openQuestionModal);
+  setupEducationModalEvents();
+  setupCertificationModalEvents();
 
   // City tags events
   const cityInput = document.getElementById('wp-city-input') as HTMLInputElement | null;
