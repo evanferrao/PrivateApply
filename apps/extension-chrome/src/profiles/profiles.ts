@@ -15,6 +15,8 @@ import {
   saveUserProfile,
   formatPhone,
   formatLocation,
+  isPhoneDetails,
+  type PhoneDetails,
 } from '../shared/profile';
 import {
   calculateDerivedExperience,
@@ -46,6 +48,46 @@ function escapeHtml(s: string): string {
   const d = document.createElement('div');
   d.textContent = s || '';
   return d.innerHTML;
+}
+
+function parsePhoneComponents(phone: string | PhoneDetails | undefined): { countryCode: string; number: string } {
+  if (!phone) return { countryCode: '+1', number: '' };
+  if (isPhoneDetails(phone)) {
+    return { countryCode: phone.countryCode || '+1', number: phone.number || '' };
+  }
+  const str = String(phone).trim();
+  const match = str.match(/^(\+\d{1,4})\s*(.*)$/);
+  if (match) {
+    return { countryCode: match[1], number: match[2].trim() };
+  }
+  return { countryCode: '+1', number: str };
+}
+
+function formatStartDaysText(days: number): string {
+  if (days <= 0) return '(Immediate — ready to start now)';
+  const target = new Date();
+  target.setDate(target.getDate() + days);
+  const dateStr = target.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  if (days === 7) return `(1 week notice — joining ~${dateStr})`;
+  if (days === 14) return `(2 weeks notice — joining ~${dateStr})`;
+  if (days === 30) return `(1 month notice — joining ~${dateStr})`;
+  if (days === 60) return `(2 months notice — joining ~${dateStr})`;
+  if (days === 90) return `(3 months notice — joining ~${dateStr})`;
+  return `(${days} days — joining ~${dateStr})`;
+}
+
+function updateStartDaysDisplay(days: number): void {
+  const calcEl = document.getElementById('wp-earliest-start-calc');
+  if (calcEl) calcEl.textContent = formatStartDaysText(days);
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-preset-day').forEach(btn => {
+    const d = parseInt(btn.dataset.days || '-1', 10);
+    if (d === days) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
 }
 
 function showToast(message: string): void {
@@ -160,8 +202,25 @@ function populatePersonalForm(): void {
   (document.getElementById('core-full-name') as HTMLInputElement).value = p.fullName || '';
   (document.getElementById('core-preferred-name') as HTMLInputElement).value = p.preferredName || '';
   (document.getElementById('core-email') as HTMLInputElement).value = p.email || '';
-  (document.getElementById('core-phone') as HTMLInputElement).value = formatPhone(p.phone) || '';
-  (document.getElementById('core-alternate-phone') as HTMLInputElement).value = formatPhone(p.alternatePhone || '') || '';
+
+  // Phone - split country code and national number
+  const parsedPhone = parsePhoneComponents(p.phone);
+  const phoneCcEl = document.getElementById('core-phone-cc') as HTMLInputElement | null;
+  const phoneNumEl = document.getElementById('core-phone-num') as HTMLInputElement | null;
+  const phoneHiddenEl = document.getElementById('core-phone') as HTMLInputElement | null;
+  if (phoneCcEl) phoneCcEl.value = parsedPhone.countryCode;
+  if (phoneNumEl) phoneNumEl.value = parsedPhone.number;
+  if (phoneHiddenEl) phoneHiddenEl.value = formatPhone(p.phone) || '';
+
+  // Alternate phone
+  const parsedAltPhone = parsePhoneComponents(p.alternatePhone);
+  const altCcEl = document.getElementById('core-alt-phone-cc') as HTMLInputElement | null;
+  const altNumEl = document.getElementById('core-alt-phone-num') as HTMLInputElement | null;
+  const altHiddenEl = document.getElementById('core-alternate-phone') as HTMLInputElement | null;
+  if (altCcEl) altCcEl.value = parsedAltPhone.countryCode;
+  if (altNumEl) altNumEl.value = parsedAltPhone.number;
+  if (altHiddenEl) altHiddenEl.value = formatPhone(p.alternatePhone || '') || '';
+
   (document.getElementById('core-univ-email') as HTMLInputElement).value = p.universityEmail || '';
   (document.getElementById('core-address') as HTMLInputElement).value = formatLocation(p.location) || '';
   (document.getElementById('core-permanent-address') as HTMLInputElement).value = formatLocation(p.permanentAddress || '') || '';
@@ -181,8 +240,35 @@ async function savePersonal(): Promise<void> {
   p.fullName = (document.getElementById('core-full-name') as HTMLInputElement).value.trim() || undefined;
   p.preferredName = (document.getElementById('core-preferred-name') as HTMLInputElement).value.trim() || undefined;
   p.email = (document.getElementById('core-email') as HTMLInputElement).value.trim();
-  p.phone = (document.getElementById('core-phone') as HTMLInputElement).value.trim();
-  p.alternatePhone = (document.getElementById('core-alternate-phone') as HTMLInputElement).value.trim() || undefined;
+
+  // Save phone as structured PhoneDetails
+  const phoneCc = ((document.getElementById('core-phone-cc') as HTMLInputElement)?.value || '+1').trim();
+  const phoneNum = ((document.getElementById('core-phone-num') as HTMLInputElement)?.value || '').trim();
+  const normalizedCc = phoneCc.startsWith('+') ? phoneCc : `+${phoneCc}`;
+  if (phoneNum) {
+    p.phone = {
+      countryCode: normalizedCc,
+      number: phoneNum,
+      formatted: `${normalizedCc} ${phoneNum}`,
+    };
+  } else {
+    p.phone = '';
+  }
+
+  // Save alternate phone
+  const altCc = ((document.getElementById('core-alt-phone-cc') as HTMLInputElement)?.value || '+1').trim();
+  const altNum = ((document.getElementById('core-alt-phone-num') as HTMLInputElement)?.value || '').trim();
+  const normalizedAltCc = altCc.startsWith('+') ? altCc : `+${altCc}`;
+  if (altNum) {
+    p.alternatePhone = {
+      countryCode: normalizedAltCc,
+      number: altNum,
+      formatted: `${normalizedAltCc} ${altNum}`,
+    };
+  } else {
+    p.alternatePhone = undefined;
+  }
+
   p.universityEmail = (document.getElementById('core-univ-email') as HTMLInputElement).value.trim() || undefined;
   p.location = (document.getElementById('core-address') as HTMLInputElement).value.trim();
   p.permanentAddress = (document.getElementById('core-permanent-address') as HTMLInputElement).value.trim() || undefined;
@@ -266,33 +352,55 @@ function populateEducationList(): void {
   });
 }
 
-function promptAddEducation(): void {
-  const level = prompt(
-    'Enter qualification level (class_10, class_12, undergraduate, postgraduate, diploma):',
-    'undergraduate'
-  );
-  if (!level) return;
+function openEducationModal(): void {
+  const modal = document.getElementById('edu-modal');
+  if (!modal) return;
+  (document.getElementById('edu-modal-title-input') as HTMLInputElement).value = '';
+  (document.getElementById('edu-modal-school') as HTMLInputElement).value = '';
+  (document.getElementById('edu-modal-score') as HTMLInputElement).value = '';
+  (document.getElementById('edu-modal-year') as HTMLInputElement).value = '';
+  (document.getElementById('edu-modal-level') as HTMLSelectElement).value = 'undergraduate';
+  modal.classList.add('active');
+}
 
-  const title = prompt('Qualification Title (e.g. B.Tech Computer Science, Secondary School Examination):', '') || '';
-  const school = prompt('School / College / University Name:', '') || '';
-  const score = prompt('Percentage or CGPA (e.g. 88.5% or 8.5):', '') || '';
-  const year = prompt('Year of Passing (e.g. 2024):', '') || '';
+function closeEducationModal(): void {
+  document.getElementById('edu-modal')?.classList.remove('active');
+}
 
-  if (!activeProfileData) return;
-  if (!activeProfileData.educationHistory) activeProfileData.educationHistory = [];
+function setupEducationModalEvents(): void {
+  const modal = document.getElementById('edu-modal');
+  const form = document.getElementById('edu-modal-form') as HTMLFormElement | null;
+  const cancelBtn = document.getElementById('edu-modal-cancel');
 
-  const rec: EducationRecord = {
-    id: `edu_${Date.now()}`,
-    level: level as any,
-    qualificationTitle: title,
-    schoolOrInstitution: school,
-    scoreValue: score,
-    yearOfPassing: year,
-    resultStatus: 'passed',
-  };
+  cancelBtn?.addEventListener('click', closeEducationModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeEducationModal();
+  });
 
-  activeProfileData.educationHistory.push(rec);
-  saveUserProfile(activeProfileData).then(() => {
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeProfileData) return;
+    if (!activeProfileData.educationHistory) activeProfileData.educationHistory = [];
+
+    const level = (document.getElementById('edu-modal-level') as HTMLSelectElement).value;
+    const title = (document.getElementById('edu-modal-title-input') as HTMLInputElement).value.trim();
+    const school = (document.getElementById('edu-modal-school') as HTMLInputElement).value.trim();
+    const score = (document.getElementById('edu-modal-score') as HTMLInputElement).value.trim();
+    const year = (document.getElementById('edu-modal-year') as HTMLInputElement).value.trim();
+
+    const rec: EducationRecord = {
+      id: `edu_${Date.now()}`,
+      level: level as any,
+      qualificationTitle: title,
+      schoolOrInstitution: school,
+      scoreValue: score,
+      yearOfPassing: year,
+      resultStatus: 'passed',
+    };
+
+    activeProfileData.educationHistory.push(rec);
+    await saveUserProfile(activeProfileData);
+    closeEducationModal();
     populateEducationList();
     showToast('✓ Education record added');
   });
@@ -747,8 +855,13 @@ function populateWorkPreferencesForm(): void {
   (document.getElementById('wp-travel-willing') as HTMLInputElement).checked = Boolean(wp.willingToTravel);
   (document.getElementById('wp-travel-pct') as HTMLInputElement).value = String(wp.travelPercentage ?? '');
 
-  // Earliest start
-  (document.getElementById('wp-earliest-start') as HTMLInputElement).value = wp.earliestStartDate || '';
+  // Earliest start (numeric days)
+  const startDays = wp.earliestStartDays !== undefined 
+    ? wp.earliestStartDays 
+    : (wp.earliestStartDate && !isNaN(parseInt(wp.earliestStartDate, 10)) ? parseInt(wp.earliestStartDate, 10) : 0);
+  const startDaysEl = document.getElementById('wp-earliest-start-days') as HTMLInputElement | null;
+  if (startDaysEl) startDaysEl.value = String(startDays);
+  updateStartDaysDisplay(startDays);
 
   // Employment types
   const empTypes = wp.employmentTypes || ['full_time'];
@@ -801,7 +914,10 @@ async function saveWorkPreferences(): Promise<void> {
   const travelPct = parseInt((document.getElementById('wp-travel-pct') as HTMLInputElement).value, 10);
   wp.travelPercentage = isNaN(travelPct) ? undefined : travelPct;
 
-  wp.earliestStartDate = (document.getElementById('wp-earliest-start') as HTMLInputElement).value.trim() || undefined;
+  const startDaysInput = document.getElementById('wp-earliest-start-days') as HTMLInputElement | null;
+  const startDaysVal = startDaysInput ? parseInt(startDaysInput.value, 10) : 0;
+  wp.earliestStartDays = isNaN(startDaysVal) ? 0 : Math.max(0, startDaysVal);
+  wp.earliestStartDate = wp.earliestStartDays === 0 ? 'Immediately' : `${wp.earliestStartDays} days`;
 
   const empTypes: Array<any> = [];
   document.querySelectorAll<HTMLInputElement>('.wp-emp-type:checked').forEach(cb => {
@@ -942,7 +1058,7 @@ function populateFamilyList(): void {
       <div class="record-item">
         <div class="record-details">
           <div class="record-title">${escapeHtml(c.name)} <span style="font-weight:400;color:var(--gray-600);">(${escapeHtml(c.relationship)})</span></div>
-          <div class="record-subtitle">Phone: ${escapeHtml(c.phone)} ${c.email ? `· Email: ${escapeHtml(c.email)}` : ''}</div>
+          <div class="record-subtitle">Phone: ${escapeHtml(formatPhone(c.phone as any))} ${c.email ? `· Email: ${escapeHtml(c.email)}` : ''}</div>
           <div class="record-tags">
             ${c.occupation ? `<span class="record-tag">Occupation: ${escapeHtml(c.occupation)}</span>` : ''}
             ${c.employer ? `<span class="record-tag">Employer: ${escapeHtml(c.employer)}</span>` : ''}
@@ -967,32 +1083,68 @@ function populateFamilyList(): void {
   });
 }
 
-function promptAddFamily(): void {
-  const rel = prompt(
-    'Relationship type (father, mother, guardian, spouse, sibling, emergency):',
-    'father'
-  );
-  if (!rel) return;
-  const name = prompt(`${rel.charAt(0).toUpperCase() + rel.slice(1)}'s Full Name:`, '') || '';
-  const phone = prompt(`${rel.charAt(0).toUpperCase() + rel.slice(1)}'s Contact Phone:`, '') || '';
-  const occ = prompt(`${rel.charAt(0).toUpperCase() + rel.slice(1)}'s Occupation:`, '') || '';
+function openFamilyModal(): void {
+  const modal = document.getElementById('family-modal');
+  if (!modal) return;
+  (document.getElementById('family-modal-rel') as HTMLSelectElement).value = 'father';
+  (document.getElementById('family-modal-name') as HTMLInputElement).value = '';
+  (document.getElementById('family-modal-phone-cc') as HTMLInputElement).value = '+1';
+  (document.getElementById('family-modal-phone-num') as HTMLInputElement).value = '';
+  (document.getElementById('family-modal-occ') as HTMLInputElement).value = '';
+  (document.getElementById('family-modal-email') as HTMLInputElement).value = '';
+  (document.getElementById('family-modal-emergency') as HTMLInputElement).checked = false;
+  modal.classList.add('active');
+}
 
-  if (!activeProfileData) return;
-  if (!activeProfileData.familyContacts) activeProfileData.familyContacts = [];
+function closeFamilyModal(): void {
+  document.getElementById('family-modal')?.classList.remove('active');
+}
 
-  const contact: FamilyContact = {
-    id: `fc_${Date.now()}`,
-    relationship: rel.toLowerCase() as any,
-    name,
-    phone,
-    occupation: occ,
-    isEmergencyContact: rel.toLowerCase() === 'emergency',
-  };
+function setupFamilyModalEvents(): void {
+  const modal = document.getElementById('family-modal');
+  const form = document.getElementById('family-modal-form') as HTMLFormElement | null;
+  const cancelBtn = document.getElementById('family-modal-cancel');
 
-  activeProfileData.familyContacts.push(contact);
-  saveUserProfile(activeProfileData).then(() => {
+  cancelBtn?.addEventListener('click', closeFamilyModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeFamilyModal();
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeProfileData) return;
+    if (!activeProfileData.familyContacts) activeProfileData.familyContacts = [];
+
+    const rel = (document.getElementById('family-modal-rel') as HTMLSelectElement).value;
+    const name = (document.getElementById('family-modal-name') as HTMLInputElement).value.trim();
+    const phoneCc = ((document.getElementById('family-modal-phone-cc') as HTMLInputElement).value || '+1').trim();
+    const phoneNum = (document.getElementById('family-modal-phone-num') as HTMLInputElement).value.trim();
+    const occ = (document.getElementById('family-modal-occ') as HTMLInputElement).value.trim();
+    const email = (document.getElementById('family-modal-email') as HTMLInputElement).value.trim();
+    const isEmergency = (document.getElementById('family-modal-emergency') as HTMLInputElement).checked || rel === 'emergency';
+
+    const normalizedCc = phoneCc.startsWith('+') ? phoneCc : `+${phoneCc}`;
+    const formattedPhone = `${normalizedCc} ${phoneNum}`.trim();
+
+    const contact: FamilyContact = {
+      id: `fc_${Date.now()}`,
+      relationship: rel as any,
+      name,
+      phone: {
+        countryCode: normalizedCc,
+        number: phoneNum,
+        formatted: formattedPhone,
+      } as any,
+      occupation: occ || undefined,
+      email: email || undefined,
+      isEmergencyContact: isEmergency,
+    };
+
+    activeProfileData.familyContacts.push(contact);
+    await saveUserProfile(activeProfileData);
+    closeFamilyModal();
     populateFamilyList();
-    showToast('✓ Contact added');
+    showToast('✓ Family contact added');
   });
 }
 
@@ -1239,30 +1391,56 @@ function populateQuestionBankList(): void {
   });
 }
 
-function promptAddQuestion(): void {
-  const q = prompt('Screening Question (e.g. Why are you interested in this position?):', '');
-  if (!q) return;
-  const a = prompt('Your Saved Answer / Narrative Response:', '') || '';
-  const aliasesStr = prompt('Alternative Question Phrasings (comma-separated):', '') || '';
+function openQuestionModal(): void {
+  const modal = document.getElementById('qb-modal');
+  if (!modal) return;
+  (document.getElementById('qb-modal-category') as HTMLSelectElement).value = 'screening';
+  (document.getElementById('qb-modal-question') as HTMLInputElement).value = '';
+  (document.getElementById('qb-modal-aliases') as HTMLInputElement).value = '';
+  (document.getElementById('qb-modal-answer') as HTMLTextAreaElement).value = '';
+  modal.classList.add('active');
+}
 
-  if (!activeProfileData) return;
-  if (!activeProfileData.questionBank) activeProfileData.questionBank = [];
+function closeQuestionModal(): void {
+  document.getElementById('qb-modal')?.classList.remove('active');
+}
 
-  const item: QuestionBankItem = {
-    id: `qb_${Date.now()}`,
-    question: q,
-    aliases: aliasesStr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
-    answer: a,
-    category: 'screening',
-    isVerified: true,
-    companyScoped: false,
-    lastUpdated: Date.now(),
-  };
+function setupQuestionModalEvents(): void {
+  const modal = document.getElementById('qb-modal');
+  const form = document.getElementById('qb-modal-form') as HTMLFormElement | null;
+  const cancelBtn = document.getElementById('qb-modal-cancel');
 
-  activeProfileData.questionBank.push(item);
-  saveUserProfile(activeProfileData).then(() => {
+  cancelBtn?.addEventListener('click', closeQuestionModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeQuestionModal();
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeProfileData) return;
+    if (!activeProfileData.questionBank) activeProfileData.questionBank = [];
+
+    const category = (document.getElementById('qb-modal-category') as HTMLSelectElement).value;
+    const q = (document.getElementById('qb-modal-question') as HTMLInputElement).value.trim();
+    const aliasesStr = (document.getElementById('qb-modal-aliases') as HTMLInputElement).value.trim();
+    const a = (document.getElementById('qb-modal-answer') as HTMLTextAreaElement).value.trim();
+
+    const item: QuestionBankItem = {
+      id: `qb_${Date.now()}`,
+      question: q,
+      aliases: aliasesStr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+      answer: a,
+      category: category as any,
+      isVerified: true,
+      companyScoped: false,
+      lastUpdated: Date.now(),
+    };
+
+    activeProfileData.questionBank.push(item);
+    await saveUserProfile(activeProfileData);
+    closeQuestionModal();
     populateQuestionBankList();
-    showToast('✓ Saved answer added');
+    showToast('✓ Screening question added');
   });
 }
 
@@ -1319,14 +1497,14 @@ function renderProfilesGrid(): void {
 function setupActionButtons(): void {
   document.getElementById('btn-save-personal')?.addEventListener('click', savePersonal);
   document.getElementById('btn-save-links')?.addEventListener('click', saveLinks);
-  document.getElementById('btn-add-education')?.addEventListener('click', promptAddEducation);
+  document.getElementById('btn-add-education')?.addEventListener('click', openEducationModal);
   document.getElementById('btn-add-employment')?.addEventListener('click', () => openJobModal(undefined, 'full_time'));
   document.getElementById('btn-add-internship')?.addEventListener('click', () => openJobModal(undefined, 'internship'));
   document.getElementById('btn-save-work-preferences')?.addEventListener('click', saveWorkPreferences);
   document.getElementById('btn-save-screening')?.addEventListener('click', saveScreening);
-  document.getElementById('btn-add-family-contact')?.addEventListener('click', promptAddFamily);
+  document.getElementById('btn-add-family-contact')?.addEventListener('click', openFamilyModal);
   document.getElementById('btn-save-india-pack')?.addEventListener('click', saveIndiaPack);
-  document.getElementById('btn-add-question')?.addEventListener('click', promptAddQuestion);
+  document.getElementById('btn-add-question')?.addEventListener('click', openQuestionModal);
 
   // City tags events
   const cityInput = document.getElementById('wp-city-input') as HTMLInputElement | null;
@@ -1361,6 +1539,10 @@ function setupActionButtons(): void {
 
   setupJobModalEvents();
   setupExpOverrideModalEvents();
+  setupEducationModalEvents();
+  setupFamilyModalEvents();
+  setupQuestionModalEvents();
+  setupStartDaysEvents();
 
   document.getElementById('btn-new-profile-modal')?.addEventListener('click', () => {
     (document.getElementById('profile-name') as HTMLInputElement).value = '';
@@ -1414,4 +1596,5 @@ function renderColorPicker(selected: string): void {
 // ── Startup ────────────────────────────────────────────────────────────────
 
 setupTabs();
-init();
+setupActionButtons();
+init().catch(err => console.error('[Profiles] Init error:', err));

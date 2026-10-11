@@ -123,6 +123,7 @@ export interface UserProfile {
     salaryExpectation?: string;
     noticePeriod?: string;
     noticePeriodDays?: number;
+    earliestStartDays?: number; // Days until candidate can start: 0 for immediate, 7 for 1 week, etc.
     earliestJoiningDate?: string;
     willingToRelocate?: boolean;
     preferredLocations?: string[];

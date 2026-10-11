@@ -122,12 +122,21 @@
             <input type="email" id="core-email" class="field-input" placeholder="name@example.com">
           </div>
           <div class="field-group">
-            <label>Primary Mobile / Phone</label>
-            <input type="tel" id="core-phone" class="field-input" placeholder="+1 (555) 000-0000 or +91 9876543210">
+            <label for="core-phone-num">Primary Mobile / Phone</label>
+            <div class="phone-input-split">
+              <input type="text" id="core-phone-cc" class="field-input phone-cc-input" placeholder="+1" title="Country Dialing Code (e.g. +1, +91, +44)">
+              <input type="tel" id="core-phone-num" class="field-input phone-num-input" placeholder="5551234567">
+              <input type="hidden" id="core-phone">
+            </div>
+            <span class="field-help-text">Country code is kept separate to prevent autofill failures on strictly validated forms.</span>
           </div>
           <div class="field-group">
-            <label>Alternate / Secondary Phone</label>
-            <input type="tel" id="core-alternate-phone" class="field-input" placeholder="Backup contact phone number">
+            <label for="core-alt-phone-num">Alternate / Secondary Phone</label>
+            <div class="phone-input-split">
+              <input type="text" id="core-alt-phone-cc" class="field-input phone-cc-input" placeholder="+1" title="Country Dialing Code">
+              <input type="tel" id="core-alt-phone-num" class="field-input phone-num-input" placeholder="Backup contact phone number">
+              <input type="hidden" id="core-alternate-phone">
+            </div>
           </div>
           <div class="field-group">
             <label>University / Student Email</label>
@@ -376,8 +385,21 @@
             <input type="number" id="wp-travel-pct" class="field-input" min="0" max="100" step="5" placeholder="Max travel percentage (e.g. 10 or 25%)">
           </div>
           <div class="field-group">
-            <label for="wp-earliest-start">Earliest Start Date / Availability</label>
-            <input type="text" id="wp-earliest-start" class="field-input" placeholder="e.g. Immediately, 2 weeks notice, or 2026-11-01">
+            <label for="wp-earliest-start-days">Earliest Start Date / Availability (Days until joining)</label>
+            <div class="start-days-input-wrap">
+              <input type="number" id="wp-earliest-start-days" class="field-input" min="0" max="365" step="1" placeholder="0 = Immediate, 7 = 1 week, 30 = 1 month">
+              <span id="wp-earliest-start-calc" style="font-size: 12px; color: var(--gray-600); white-space: nowrap; font-weight: 500;">(Immediate)</span>
+              <input type="hidden" id="wp-earliest-start">
+            </div>
+            <div class="start-days-presets">
+              <button type="button" class="btn-preset-day" data-days="0">0 (Immediate)</button>
+              <button type="button" class="btn-preset-day" data-days="7">7 (1 week)</button>
+              <button type="button" class="btn-preset-day" data-days="14">14 (2 weeks)</button>
+              <button type="button" class="btn-preset-day" data-days="30">30 (1 month)</button>
+              <button type="button" class="btn-preset-day" data-days="60">60 (2 months)</button>
+              <button type="button" class="btn-preset-day" data-days="90">90 (3 months)</button>
+            </div>
+            <span class="field-help-text">The AI computes the exact joining date or notice period at form-filling time based on these days.</span>
           </div>
         </div>
       </div>
@@ -1085,6 +1107,141 @@
         <div style="display: flex; gap: 10px;">
           <button type="submit" class="btn-action-primary" id="job-submit" style="flex:1;">Save Record</button>
           <button type="button" class="btn-action-secondary" id="job-cancel" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Education Modal -->
+  <div id="edu-modal" class="modal">
+    <div class="modal-content" style="max-width: 540px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 16px; font-weight: 600;" id="edu-modal-title">Add Education Record</h3>
+      <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">Record a school, diploma, undergraduate, postgraduate, or doctoral qualification.</p>
+      <form id="edu-modal-form">
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="edu-modal-level">Qualification Level &amp; Aliases</label>
+          <select id="edu-modal-level" class="field-select" required>
+            <option value="undergraduate">Undergraduate / Bachelor's (B.Tech, B.E., B.S., B.A., BCA, B.Sc)</option>
+            <option value="postgraduate">Postgraduate / Master's (M.Tech, M.E., M.S., M.A., MCA, MBA, M.Sc)</option>
+            <option value="class_12">Class 12 / Higher Secondary / Intermediate (10+2, HSC, A-Levels)</option>
+            <option value="class_10">Class 10 / Secondary School (SSC, Matriculation, O-Levels, 10th)</option>
+            <option value="diploma">Diploma / Polytechnic (Vocational, Technical Diploma)</option>
+            <option value="doctorate">Doctorate / Ph.D. (Doctor of Philosophy, D.Phil)</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="edu-modal-title-input">Degree / Qualification Title</label>
+          <input type="text" id="edu-modal-title-input" class="field-input" placeholder="e.g. B.Tech in Computer Science &amp; Engineering" required>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="edu-modal-school">School / College / University Name</label>
+          <input type="text" id="edu-modal-school" class="field-input" placeholder="e.g. Stanford University or Delhi Public School" required>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="field-group">
+            <label for="edu-modal-score">Percentage or CGPA</label>
+            <input type="text" id="edu-modal-score" class="field-input" placeholder="e.g. 88.5% or 8.5 / 10">
+          </div>
+          <div class="field-group">
+            <label for="edu-modal-year">Year of Passing / Completion</label>
+            <input type="text" id="edu-modal-year" class="field-input" placeholder="e.g. 2024">
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="edu-modal-submit" style="flex:1;">Save Education</button>
+          <button type="button" class="btn-action-secondary" id="edu-modal-cancel" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Family Contact Modal -->
+  <div id="family-modal" class="modal">
+    <div class="modal-content" style="max-width: 520px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 16px; font-weight: 600;" id="family-modal-title">Add Family / Emergency Contact</h3>
+      <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">Required by several enterprise portals (e.g. TCS, Infosys, government &amp; defense applications).</p>
+      <form id="family-modal-form">
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="family-modal-rel">Relationship Type</label>
+          <select id="family-modal-rel" class="field-select" required>
+            <option value="father">Father</option>
+            <option value="mother">Mother</option>
+            <option value="guardian">Legal Guardian</option>
+            <option value="spouse">Spouse / Partner</option>
+            <option value="sibling">Sibling (Brother / Sister)</option>
+            <option value="emergency">Primary Emergency Contact</option>
+            <option value="next_of_kin">Next of Kin</option>
+            <option value="other">Other Relative</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="family-modal-name">Full Name</label>
+          <input type="text" id="family-modal-name" class="field-input" placeholder="e.g. John Doe" required>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="family-modal-phone-num">Contact Phone (Country Code Separated)</label>
+          <div class="phone-input-split">
+            <input type="text" id="family-modal-phone-cc" class="field-input phone-cc-input" placeholder="+1" title="Country Dialing Code">
+            <input type="tel" id="family-modal-phone-num" class="field-input phone-num-input" placeholder="Contact number" required>
+          </div>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 14px;">
+          <div class="field-group">
+            <label for="family-modal-occ">Occupation</label>
+            <input type="text" id="family-modal-occ" class="field-input" placeholder="e.g. Civil Servant, Engineer">
+          </div>
+          <div class="field-group">
+            <label for="family-modal-email">Email (Optional)</label>
+            <input type="email" id="family-modal-email" class="field-input" placeholder="contact@example.com">
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom: 16px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+            <input type="checkbox" id="family-modal-emergency" style="width: 16px; height: 16px; accent-color: var(--green);">
+            Designate as primary emergency contact
+          </label>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="family-modal-submit" style="flex:1;">Save Contact</button>
+          <button type="button" class="btn-action-secondary" id="family-modal-cancel" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Question Bank Modal -->
+  <div id="qb-modal" class="modal">
+    <div class="modal-content" style="max-width: 560px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 16px; font-weight: 600;" id="qb-modal-title">Add Screening Question &amp; Answer</h3>
+      <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 16px;">Save custom employer screening questions, expected answers, and known aliases for instant semantic matching.</p>
+      <form id="qb-modal-form">
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="qb-modal-category">Question Category</label>
+          <select id="qb-modal-category" class="field-select">
+            <option value="screening">Screening / General</option>
+            <option value="behavioral">Behavioral &amp; Culture</option>
+            <option value="technical">Technical &amp; Skills</option>
+            <option value="compensation">Compensation &amp; Notice Period</option>
+            <option value="work_auth">Work Authorization &amp; Visas</option>
+            <option value="custom">Custom / Other</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="qb-modal-question">Screening Question</label>
+          <input type="text" id="qb-modal-question" class="field-input" placeholder="e.g. Why are you interested in joining our company?" required>
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="qb-modal-aliases">Alternative Phrasings / Aliases (Comma-separated)</label>
+          <input type="text" id="qb-modal-aliases" class="field-input" placeholder="e.g. why join us, interest in role, why this company">
+          <span class="field-help-text">Forms with different phrasings will still auto-match this answer.</span>
+        </div>
+        <div class="field-group" style="margin-bottom: 16px;">
+          <label for="qb-modal-answer">Saved Answer / Narrative Response</label>
+          <textarea id="qb-modal-answer" class="field-input" rows="4" placeholder="Your pre-approved response for this question..." required></textarea>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn-action-primary" id="qb-modal-submit" style="flex:1;">Save Question</button>
+          <button type="button" class="btn-action-secondary" id="qb-modal-cancel" style="flex:1;">Cancel</button>
         </div>
       </form>
     </div>

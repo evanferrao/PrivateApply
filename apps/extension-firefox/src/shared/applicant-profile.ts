@@ -596,6 +596,7 @@ export interface WorkPreferences {
   targetIndustries?: string[];
   preferredTimezones?: string[];
   noticePeriodDays?: number;
+  earliestStartDays?: number; // Days until candidate can join: 0 for immediate, 7 for 1 week, 30 for 1 month
   earliestStartDate?: string;
   minimumAcceptableSalary?: number;
   targetSalary?: number;

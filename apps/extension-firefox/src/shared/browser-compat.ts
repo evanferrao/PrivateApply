@@ -1,72 +1,83 @@
-import browser from 'webextension-polyfill';
-
-export default browser;
-export { browser };
 export type { Runtime, Tabs, Menus, Storage } from 'webextension-polyfill';
 
-/**
- * In Firefox we always use the polyfill; the chromeCompat fallback is a
- * no-op shim so shared code that imports it compiles without changes.
- */
-export const chromeCompat: typeof browser = browser;
+const rawChrome = typeof (globalThis as any).chrome !== 'undefined' ? (globalThis as any).chrome : undefined;
+const rawBrowser = typeof (globalThis as any).browser !== 'undefined' ? (globalThis as any).browser : undefined;
+const isExtensionContext = typeof globalThis !== 'undefined' && (
+  Boolean((globalThis as any).chrome?.runtime?.id) ||
+  Boolean((globalThis as any).browser?.runtime?.id)
+);
 
-// ── MV3 → MV2 global shims ─────────────────────────────────────────────────
-// Chrome code uses `chrome.action` and `chrome.scripting` (MV3 APIs) directly.
-// Firefox MV2 only has `browserAction` and `tabs.executeScript`. These shims
-// patch the global `chrome` object so MV3-style calls work transparently.
-
-(function installMV3Shims() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const g = globalThis as any;
-  if (!g.chrome) return;
-
-  // chrome.action → chrome.browserAction (MV2)
-  if (!g.chrome.action && g.chrome.browserAction) {
-    g.chrome.action = g.chrome.browserAction;
-  }
-
-  // chrome.contextMenus → chrome.menus (Firefox MV2 uses "menus" namespace)
-  if (!g.chrome.contextMenus && g.chrome.menus) {
-    g.chrome.contextMenus = g.chrome.menus;
-  }
-
-  // Also patch the polyfill's browser object
-  if (!g.browser?.contextMenus && g.browser?.menus) {
-    g.browser.contextMenus = g.browser.menus;
-  }
-
-  // chrome.scripting.executeScript → browser.tabs.executeScript (MV2)
-  if (!g.chrome.scripting) {
-    g.chrome.scripting = {
-      executeScript: async (details: {
-        target: { tabId: number; allFrames?: boolean };
-        files?: string[];
-        func?: (...args: unknown[]) => unknown;
-        args?: unknown[];
-      }) => {
-        const { target, files, func, args } = details;
-        const opts: { allFrames?: boolean } = { allFrames: target.allFrames ?? false };
-
-        if (func) {
-          const argList = (args ?? []).map((a) => JSON.stringify(a)).join(',');
-          const results = await browser.tabs.executeScript(target.tabId, {
-            ...opts,
-            code: `(${func.toString()})(${argList})`,
-          });
-          return (results ?? []).map((r: unknown) => ({ result: r }));
-        }
-
-        if (files && files.length > 0) {
-          const results = [];
-          for (const file of files) {
-            const r = await browser.tabs.executeScript(target.tabId, { ...opts, file });
-            results.push({ result: r?.[0] });
+const mockLocalStorage = {
+  get: async (keys?: any) => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return {};
+      if (!keys) {
+        const result: Record<string, any> = {};
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k) {
+            try { result[k] = JSON.parse(localStorage.getItem(k) || ''); }
+            catch { result[k] = localStorage.getItem(k); }
           }
-          return results;
         }
+        return result;
+      }
+      const keyList = typeof keys === 'string' ? [keys] : Array.isArray(keys) ? keys : Object.keys(keys);
+      const res: Record<string, any> = {};
+      for (const k of keyList) {
+        const item = localStorage.getItem(k);
+        if (item !== null) {
+          try { res[k] = JSON.parse(item); }
+          catch { res[k] = item; }
+        }
+      }
+      return res;
+    } catch {
+      return {};
+    }
+  },
+  set: async (items: Record<string, any>) => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      for (const [k, v] of Object.entries(items)) {
+        localStorage.setItem(k, JSON.stringify(v));
+      }
+    } catch {}
+  },
+  remove: async (keys: string | string[]) => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      const list = typeof keys === 'string' ? [keys] : keys;
+      for (const k of list) localStorage.removeItem(k);
+    } catch {}
+  },
+  clear: async () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) localStorage.clear();
+    } catch {}
+  },
+};
 
-        return [];
-      },
-    };
+let resolvedBrowser: any = null;
+if (isExtensionContext) {
+  try {
+    resolvedBrowser = require('webextension-polyfill');
+  } catch {
+    resolvedBrowser = rawChrome || rawBrowser;
   }
-})();
+}
+
+if (!resolvedBrowser) {
+  resolvedBrowser = {
+    storage: { local: mockLocalStorage },
+    runtime: {
+      id: rawChrome?.runtime?.id || 'standalone',
+      sendMessage: async () => ({}),
+      onMessage: { addListener: () => {} },
+    },
+  };
+}
+
+export const browser: any = resolvedBrowser;
+export default browser;
+export const chromeCompat: any = rawChrome?.storage?.local ? rawChrome : resolvedBrowser;

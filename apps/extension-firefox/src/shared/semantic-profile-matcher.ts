@@ -771,19 +771,26 @@ export class SemanticProfileMatcher {
 
       // Earliest Start Date
       if (matchesAny(combined, ['earliest start date', 'available start date', 'when can you start', 'start date', 'available to begin', 'earliest joining'])) {
-        if (wp.earliestStartDate) {
-          return {
-            value: wp.earliestStartDate,
-            confidence: 0.95,
-            source: 'work_preferences',
-            fieldKey: 'earliest_start_date',
-            fieldLabel: 'Earliest Start Date',
-            sensitivity: 'ordinary',
-            requiresConfirmation: false,
-            aiAccessPermitted: true,
-            selectionReason: 'Resolved earliest available start date',
-          };
-        }
+        const startDays = wp.earliestStartDays !== undefined
+          ? wp.earliestStartDays
+          : (wp.earliestStartDate && !isNaN(parseInt(wp.earliestStartDate, 10)) ? parseInt(wp.earliestStartDate, 10) : 0);
+
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + startDays);
+        const isoDate = targetDate.toISOString().split('T')[0];
+        const displayVal = startDays === 0 ? 'Immediately' : `${startDays} days notice (${isoDate})`;
+
+        return {
+          value: wp.earliestStartDate || displayVal,
+          confidence: 0.95,
+          source: 'work_preferences',
+          fieldKey: 'earliest_start_date',
+          fieldLabel: 'Earliest Start Date',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved earliest available start date',
+        };
       }
 
       // Employment Types (Full-time, Contract, etc.)

@@ -2293,55 +2293,54 @@ function matchFieldToProfile(field: FieldSchema, profile: UserProfile): string |
 
     const labelLower = (label || '').toLowerCase();
     
-    // Check if asking for a date
-    if (labelLower.includes('when') || labelLower.includes('start') || labelLower.includes('available')) {
-      // Default: "Immediately" or "2 weeks notice" depending on field type
+    // Check if asking for a date / availability
+    if (labelLower.includes('when') || labelLower.includes('start') || labelLower.includes('available') || labelLower.includes('joining')) {
+      const startDays = profile.workPreferences?.earliestStartDays ?? 0;
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + startDays);
+      const formattedDate = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
       if (field.type === 'date') {
-        // For date fields, return 2 weeks from now
-        const twoWeeksFromNow = new Date();
-        twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
-        const formattedDate = twoWeeksFromNow.toISOString().split('T')[0]; // YYYY-MM-DD
-        console.log('[Autofill] 📅 Start date: 2 weeks from now:', formattedDate);
+        console.log('[Autofill] 📅 Start date calculated for date input:', formattedDate, 'days:', startDays);
         return formattedDate;
       } else if (field.type === 'select-one' || field.type === 'autocomplete') {
-        // For dropdowns, try common options
         if ('options' in field && Array.isArray((field as any).options)) {
           const options = (field as any).options as string[];
           
-          // Look for "Immediately" or "2 weeks" option
-          const immediateOption = options.find((opt: string) => 
-            opt.toLowerCase().includes('immediate') || 
-            opt.toLowerCase().includes('asap') ||
-            opt.toLowerCase().includes('right away')
-          );
-          if (immediateOption) {
-            console.log('[Autofill] 📅 Start date: Immediately');
-            return immediateOption;
+          if (startDays === 0) {
+            const immediateOption = options.find((opt: string) => 
+              opt.toLowerCase().includes('immediate') || 
+              opt.toLowerCase().includes('asap') ||
+              opt.toLowerCase().includes('right away') ||
+              opt.toLowerCase().includes('0 day')
+            );
+            if (immediateOption) return immediateOption;
+          } else {
+            const weeks = Math.round(startDays / 7);
+            const months = Math.round(startDays / 30);
+            const matchedOption = options.find((opt: string) => {
+              const o = opt.toLowerCase();
+              return o.includes(`${startDays} day`) ||
+                (weeks > 0 && (o.includes(`${weeks} week`) || o.includes(`${weeks}-week`))) ||
+                (months > 0 && (o.includes(`${months} month`) || o.includes(`${months}-month`))) ||
+                o.includes(formattedDate);
+            });
+            if (matchedOption) return matchedOption;
           }
-          
-          const twoWeeksOption = options.find((opt: string) => 
-            opt.toLowerCase().includes('2 weeks') || 
-            opt.toLowerCase().includes('two weeks')
-          );
-          if (twoWeeksOption) {
-            console.log('[Autofill] 📅 Start date: 2 weeks notice');
-            return twoWeeksOption;
-          }
-          
-          // If no good option, return first non-empty option
+
+          // Fallback to first non-empty option
           if (options.length > 0 && options[0]) {
-            console.log('[Autofill] 📅 Start date: first option:', options[0]);
             return options[0];
           }
         }
         
-        // Default for freeform: "Immediately" or "2 weeks notice"
-        console.log('[Autofill] 📅 Start date: Immediately (default)');
-        return 'Immediately';
+        return startDays === 0 ? 'Immediately' : `${startDays} days`;
       } else {
-        // For text fields, return "Immediately" or "2 weeks notice"
-        console.log('[Autofill] 📅 Start date: Immediately (text field)');
-        return 'Immediately';
+        // For text inputs: If field suggests exact date format, return ISO date, otherwise notice period
+        if (labelLower.includes('yyyy') || labelLower.includes('date') || labelLower.includes('dd/mm') || labelLower.includes('mm/dd')) {
+          return formattedDate;
+        }
+        return startDays === 0 ? 'Immediately' : `${startDays} days`;
       }
     }
   }

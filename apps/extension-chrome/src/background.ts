@@ -13,7 +13,7 @@ import { ParseValidator } from './shared/parse-validator';
 import { enrichParseErrorMessage } from './shared/error-classify';
 import { graphMemory } from './shared/graph/service';
 import {
-  getUserProfile, saveUserProfile, formatPhone, formatLocation, type UserProfile,
+  getUserProfile, saveUserProfile, formatPhone, formatLocation, isPhoneDetails, type UserProfile,
   migrateToMultiProfile, listProfiles, getActiveProfileId, getProfileById,
 } from './shared/profile';
 import { fieldClassifier, isTypeCompatible } from './shared/field-classifier';
@@ -978,14 +978,41 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
       // ── Classify response type based on the field ──
       const classification = classifySmartFillResponse(label, fieldType, options);
 
+      // Decompose phone into country code and national number for AI precision
+      let phoneCc = '+1';
+      let phoneNum = '';
+      if (isPhoneDetails(profile.personal.phone)) {
+        phoneCc = profile.personal.phone.countryCode || '+1';
+        phoneNum = profile.personal.phone.number || '';
+      } else if (typeof profile.personal.phone === 'string') {
+        const parts = profile.personal.phone.trim().split(/\s+/);
+        if (parts.length > 1 && parts[0].startsWith('+')) {
+          phoneCc = parts[0];
+          phoneNum = parts.slice(1).join('');
+        } else {
+          phoneNum = profile.personal.phone;
+        }
+      }
+      const fullPhone = phoneCc ? `${phoneCc} ${phoneNum}`.trim() : phoneNum;
+
+      // Calculate availability and joining date from earliestStartDays
+      const startDays = profile.workPreferences?.earliestStartDays ?? 0;
+      const todayDate = new Date();
+      const targetJoining = new Date();
+      targetJoining.setDate(todayDate.getDate() + startDays);
+      const targetJoiningISO = targetJoining.toISOString().split('T')[0];
+      const startText = startDays === 0 ? 'Immediately (0 days notice)' : `${startDays} days notice (Target Date: ${targetJoiningISO})`;
+
       // Build profile context (concise version for focused queries)
-      const phone = formatPhone(profile.personal.phone);
       const location = formatLocation(profile.personal.location);
       const latestJob = profile.work?.[0];
       const profileSummary = [
         `Name: ${profile.personal.firstName} ${profile.personal.lastName}`,
         `Email: ${profile.personal.email}`,
-        `Phone: ${phone}`,
+        `Phone (Full): ${fullPhone}`,
+        `Phone Country Code: ${phoneCc}`,
+        `Phone National Number: ${phoneNum}`,
+        `Earliest Start / Joining Date: ${startText} (Today: ${todayDate.toISOString().split('T')[0]}, Joining Date: ${targetJoiningISO})`,
         `Location: ${location}`,
         `LinkedIn: ${profile.professional?.linkedin ?? 'n/a'}`,
         `GitHub: ${profile.professional?.github ?? 'n/a'}`,
@@ -1002,6 +1029,14 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
 
       const systemPrompt = `You are filling out a job application on behalf of this candidate.
 ${classification.instruction}
+CRITICAL RULES FOR SPECIAL FIELDS:
+- PHONE FIELDS: Forms often split or validate phone details poorly.
+  * If the field asks specifically for country code / dial code / prefix (e.g. +1, +91), output ONLY the country code (or pick the option containing the country code).
+  * If the field asks for national or local phone number without country code, output ONLY "${phoneNum}".
+  * If the field asks for full international phone number or single phone field, output "${fullPhone}".
+- START DATE / AVAILABILITY FIELDS: Today is ${todayDate.toISOString().split('T')[0]}. The candidate's notice period is ${startDays} days (target joining date is ${targetJoiningISO}).
+  * If the field expects a date format (YYYY-MM-DD or MM/DD/YYYY), output the calculated date "${targetJoiningISO}".
+  * If the field is a dropdown or multiple choice, pick "Immediately" (for 0 days) or the option that best represents ${startDays} days / notice period.
 Respond with ONLY the answer — no labels, no quotes, no explanation, no punctuation around the answer.
 
 CANDIDATE PROFILE:
@@ -1867,6 +1902,23 @@ function classifySmartFillResponse(
   // 2. Question starting with interrogative verbs
   if (/^(do you|are you|have you|will you|would you|can you|did you|is this|does this|were you|is your|has your)/i.test(l)) {
     return { responseType: 'yesno', instruction: 'Answer with exactly one word: either "Yes" or "No".' };
+  }
+
+  // ── Specific high-precision patterns ─────────────────────────────────────
+  // Phone country / dial code field
+  if (/\b(country code|countrycode|dial code|dialing code|phone code|calling code)\b/i.test(l)) {
+    return {
+      responseType: 'short',
+      instruction: 'Answer with ONLY the dialing country prefix (e.g. +1, +91). If a list of options is provided, pick the option containing the country code.',
+    };
+  }
+
+  // Earliest start date / availability field
+  if (/\b(start date|earliest start|joining date|when can you start|available to start|availability)\b/i.test(l)) {
+    return {
+      responseType: 'short',
+      instruction: 'Calculate the exact joining date or notice period based on candidate start days from today. If date input, format as YYYY-MM-DD. If option list, pick the best matching notice period.',
+    };
   }
 
   // ── Single-value short fields ─────────────────────────────────────────────
