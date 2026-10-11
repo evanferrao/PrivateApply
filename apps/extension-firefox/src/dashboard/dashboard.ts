@@ -116,9 +116,33 @@ function setupEventListeners() {
   const cancelEditBtn = document.getElementById('cancelEditBtn');
   cancelEditBtn?.addEventListener('click', closeEditModal);
 
-  // Test data buttons
+  // Clear Data modal controls
   const clearDataBtn = document.getElementById('clearDataBtn');
-  clearDataBtn?.addEventListener('click', clearAllData);
+  const clearDataModal = document.getElementById('clearDataModal');
+  const cancelClearDataBtn = document.getElementById('cancelClearDataBtn');
+  const confirmClearDataBtn = document.getElementById('confirmClearDataBtn');
+
+  clearDataBtn?.addEventListener('click', () => {
+    clearDataModal?.classList.add('active');
+  });
+
+  cancelClearDataBtn?.addEventListener('click', () => {
+    clearDataModal?.classList.remove('active');
+  });
+
+  clearDataModal?.addEventListener('click', (e) => {
+    if (e.target === clearDataModal) {
+      clearDataModal.classList.remove('active');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && clearDataModal?.classList.contains('active')) {
+      clearDataModal.classList.remove('active');
+    }
+  });
+
+  confirmClearDataBtn?.addEventListener('click', executeClearAllData);
 
   // Learned Values button — set the deep-link flag and open the onboarding page
   const viewLearnedBtn = document.getElementById('viewLearnedValuesBtn');
@@ -154,7 +178,26 @@ async function renderStats() {
     setElementText('statInterviewing', stats.interviewing.toString());
     setElementText('statAccepted', stats.accepted.toString());
     setElementText('statRejected', stats.rejected.toString());
-    setElementText('statRate', `${stats.responseRate}%`);
+    
+    // Response rate semantics: em dash if no applications / zero denominator
+    const rateEl = document.getElementById('statRate');
+    const rateCard = document.querySelector('.stat-card.rate') as HTMLElement | null;
+    const rateSubtextSpan = rateCard?.querySelector('.stat-subtext span');
+
+    if (stats.total === 0) {
+      if (rateEl) rateEl.textContent = '—';
+      if (rateSubtextSpan) rateSubtextSpan.textContent = 'No data yet';
+      if (rateCard) {
+        rateCard.title = 'Response Rate: Requires recorded applications to calculate ([Interviewing + Accepted + Rejected] ÷ Total).';
+      }
+    } else {
+      if (rateEl) rateEl.textContent = `${stats.responseRate}%`;
+      const responded = stats.interviewing + stats.accepted + stats.rejected;
+      if (rateSubtextSpan) rateSubtextSpan.textContent = `${responded} of ${stats.total} responded`;
+      if (rateCard) {
+        rateCard.title = `Response Rate: ${stats.responseRate}% (${responded} responded out of ${stats.total} applications = [Interviewing + Accepted + Rejected] ÷ Total)`;
+      }
+    }
     
     // Update date range
     if (stats.dateRange.earliest && stats.dateRange.latest) {
@@ -456,18 +499,68 @@ function handleSearch() {
  */
 async function renderCharts() {
   try {
-    const trends = await getApplicationTrends();
+    let trends = await getApplicationTrends();
     
     // Destroy existing charts if any
     if (trendChart) {
       trendChart.destroy();
+      trendChart = null;
     }
     if (statusChart) {
       statusChart.destroy();
+      statusChart = null;
     }
-    
-    // Render charts
+
+    const trendCanvas = document.getElementById('trendChart') as HTMLCanvasElement | null;
+    const trendEmpty = document.getElementById('trendChartEmpty') as HTMLElement | null;
+    const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement | null;
+    const statusEmpty = document.getElementById('statusChartEmpty') as HTMLElement | null;
+
+    if (allApplications.length === 0) {
+      if (trendCanvas) trendCanvas.style.display = 'none';
+      if (trendEmpty) trendEmpty.style.display = 'flex';
+      if (statusCanvas) statusCanvas.style.display = 'none';
+      if (statusEmpty) statusEmpty.style.display = 'flex';
+      return;
+    }
+
+    // Edge case: if dailySummary trend records are missing/empty but applications exist
+    // (e.g. from imported CSV or fresh records), derive daily trend points from allApplications
+    if (trends.length === 0 && allApplications.length > 0) {
+      const dateMap = new Map<string, { total: number; submitted: number; interviewing: number; rejected: number; accepted: number; withdrawn: number }>();
+      const sortedApps = [...allApplications].sort((a, b) => a.timestamp - b.timestamp);
+      for (const app of sortedApps) {
+        const d = new Date(app.timestamp).toISOString().split('T')[0];
+        if (!dateMap.has(d)) {
+          dateMap.set(d, { total: 0, submitted: 0, interviewing: 0, rejected: 0, accepted: 0, withdrawn: 0 });
+        }
+        const entry = dateMap.get(d)!;
+        entry.total++;
+        if (app.status === 'submitted') entry.submitted++;
+        if (app.status === 'interviewing') entry.interviewing++;
+        if (app.status === 'rejected') entry.rejected++;
+        if (app.status === 'accepted') entry.accepted++;
+        if (app.status === 'withdrawn') entry.withdrawn++;
+      }
+      trends = Array.from(dateMap.entries()).map(([date, data]) => ({
+        date,
+        total: data.total,
+        submitted: data.submitted,
+        interviewing: data.interviewing,
+        rejected: data.rejected,
+        accepted: data.accepted,
+        withdrawn: data.withdrawn,
+      }));
+    }
+
+    // Applications Over Time
+    if (trendCanvas) trendCanvas.style.display = 'block';
+    if (trendEmpty) trendEmpty.style.display = 'none';
     renderTrendChart(trends);
+
+    // Status Distribution
+    if (statusCanvas) statusCanvas.style.display = 'block';
+    if (statusEmpty) statusEmpty.style.display = 'none';
     renderStatusChart();
   } catch (err) {
     console.error('Failed to render charts:', err);
@@ -635,6 +728,17 @@ function renderStatusChart() {
             padding: 16,
             usePointStyle: true,
             pointStyle: 'circle',
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: (context: any) => {
+              const label = context.label || '';
+              const value = context.parsed || 0;
+              const total = allApplications.length;
+              const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+              return ` ${label}: ${value} (${pct}%)`;
+            },
           },
         },
       },
@@ -968,34 +1072,52 @@ function showError(message: string) {
 }
 
 /**
- * Clear all application data
+ * Execute clearing all application tracking data after user confirms in modal
  */
-async function clearAllData() {
-  const confirmed = confirm(
-    'Are you sure you want to delete ALL application data? This cannot be undone.'
-  );
-
-  if (!confirmed) return;
+async function executeClearAllData() {
+  const confirmBtn = document.getElementById('confirmClearDataBtn') as HTMLButtonElement | null;
+  const clearModal = document.getElementById('clearDataModal');
+  
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Clearing...';
+  }
 
   try {
-    console.log('[Dashboard] Clearing all data...');
+    console.log('[Dashboard] Clearing all application data...');
 
-    // Build keys for past 365 days and remove any that exist
-    const keysToRemove: string[] = [];
+    // Collect dailySummary keys for past 365 days plus any specific dates in memory
+    const keysSet = new Set<string>();
     const today = new Date();
     for (let i = 0; i < 365; i++) {
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
-      keysToRemove.push(`dailySummary_${d.toISOString().split('T')[0]}`);
+      keysSet.add(`dailySummary_${d.toISOString().split('T')[0]}`);
+    }
+    for (const app of allApplications) {
+      if (app.timestamp) {
+        const appDate = new Date(app.timestamp).toISOString().split('T')[0];
+        keysSet.add(`dailySummary_${appDate}`);
+      }
     }
 
+    const keysToRemove = Array.from(keysSet);
     await browser.storage.local.remove(keysToRemove);
-    console.log('[Dashboard] Cleared', keysToRemove.length, 'daily summaries');
+    console.log('[Dashboard] Cleared', keysToRemove.length, 'daily summary keys');
 
-    location.reload();
+    allApplications = [];
+    filteredApplications = [];
+
+    clearModal?.classList.remove('active');
+    await renderDashboard();
   } catch (err) {
     console.error('[Dashboard] Failed to clear data:', err);
-    showError('Failed to clear data');
+    showError('Failed to clear application data');
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Yes, Delete All Data';
+    }
   }
 }
 

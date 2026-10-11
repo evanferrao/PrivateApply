@@ -293,6 +293,23 @@
       </div>
     </div>
 
+    <!-- Employment-Packs (Discipline & Role Modules) -->
+    <div class="section" id="section-employment-packs">
+      <div class="section-header">
+        <div class="section-title">Employment-Packs (Discipline &amp; Role Modules)</div>
+        <div class="section-desc">Enable role-specific profiles, coding contest handles, and portfolios for your career discipline (e.g. cs-pack for LeetCode, HackerRank, Codeforces, CodeChef, GitHub; design-pack for Behance, Dribbble, Figma). Download the starter JSON template to author a new community pack for a GitHub PR or import locally.</div>
+      </div>
+      <div id="employment-packs-list" class="country-packs-container">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="action-row" style="padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--border-color);">
+        <button class="action-btn" id="btn-download-employment-pack-template">⬇ Download Employment Pack Template (.json)</button>
+        <button class="action-btn" id="btn-import-employment-pack-trigger">⤴ Import Custom Employment Pack</button>
+        <input type="file" id="input-import-employment-pack-file" accept=".json,application/json" style="display:none;">
+        <span class="action-feedback" id="feedback-employment-pack-action"></span>
+      </div>
+    </div>
+
     <!-- Storage -->
     <div class="section">
       <div class="section-header">

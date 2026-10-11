@@ -28,6 +28,16 @@ import {
   downloadCountryPackTemplate,
   type CountryPack,
 } from '../shared/country-packs';
+import {
+  getAllPacks as getAllEmploymentPacks,
+  getActivePackIds as getActiveEmploymentPackIds,
+  togglePackActive as toggleEmploymentPackActive,
+  saveCustomPack as saveCustomEmploymentPack,
+  deleteCustomPack as deleteCustomEmploymentPack,
+  validateEmploymentPackJson,
+  downloadEmploymentPackTemplate,
+  type EmploymentPack,
+} from '../shared/employment-packs';
 
 async function init(): Promise<void> {
   const settings = await getSettings();
@@ -929,6 +939,7 @@ async function initAIProvidersSettings(): Promise<void> {
   await renderProvidersList();
   await syncLegacyAndStatus();
   await setupCountryPacksSettings();
+  await setupEmploymentPacksSettings();
 }
 
 async function setupCountryPacksSettings(): Promise<void> {
@@ -1056,6 +1067,133 @@ async function setupCountryPacksSettings(): Promise<void> {
   });
 
   await renderPacks();
+}
+
+async function setupEmploymentPacksSettings(): Promise<void> {
+  const listEl = document.getElementById('employment-packs-list');
+  const btnDownload = document.getElementById('btn-download-employment-pack-template');
+  const btnImport = document.getElementById('btn-import-employment-pack-trigger');
+  const fileInput = document.getElementById('input-import-employment-pack-file') as HTMLInputElement | null;
+  const feedbackEl = document.getElementById('feedback-employment-pack-action');
+
+  if (!listEl) return;
+
+  function showEmploymentPackFeedback(msg: string, isError = false) {
+    if (!feedbackEl) return;
+    feedbackEl.textContent = msg;
+    feedbackEl.style.color = isError ? '#ef4444' : '#10b981';
+    feedbackEl.classList.add('visible');
+    setTimeout(() => {
+      feedbackEl.classList.remove('visible');
+    }, 4000);
+  }
+
+  async function renderEmploymentPacks() {
+    if (!listEl) return;
+    const allPacks = await getAllEmploymentPacks();
+    const activeIds = await getActiveEmploymentPackIds();
+
+    listEl.innerHTML = '';
+
+    allPacks.forEach(pack => {
+      const isActive = activeIds.includes(pack.id);
+      const item = document.createElement('div');
+      item.className = 'country-pack-item';
+      item.dataset.packId = pack.id;
+
+      const icon = escapeHTML(pack.icon || '💼');
+      const name = escapeHTML(pack.name);
+      const id = escapeHTML(pack.id);
+      const desc = escapeHTML(pack.description || '');
+      const fieldCount = pack.fields ? pack.fields.length : 0;
+      const customBadge = pack.isCustom ? '<span class="country-pack-badge custom">Custom</span>' : '';
+
+      item.innerHTML = `
+        <div class="country-pack-main">
+          <div class="country-pack-flag">${icon}</div>
+          <div class="country-pack-details">
+            <div class="country-pack-title-row">
+              <span class="country-pack-name">${name}</span>
+              <span class="country-pack-badge">${id}</span>
+              ${customBadge}
+            </div>
+            <div class="country-pack-desc">${desc}</div>
+            <div class="country-pack-meta">
+              <span>${fieldCount} specialized fields</span>
+              <span>v${escapeHTML(pack.version || '1.0.0')}</span>
+              ${pack.maintainer ? `<span>By ${escapeHTML(pack.maintainer)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="country-pack-actions">
+          ${pack.isCustom ? `<button class="btn-pack-delete" title="Delete custom pack" data-delete-id="${id}">Delete</button>` : ''}
+          <div class="toggle ${isActive ? 'active' : ''}" role="switch" aria-checked="${isActive}" aria-label="Toggle ${name} pack" tabindex="0"></div>
+        </div>
+      `;
+
+      // Toggle switch listener
+      const toggle = item.querySelector('.toggle') as HTMLElement;
+      if (toggle) {
+        toggle.addEventListener('click', async () => {
+          const next = !toggle.classList.contains('active');
+          toggle.classList.toggle('active', next);
+          toggle.setAttribute('aria-checked', String(next));
+          await toggleEmploymentPackActive(pack.id, next);
+          showEmploymentPackFeedback(`${pack.id} ${next ? 'enabled' : 'disabled'}`);
+        });
+      }
+
+      // Delete custom pack listener
+      const btnDel = item.querySelector('.btn-pack-delete') as HTMLElement;
+      if (btnDel) {
+        btnDel.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm(`Are you sure you want to delete custom employment pack "${pack.id}"?`)) {
+            await deleteCustomEmploymentPack(pack.id);
+            await renderEmploymentPacks();
+            showEmploymentPackFeedback(`Deleted ${pack.id}`);
+          }
+        });
+      }
+
+      listEl.appendChild(item);
+    });
+  }
+
+  // Wire Download Template
+  btnDownload?.addEventListener('click', () => {
+    downloadEmploymentPackTemplate();
+    showEmploymentPackFeedback('Template downloaded! Check your downloads folder.');
+  });
+
+  // Wire Import Pack
+  btnImport?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const val = validateEmploymentPackJson(text);
+      if (!val.valid || !val.pack) {
+        showEmploymentPackFeedback(`Invalid Employment-Pack: ${val.error || 'Schema validation failed'}`, true);
+        return;
+      }
+
+      await saveCustomEmploymentPack(val.pack);
+      await renderEmploymentPacks();
+      showEmploymentPackFeedback(`Successfully imported and enabled ${val.pack.id}!`);
+    } catch (err: any) {
+      showEmploymentPackFeedback(`Failed to read file: ${err.message}`, true);
+    } finally {
+      fileInput.value = '';
+    }
+  });
+
+  await renderEmploymentPacks();
 }
 
 init();

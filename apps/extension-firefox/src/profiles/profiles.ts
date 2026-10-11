@@ -35,6 +35,7 @@ import {
 } from '../shared/applicant-profile';
 import { setHTML } from '../shared/html';
 import { getActivePacks, type CountryPack } from '../shared/country-packs';
+import { getActivePacks as getActiveEmploymentPacks, type EmploymentPack } from '../shared/employment-packs';
 
 const COLORS = [
   '#7c3aed', '#2563eb', '#059669', '#d97706',
@@ -183,6 +184,7 @@ async function init(): Promise<void> {
   populateScreeningForm();
   populateFamilyList();
   populateCountryPacksHub();
+  populateEmploymentPacksHub();
   populateCustomFieldsList();
   populateQuestionBankList();
   renderProfilesGrid();
@@ -1447,6 +1449,170 @@ async function saveCountryPacks(): Promise<void> {
   showToast('✓ Country-Packs saved');
 }
 
+async function populateEmploymentPacksHub(): Promise<void> {
+  if (!activeProfileData) return;
+  const container = document.getElementById('employment-packs-hub-container');
+  if (!container) return;
+
+  const activePacks = await getActiveEmploymentPacks();
+
+  if (activePacks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+        <div style="font-size: 32px; margin-bottom: 12px;">💼</div>
+        <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">No Employment-Packs Active</div>
+        <p style="font-size: 13px; max-width: 440px; margin: 0 auto 16px;">
+          Enable role modules for Software Engineering (cs-pack), Design (design-pack), or Data Science (data-science-pack) in Settings to configure coding platform handles, repositories, and portfolios.
+        </p>
+        <a href="../settings/settings.html#section-employment-packs" target="_blank" class="btn-action-primary" style="display: inline-block; text-decoration: none;">Go to Settings →</a>
+      </div>
+    `;
+    return;
+  }
+
+  if (!activeProfileData.employmentPacksData) {
+    activeProfileData.employmentPacksData = {};
+  }
+
+  container.innerHTML = '';
+
+  activePacks.forEach(pack => {
+    const packCard = document.createElement('div');
+    packCard.className = 'employment-pack-hub-card';
+    packCard.dataset.packId = pack.id;
+    packCard.style.cssText = 'margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);';
+
+    const icon = pack.icon || '💼';
+    const name = pack.name;
+    const pId = pack.id;
+    const desc = pack.description || '';
+    const storedPackData = activeProfileData?.employmentPacksData?.[pack.id] || {};
+
+    let fieldsHtml = '';
+    pack.fields.forEach(f => {
+      const fieldId = `ep_${pack.id.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${f.key}`;
+      const curVal = storedPackData[f.key] ?? f.defaultValue ?? '';
+
+      let sensBadge = '';
+      if (f.sensitivity === 'restricted_identifier') {
+        sensBadge = '<span class="badge-sens restricted" style="margin-left: 6px;">Restricted</span>';
+      } else if (f.sensitivity === 'sensitive_personal') {
+        sensBadge = '<span class="badge-sens sensitive" style="margin-left: 6px;">Sensitive</span>';
+      }
+
+      let inputHtml = '';
+      if (f.dataType === 'choice') {
+        const opts = (f.options || []).map(opt => {
+          const sel = String(curVal) === String(opt) ? 'selected' : '';
+          const optLabel = opt.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+          return `<option value="${opt}" ${sel}>${optLabel}</option>`;
+        }).join('');
+        inputHtml = `<select id="${fieldId}" data-field-key="${f.key}" class="field-select">${opts}</select>`;
+      } else if (f.dataType === 'number') {
+        inputHtml = `<input type="number" step="any" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal !== '' ? curVal : ''}">`;
+      } else if (f.dataType === 'textarea') {
+        inputHtml = `<textarea id="${fieldId}" data-field-key="${f.key}" class="field-input" style="min-height: 70px;" placeholder="${f.placeholder || ''}">${curVal || ''}</textarea>`;
+      } else if (f.dataType === 'url') {
+        inputHtml = `
+          <div style="display: flex; gap: 6px;">
+            <input type="url" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}" style="flex: 1;">
+            ${curVal ? `<button type="button" class="btn-copy-url" data-url="${curVal}" style="padding: 6px 10px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); cursor: pointer;" title="Copy URL">📋</button>` : ''}
+          </div>
+        `;
+      } else {
+        inputHtml = `<input type="text" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}">`;
+      }
+
+      const helpTextHtml = f.helpText ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">${f.helpText}</div>` : '';
+      const categoryLabel = f.category ? `<span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">${f.category}</span>` : '';
+
+      fieldsHtml += `
+        <div class="field-group">
+          <label style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <span>${f.label}</span>
+              ${categoryLabel ? ` <span style="font-weight: 400; opacity: 0.7;">· ${categoryLabel}</span>` : ''}
+            </div>
+            ${sensBadge}
+          </label>
+          ${inputHtml}
+          ${helpTextHtml}
+        </div>
+      `;
+    });
+
+    packCard.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 22px;">${icon}</span>
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">${name} <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 6px;">(${pId})</span></h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">${desc}</p>
+          </div>
+        </div>
+        <span class="badge-sens" style="background: var(--bg-muted); color: var(--text-muted); font-size: 11px; font-weight: 600;">${pack.fields.length} Fields</span>
+      </div>
+      <div class="form-grid-3">
+        ${fieldsHtml}
+      </div>
+    `;
+
+    // Copy URL helper
+    packCard.querySelectorAll('.btn-copy-url').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const urlToCopy = (btn as HTMLElement).dataset.url;
+        if (urlToCopy) {
+          navigator.clipboard.writeText(urlToCopy);
+          showToast('Copied link to clipboard');
+        }
+      });
+    });
+
+    container.appendChild(packCard);
+  });
+}
+
+async function saveEmploymentPacks(): Promise<void> {
+  if (!activeProfileData) return;
+  if (!activeProfileData.employmentPacksData) {
+    activeProfileData.employmentPacksData = {};
+  }
+
+  const container = document.getElementById('employment-packs-hub-container');
+  if (!container) return;
+
+  const packCards = container.querySelectorAll('.employment-pack-hub-card');
+  packCards.forEach(card => {
+    const pId = (card as HTMLElement).dataset.packId!;
+    const packObj: Record<string, any> = {};
+
+    const inputs = card.querySelectorAll('[data-field-key]');
+    inputs.forEach(inputEl => {
+      const key = (inputEl as HTMLElement).dataset.fieldKey!;
+      let val: any;
+      if (inputEl instanceof HTMLInputElement) {
+        if (inputEl.type === 'number') {
+          val = inputEl.value !== '' ? parseFloat(inputEl.value) : undefined;
+        } else {
+          val = inputEl.value.trim() || undefined;
+        }
+      } else if (inputEl instanceof HTMLTextAreaElement) {
+        val = inputEl.value.trim() || undefined;
+      } else if (inputEl instanceof HTMLSelectElement) {
+        val = inputEl.value;
+      }
+      if (val !== undefined) {
+        packObj[key] = val;
+      }
+    });
+
+    activeProfileData!.employmentPacksData![pId] = packObj;
+  });
+
+  await saveUserProfile(activeProfileData);
+  showToast('✓ Employment-Packs saved');
+}
+
 // ── Custom Field Builder ───────────────────────────────────────────────────
 
 function setupCustomFieldBuilderEvents(): void {
@@ -1754,6 +1920,7 @@ function setupActionButtons(): void {
   document.getElementById('btn-add-family-contact')?.addEventListener('click', openFamilyModal);
   document.getElementById('btn-save-country-packs')?.addEventListener('click', saveCountryPacks);
   document.getElementById('btn-save-india-pack')?.addEventListener('click', saveCountryPacks);
+  document.getElementById('btn-save-employment-packs')?.addEventListener('click', saveEmploymentPacks);
   document.getElementById('btn-add-question')?.addEventListener('click', openQuestionModal);
 
   // City tags events

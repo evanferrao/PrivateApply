@@ -11,6 +11,7 @@
 import type { FieldSchema } from './types';
 import type { UserProfile } from './profile';
 import { BUILTIN_COUNTRY_PACKS } from './country-packs';
+import { BUILTIN_EMPLOYMENT_PACKS } from './employment-packs';
 import {
   formatPhone,
   formatLocation,
@@ -31,6 +32,7 @@ export interface SemanticMatchResult {
     | 'education_history'
     | 'india_pack'
     | 'country_pack'
+    | 'employment_pack'
     | 'employment_derived'
     | 'compensation'
     | 'reference'
@@ -144,6 +146,59 @@ export class SemanticProfileMatcher {
               requiresConfirmation: false,
               aiAccessPermitted: true,
               selectionReason: `Matched Custom Country-Pack (${packId}) field "${key}"`,
+            };
+          }
+        }
+      }
+    }
+
+    // ── 2.5. EMPLOYMENT PACKS (Discipline profiles: LeetCode, HackerRank, Codeforces, CodeChef, GitHub, Behance, Dribbble, Figma, etc.) ──
+    if (profile.employmentPacksData) {
+      // Check built-in employment packs first
+      for (const pack of BUILTIN_EMPLOYMENT_PACKS) {
+        const packData = profile.employmentPacksData[pack.id];
+        if (!packData) continue;
+
+        for (const fieldDef of pack.fields) {
+          const val = packData[fieldDef.key];
+          if (val === undefined || val === null || String(val).trim() === '') continue;
+
+          const keyMatch = matchesAny(combined, [fieldDef.key, fieldDef.label]);
+          const aliasMatch = fieldDef.aliases && fieldDef.aliases.length > 0 && matchesAny(combined, fieldDef.aliases);
+
+          if (keyMatch || aliasMatch) {
+            return {
+              value: val,
+              confidence: keyMatch ? 0.95 : 0.9,
+              source: 'employment_pack',
+              fieldKey: `${pack.id}_${fieldDef.key}`,
+              fieldLabel: fieldDef.label,
+              sensitivity: (fieldDef.sensitivity as SensitivityLevel) || 'ordinary',
+              requiresConfirmation: fieldDef.sensitivity === 'restricted_identifier',
+              aiAccessPermitted: fieldDef.sensitivity !== 'restricted_identifier',
+              selectionReason: `Matched Employment-Pack (${pack.id}) field "${fieldDef.label}" via ${keyMatch ? 'key/label' : 'alias'}`,
+            };
+          }
+        }
+      }
+
+      // Check custom employment packs in employmentPacksData
+      for (const [packId, packData] of Object.entries(profile.employmentPacksData)) {
+        if (!packData || BUILTIN_EMPLOYMENT_PACKS.some(b => b.id === packId)) continue;
+        for (const [key, val] of Object.entries(packData)) {
+          if (val === undefined || val === null || String(val).trim() === '') continue;
+          const cleanKey = key.replace(/_/g, ' ');
+          if (matchesAny(combined, [key, cleanKey])) {
+            return {
+              value: val,
+              confidence: 0.9,
+              source: 'employment_pack',
+              fieldKey: `${packId}_${key}`,
+              fieldLabel: key,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Matched Custom Employment-Pack (${packId}) field "${key}"`,
             };
           }
         }

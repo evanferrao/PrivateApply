@@ -72,6 +72,10 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         Country-Packs
       </button>
+      <button type="button" class="hub-tab-btn" data-tab="tab-employment-packs">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Employment-Packs
+      </button>
       <button type="button" class="hub-tab-btn" data-tab="tab-custom">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Custom Fields Builder
@@ -799,6 +803,26 @@
 
         <div id="country-packs-hub-container">
           <!-- Dynamically populated cards for all active country packs -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5.5: Employment-Packs (Discipline & Role Modules) -->
+    <div id="tab-employment-packs" class="tab-panel">
+      <div class="hub-card">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">Employment-Packs (Discipline &amp; Role Modules)</div>
+            <div class="hub-card-desc">Configure competitive coding handles (LeetCode, HackerRank, Codeforces, CodeChef), code repositories (GitHub, GitLab), and design portfolios (Behance, Dribbble, Figma) for your career discipline. Enable/disable packs in Settings.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <a href="../settings/settings.html#section-employment-packs" target="_blank" class="btn-action-secondary" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-primary);background:var(--bg-card);">⚙ Manage Packs in Settings</a>
+            <button type="button" class="btn-action-primary" id="btn-save-employment-packs">Save Employment-Packs</button>
+          </div>
+        </div>
+
+        <div id="employment-packs-hub-container">
+          <!-- Dynamically populated cards for all active employment packs -->
         </div>
       </div>
     </div>

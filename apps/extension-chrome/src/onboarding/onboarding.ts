@@ -25,8 +25,8 @@ import {
   testAIProviderConnection,
   setActiveAIProviderId,
 } from '../shared/ai-provider-config';
-import { companionClient, CompanionStatus } from '../shared/companion-client';
 import { setActivePackIds } from '../shared/country-packs';
+import { setActivePackIds as setActiveEmploymentPackIds } from '../shared/employment-packs';
 
 // PDF.js is loaded via CDN in the HTML
 declare const pdfjsLib: any;
@@ -3206,6 +3206,13 @@ async function init(): Promise<void> {
       const selectedPacks = Array.from(packBoxes).map(b => b.value);
       if (selectedPacks.length > 0) {
         await setActivePackIds(selectedPacks);
+      }
+
+      // Collect selected employment packs
+      const empPackBoxes = document.querySelectorAll<HTMLInputElement>('input[name="employment_pack"]:checked');
+      const selectedEmpPacks = Array.from(empPackBoxes).map(b => b.value);
+      if (selectedEmpPacks.length > 0) {
+        await setActiveEmploymentPackIds(selectedEmpPacks);
       }
 
       showStep('step-coverletter');

@@ -161,6 +161,7 @@ export interface UserProfile {
   compensation?: CompensationDetails;
   indiaPack?: IndiaRecruitmentPack;
   countryPacksData?: Record<string, Record<string, any>>;
+  employmentPacksData?: Record<string, Record<string, any>>;
   passport?: PassportDetails; // Government identification & passport (strictly protected)
   customFields?: CustomFieldDefinition[];
   questionBank?: QuestionBankItem[];

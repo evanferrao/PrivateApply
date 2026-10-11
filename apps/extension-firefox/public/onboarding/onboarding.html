@@ -1031,6 +1031,37 @@
               </label>
             </div>
           </div>
+
+          <!-- Career Disciplines & Employment-Packs -->
+          <div class="question-group" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <label class="question-label" style="font-size: 14px; font-weight: 700;">Career Disciplines &amp; Employment-Packs</label>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+              Select your career fields. Private Apply will activate role-specific inputs (LeetCode, HackerRank, Codeforces, CodeChef, GitHub, Behance, Figma) for autofill.
+            </p>
+            <div class="checkbox-grid" id="onboarding-employment-packs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="employment_pack" value="cs-pack" checked style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">💻 Software Engineering (cs-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">LeetCode, HackerRank, Codeforces, CodeChef, GitHub</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="employment_pack" value="design-pack" style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">🎨 Product Design (design-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Behance, Dribbble, Figma, Notion Portfolio</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="employment_pack" value="data-science-pack" style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">🔬 Data Science &amp; AI (data-science-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Kaggle, Hugging Face, Google Scholar, arXiv</div>
+                </div>
+              </label>
+            </div>
+          </div>
         </form>
 
           <div class="info-box">
