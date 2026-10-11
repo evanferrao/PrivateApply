@@ -834,3 +834,40 @@ body {
       line-height: 1.4;
       color: var(--text-muted);
     }
+
+    /* ── Gist Hub Styles ─────────────────────────────────────────── */
+    .gist-hub-summary {
+      background: var(--bg-card);
+      transition: background 0.15s ease;
+    }
+    .gist-modified-alert {
+      padding: 12px 14px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 4px solid #ef4444;
+      border-radius: var(--radius-md, 8px);
+      color: #991b1b;
+    }
+    .gist-modified-header {
+      font-size: 13px;
+      font-weight: 700;
+      color: #b91c1c;
+      margin-bottom: 4px;
+    }
+    .gist-modified-list {
+      margin: 6px 0 0 16px;
+      padding: 0;
+      line-height: 1.5;
+    }
+    .gist-modified-list li {
+      margin-bottom: 4px;
+    }
+    html.dark .gist-modified-alert {
+      background: #311111;
+      border-color: #7f1d1d;
+      border-left-color: #ef4444;
+      color: #fca5a5;
+    }
+    html.dark .gist-modified-header {
+      color: #f87171;
+    }

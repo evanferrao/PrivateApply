@@ -161,7 +161,7 @@ async function checkBadgeNotification(): Promise<void> {
     const tabId = tabs[0]?.id;
     if (!tabId) return;
 
-    const badgeText = await chrome.action.getBadgeText({ tabId });
+    const badgeText = await (browser as any).action?.getBadgeText({ tabId }) ?? await (browser as any).browserAction?.getBadgeText({ tabId });
     const bannerEl = document.getElementById('badge-notification');
     if (!bannerEl) return;
 
@@ -180,11 +180,13 @@ async function checkBadgeNotification(): Promise<void> {
         const btn = document.getElementById('badge-grant-btn') as HTMLButtonElement | null;
         try {
           const origin = new URL(tabUrl).origin + '/*';
-          const granted = await chrome.permissions.request({ origins: [origin] });
+          const permissionsApi = (browser as any).permissions;
+          const granted = await permissionsApi.request({ origins: [origin] });
           if (granted) {
-            await chrome.action.setBadgeText({ text: '', tabId });
+            const actionApi = (browser as any).action ?? (browser as any).browserAction;
+            await actionApi.setBadgeText({ text: '', tabId });
             bannerEl.style.display = 'none';
-            chrome.tabs.reload(tabId);
+            browser.tabs.reload(tabId);
             window.close();
           } else if (btn) {
             btn.textContent = 'Denied';
@@ -200,7 +202,8 @@ async function checkBadgeNotification(): Promise<void> {
       });
 
       document.getElementById('badge-dismiss-btn')?.addEventListener('click', async () => {
-        await chrome.action.setBadgeText({ text: '', tabId });
+        const actionApi = (browser as any).action ?? (browser as any).browserAction;
+        await actionApi.setBadgeText({ text: '', tabId });
         bannerEl.style.display = 'none';
       });
     } else {
@@ -231,13 +234,19 @@ async function dispatchCustomEventOnActiveTab(eventName: string): Promise<void> 
 
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   if (tabs[0]?.id) {
-    await chrome.scripting.executeScript({
-      target: { tabId: tabs[0].id },
-      func: (name: string) => {
-        window.dispatchEvent(new CustomEvent(name));
-      },
-      args: [eventName],
-    });
+    if ((browser as any).scripting) {
+      await (browser as any).scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        func: (name: string) => {
+          window.dispatchEvent(new CustomEvent(name));
+        },
+        args: [eventName],
+      });
+    } else if ((browser as any).tabs.executeScript) {
+      await (browser as any).tabs.executeScript(tabs[0].id, {
+        code: `window.dispatchEvent(new CustomEvent('${eventName}'));`,
+      });
+    }
   }
 }
 
@@ -491,32 +500,34 @@ async function init(): Promise<void> {
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const tab = tabs[0];
       if (tab?.id) {
-        const [injection] = await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            const selectors = [
-              '.jobs-description__content', '.jobs-description-content',
-              '#job-details', '[data-automation-id="jobPostingDescription"]',
-              '[class*="job-description"]', '[class*="jobDescription"]',
-              '[data-qa="job-description"]', '.posting-page .section-wrapper',
-              'article', '[role="main"]', 'main',
-            ];
-            for (const sel of selectors) {
-              const el = document.querySelector(sel);
-              const t = el?.textContent?.trim() ?? '';
-              if (t.length > 100) return t;
-            }
-            return document.body.innerText.substring(0, 6000);
-          },
-        });
-        const jdText = typeof injection?.result === 'string' ? injection.result : '';
-        await browser.storage.local.set({
-          pending_tailor_jd: jdText,
-          pending_tailor_title: currentState.lastJob?.title || '',
-          pending_tailor_company: currentState.lastJob?.hostname || '',
-          pending_tailor_url: tab.url || '',
-          pending_tailor_source_tab: tab.id,
-        });
+        if ((browser as any).scripting) {
+          const [injection] = await (browser as any).scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+              const selectors = [
+                '.jobs-description__content', '.jobs-description-content',
+                '#job-details', '[data-automation-id="jobPostingDescription"]',
+                '[class*="job-description"]', '[class*="jobDescription"]',
+                '[data-qa="job-description"]', '.posting-page .section-wrapper',
+                'article', '[role="main"]', 'main',
+              ];
+              for (const sel of selectors) {
+                const el = document.querySelector(sel);
+                const t = el?.textContent?.trim() ?? '';
+                if (t.length > 100) return t;
+              }
+              return document.body.innerText.substring(0, 6000);
+            },
+          });
+          const jdText = typeof injection?.result === 'string' ? injection.result : '';
+          await browser.storage.local.set({
+            pending_tailor_jd: jdText,
+            pending_tailor_title: currentState.lastJob?.title || '',
+            pending_tailor_company: currentState.lastJob?.hostname || '',
+            pending_tailor_url: tab.url || '',
+            pending_tailor_source_tab: tab.id,
+          });
+        }
       }
     } catch (err) { error('Failed to scrape JD for tailor:', err); }
     browser.tabs.create({ url: browser.runtime.getURL('resume-tailor/resume-tailor.html') });

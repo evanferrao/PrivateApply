@@ -37,6 +37,13 @@ import {
 import { setHTML } from '../shared/html';
 import { getActivePacks, type CountryPack } from '../shared/country-packs';
 import { getActivePacks as getActiveEmploymentPacks, type EmploymentPack } from '../shared/employment-packs';
+import {
+  getGistSyncConfig,
+  pushToGist,
+  pullFromGist,
+  triggerAutoGistSyncIfEnabled,
+  type ModifiedFieldNotice,
+} from '../shared/gist-sync';
 
 const COLORS = [
   '#7c3aed', '#2563eb', '#059669', '#d97706',
@@ -190,6 +197,7 @@ async function init(): Promise<void> {
   populateCustomFieldsList();
   populateQuestionBankList();
   renderProfilesGrid();
+  await renderGistHubCard();
   setupCustomFieldBuilderEvents();
   setupActionButtons();
 }
@@ -2299,6 +2307,42 @@ function renderProfilesGrid(): void {
   });
 }
 
+async function renderGistHubCard(): Promise<void> {
+  const dot = document.getElementById('hub-gist-status-dot');
+  const statusText = document.getElementById('hub-gist-status-text');
+  const metaText = document.getElementById('hub-gist-meta-text');
+  const alertEl = document.getElementById('hub-gist-modified-alert');
+  const listEl = document.getElementById('hub-gist-modified-list');
+
+  const config = await getGistSyncConfig();
+  if (!config.patToken || !config.gistId) {
+    if (dot) dot.style.background = '#94a3b8';
+    if (statusText) statusText.textContent = 'Gist sync not configured';
+    if (metaText) metaText.textContent = 'Open Settings to link a token and secret gist.';
+  } else {
+    if (dot) dot.style.background = '#10b981';
+    if (statusText) statusText.textContent = 'Secret Gist Connected & Ready';
+    const lastSync = config.lastSyncTime
+      ? `Last synced: ${new Date(config.lastSyncTime).toLocaleTimeString()}`
+      : 'Ready to backup';
+    if (metaText) metaText.textContent = `${lastSync} (Auto-sync: ${config.autoSync ? 'Enabled' : 'Off'})`;
+  }
+
+  if (alertEl && listEl) {
+    if (config.lastModifiedFields && config.lastModifiedFields.length > 0) {
+      listEl.innerHTML = config.lastModifiedFields
+        .map(
+          (m: ModifiedFieldNotice) =>
+            `<li><strong>${escapeHtml(m.label)}</strong> (<code>${escapeHtml(m.path)}</code>): ${escapeHtml(m.reason)}</li>`
+        )
+        .join('');
+      alertEl.style.display = 'block';
+    } else {
+      alertEl.style.display = 'none';
+    }
+  }
+}
+
 function setupActionButtons(): void {
   document.getElementById('btn-save-personal')?.addEventListener('click', savePersonal);
   document.getElementById('btn-save-passport')?.addEventListener('click', savePassport);
@@ -2329,6 +2373,44 @@ function setupActionButtons(): void {
   document.getElementById('btn-save-india-pack')?.addEventListener('click', saveCountryPacks);
   document.getElementById('btn-save-employment-packs')?.addEventListener('click', saveEmploymentPacks);
   document.getElementById('btn-add-question')?.addEventListener('click', openQuestionModal);
+
+  document.getElementById('btn-hub-gist-push')?.addEventListener('click', async () => {
+    const config = await getGistSyncConfig();
+    if (!config.patToken || !config.gistId) {
+      showToast('⚠️ Gist not configured. Please open Settings.');
+      return;
+    }
+    showToast('Backing up profile to Secret Gist...');
+    const res = await pushToGist();
+    if (res.success) {
+      showToast('✓ Successfully backed up to Secret Gist!');
+    } else {
+      showToast(`✗ Backup failed: ${res.error || 'Error'}`);
+    }
+    await renderGistHubCard();
+  });
+
+  document.getElementById('btn-hub-gist-pull')?.addEventListener('click', async () => {
+    const config = await getGistSyncConfig();
+    if (!config.patToken || !config.gistId) {
+      showToast('⚠️ Gist not configured. Please open Settings.');
+      return;
+    }
+    showToast('Pulling from Secret Gist...');
+    const res = await pullFromGist();
+    if (res.success) {
+      await init();
+      if (res.reconciliation?.hasModifications) {
+        showToast(`⚠️ Restored, but ${res.reconciliation.modifiedFields.length} field(s) were reset and need review.`);
+      } else {
+        showToast('✓ Successfully restored profile from Secret Gist!');
+      }
+    } else {
+      showToast(`✗ Restore failed: ${res.error || 'Error'}`);
+    }
+    await renderGistHubCard();
+  });
+
   setupEducationModalEvents();
   setupCertificationModalEvents();
   setupConsentListeners();

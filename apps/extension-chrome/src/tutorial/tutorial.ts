@@ -1,4 +1,5 @@
 import { showCompatibilityWidget } from '../ui/compatibility-widget';
+import browser from '../shared/browser-compat';
 import type { UserProfile } from '../shared/profile';
 import type { FieldSchema } from '../shared/types';
 
@@ -329,7 +330,7 @@ async function mockGenerateCoverLetter(): Promise<void> {
 async function mockTailorResume(): Promise<void> {
   try {
     // Store demo job description data so the resume tailor page picks it up
-    await chrome.storage.local.set({
+    await browser.storage.local.set({
       pending_tailor_jd: FAKE_JOB_TEXT.slice(0, 2000),
       pending_tailor_title: 'Senior Software Engineer',
       pending_tailor_company: 'Private Apply Technologies',
@@ -338,7 +339,7 @@ async function mockTailorResume(): Promise<void> {
   } catch { /* storage may not be available */ }
 
   try {
-    const url = chrome.runtime.getURL('resume-tailor/resume-tailor.html');
+    const url = browser.runtime.getURL('resume-tailor/resume-tailor.html');
     window.open(url, '_blank');
   } catch {
     window.location.href = '../resume-tailor/resume-tailor.html';
@@ -347,7 +348,7 @@ async function mockTailorResume(): Promise<void> {
 
 function mockChatWithResume(): void {
   try {
-    const url = chrome.runtime.getURL('chat/chat.html');
+    const url = browser.runtime.getURL('chat/chat.html');
     window.open(url, '_blank');
   } catch {
     window.location.href = '../chat/chat.html';
@@ -383,12 +384,12 @@ async function init(): Promise<void> {
   window.addEventListener('privateapply-tailor-resume', () => mockTailorResume());
   window.addEventListener('privateapply-open-resume-tailor', () => mockTailorResume());
 
-  // Resolve logo URLs (extension page has access to chrome.runtime)
+  // Resolve logo URLs (extension page has access to browser.runtime)
   let monogramUrl = '';
   let logoUrl = '';
   try {
-    monogramUrl = chrome.runtime.getURL('icons/monogram-nosquare.png');
-    logoUrl = chrome.runtime.getURL('icons/primary-logo.png');
+    monogramUrl = browser.runtime.getURL('icons/monogram-nosquare.png');
+    logoUrl = browser.runtime.getURL('icons/primary-logo.png');
   } catch { /* fallback to empty */ }
 
   // Mount the widget on this page directly

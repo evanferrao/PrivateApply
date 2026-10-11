@@ -766,3 +766,265 @@ html.dark .btn-pack-delete {
 html.dark .btn-pack-delete:hover {
   background: #450a0a;
 }
+
+/* ── GitHub Secret Gist Sync Styles ───────────────────────────────────────── */
+
+.gist-status-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  text-transform: capitalize;
+}
+.gist-status-pill.connected {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+.gist-status-pill.error {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.gist-warning-banner {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 16px 20px;
+  padding: 14px 16px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--radius-md, 8px);
+}
+.gist-warning-icon {
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.gist-warning-content {
+  flex: 1;
+}
+.gist-warning-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 3px;
+}
+.gist-warning-text {
+  font-size: 12px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+.gist-setup-guide {
+  margin: 0 20px 16px;
+  padding: 14px 16px;
+  background: var(--bg-muted, #f8fafc);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 8px);
+}
+.gist-guide-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.gist-steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gist-step-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.gist-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-600, #4f46e5);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.gist-step-body {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.gist-step-body strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.gist-step-body code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 11px;
+}
+.btn-external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-600, #4f46e5);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(79, 70, 229, 0.08);
+  transition: all 0.15s ease;
+}
+.btn-external-link:hover {
+  background: rgba(79, 70, 229, 0.15);
+  text-decoration: none;
+}
+
+.input-with-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.btn-toggle-eye {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-toggle-eye:hover {
+  color: var(--text-primary);
+}
+
+.gist-sync-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+}
+.gist-sync-badge.success {
+  background: #dcfce7;
+  color: #15803d;
+}
+.gist-sync-badge.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.gist-modified-alert {
+  margin: 16px 20px;
+  padding: 14px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: var(--radius-md, 8px);
+  color: #991b1b;
+}
+.gist-modified-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #b91c1c;
+}
+.gist-modified-list {
+  margin: 6px 0 0 18px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.gist-modified-list li {
+  margin-bottom: 4px;
+}
+
+/* Dark mode adjustments */
+html.dark .gist-status-pill {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+html.dark .gist-status-pill.connected {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+html.dark .gist-status-pill.error {
+  background: #450a0a;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+html.dark .gist-warning-banner {
+  background: #2e1a05;
+  border-color: #78350f;
+  border-left-color: #d97706;
+}
+html.dark .gist-warning-icon {
+  color: #f59e0b;
+}
+html.dark .gist-warning-title {
+  color: #fde68a;
+}
+html.dark .gist-warning-text {
+  color: #fef3c7;
+}
+html.dark .gist-setup-guide {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+html.dark .gist-step-body code {
+  background: rgba(255, 255, 255, 0.1);
+}
+html.dark .btn-external-link {
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.15);
+}
+html.dark .btn-external-link:hover {
+  background: rgba(99, 102, 241, 0.25);
+}
+html.dark .gist-sync-badge {
+  background: #1e293b;
+  color: #94a3b8;
+}
+html.dark .gist-sync-badge.success {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+html.dark .gist-sync-badge.error {
+  background: #450a0a;
+  color: #fca5a5;
+}
+html.dark .gist-modified-alert {
+  background: #311111;
+  border-color: #7f1d1d;
+  border-left-color: #ef4444;
+  color: #fca5a5;
+}
+html.dark .gist-modified-header {
+  color: #f87171;
+}

@@ -38,6 +38,17 @@ import {
   downloadEmploymentPackTemplate,
   type EmploymentPack,
 } from '../shared/employment-packs';
+import {
+  getGistSyncConfig,
+  saveGistSyncConfig,
+  testGistConnection,
+  createSecretGist,
+  pushToGist,
+  pullFromGist,
+  extractGistId,
+  type GistSyncConfig,
+  type ModifiedFieldNotice,
+} from '../shared/gist-sync';
 
 async function init(): Promise<void> {
   const settings = await getSettings();
@@ -1194,6 +1205,292 @@ async function setupEmploymentPacksSettings(): Promise<void> {
   });
 
   await renderEmploymentPacks();
+  await initGistSync();
+}
+
+async function initGistSync(): Promise<void> {
+  const patInput = document.getElementById('gist-pat-token') as HTMLInputElement | null;
+  const btnTogglePat = document.getElementById('btn-toggle-pat-vis');
+  const eyeIcon = document.getElementById('eye-icon-pat');
+  const btnTestToken = document.getElementById('btn-test-gist-token');
+  const feedbackToken = document.getElementById('gist-token-feedback');
+  const gistIdInput = document.getElementById('gist-id-input') as HTMLInputElement | null;
+  const btnCreateGist = document.getElementById('btn-create-gist');
+  const linkViewGist = document.getElementById('link-view-gist') as HTMLAnchorElement | null;
+  const toggleAutoSync = document.getElementById('toggle-gist-autosync');
+  const btnPush = document.getElementById('btn-gist-push') as HTMLButtonElement | null;
+  const btnPull = document.getElementById('btn-gist-pull') as HTMLButtonElement | null;
+  const btnSaveConfig = document.getElementById('btn-save-gist-config');
+  const feedbackAction = document.getElementById('feedback-gist-action');
+  const statusPill = document.getElementById('gist-status-pill');
+  const lastSyncTimeEl = document.getElementById('gist-last-sync-time');
+  const lastSyncBadge = document.getElementById('gist-last-sync-badge');
+  const modifiedAlert = document.getElementById('gist-modified-alert');
+  const modifiedList = document.getElementById('gist-modified-fields-list');
+
+  function showActionFeedback(msg: string, isError = false) {
+    if (!feedbackAction) return;
+    feedbackAction.textContent = msg;
+    feedbackAction.style.color = isError ? 'var(--red, #ef4444)' : 'var(--green, #10b981)';
+    feedbackAction.classList.add('visible');
+    setTimeout(() => {
+      feedbackAction.classList.remove('visible');
+    }, 4000);
+  }
+
+  function updateStatusDisplay(config: GistSyncConfig) {
+    if (statusPill) {
+      if (config.patToken && config.gistId) {
+        statusPill.textContent = 'Configured';
+        statusPill.className = 'gist-status-pill connected';
+      } else {
+        statusPill.textContent = 'Disconnected';
+        statusPill.className = 'gist-status-pill';
+      }
+    }
+
+    if (lastSyncTimeEl) {
+      if (config.lastSyncTime) {
+        const d = new Date(config.lastSyncTime);
+        lastSyncTimeEl.textContent = `Last synced: ${d.toLocaleDateString()} at ${d.toLocaleTimeString()}`;
+      } else {
+        lastSyncTimeEl.textContent = 'Never synced';
+      }
+    }
+
+    if (lastSyncBadge) {
+      if (config.lastSyncStatus === 'success') {
+        lastSyncBadge.textContent = 'Success';
+        lastSyncBadge.className = 'gist-sync-badge success';
+      } else if (config.lastSyncStatus === 'error') {
+        lastSyncBadge.textContent = 'Error';
+        lastSyncBadge.className = 'gist-sync-badge error';
+      } else {
+        lastSyncBadge.textContent = 'Idle';
+        lastSyncBadge.className = 'gist-sync-badge';
+      }
+    }
+
+    if (linkViewGist) {
+      const cleanId = extractGistId(config.gistId || '');
+      if (cleanId) {
+        linkViewGist.href = config.gistUrl || `https://gist.github.com/${cleanId}`;
+        linkViewGist.style.display = 'inline-block';
+      } else {
+        linkViewGist.style.display = 'none';
+      }
+    }
+
+    if (modifiedAlert && modifiedList) {
+      if (config.lastModifiedFields && config.lastModifiedFields.length > 0) {
+        modifiedList.innerHTML = config.lastModifiedFields
+          .map(
+            (m: ModifiedFieldNotice) =>
+              `<li><strong>${escapeHTML(m.label)}</strong> (<code>${escapeHTML(m.path)}</code>): ${escapeHTML(m.reason)}</li>`
+          )
+          .join('');
+        modifiedAlert.style.display = 'block';
+      } else {
+        modifiedAlert.style.display = 'none';
+      }
+    }
+  }
+
+  // Load saved config
+  const initialConfig = await getGistSyncConfig();
+  if (patInput) patInput.value = initialConfig.patToken || '';
+  if (gistIdInput) gistIdInput.value = initialConfig.gistId || '';
+
+  if (toggleAutoSync) {
+    toggleAutoSync.classList.toggle('active', !!initialConfig.autoSync);
+    toggleAutoSync.setAttribute('aria-checked', String(!!initialConfig.autoSync));
+    toggleAutoSync.addEventListener('click', async () => {
+      const next = !toggleAutoSync.classList.contains('active');
+      toggleAutoSync.classList.toggle('active', next);
+      toggleAutoSync.setAttribute('aria-checked', String(next));
+      await saveGistSyncConfig({ autoSync: next });
+      showActionFeedback(next ? 'Auto-sync enabled' : 'Auto-sync disabled');
+    });
+  }
+
+  updateStatusDisplay(initialConfig);
+
+  // Toggle PAT visibility
+  btnTogglePat?.addEventListener('click', () => {
+    if (!patInput) return;
+    const isPass = patInput.type === 'password';
+    patInput.type = isPass ? 'text' : 'password';
+    if (eyeIcon) {
+      eyeIcon.innerHTML = isPass
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  });
+
+  // Test PAT Token
+  btnTestToken?.addEventListener('click', async () => {
+    const token = (patInput?.value || '').trim();
+    if (!token) {
+      if (feedbackToken) {
+        feedbackToken.textContent = 'Please enter a token first';
+        feedbackToken.style.color = 'var(--red, #ef4444)';
+      }
+      return;
+    }
+
+    if (feedbackToken) {
+      feedbackToken.textContent = 'Validating token with GitHub...';
+      feedbackToken.style.color = 'var(--text-muted)';
+    }
+
+    const res = await testGistConnection(token);
+    if (res.success) {
+      if (feedbackToken) {
+        feedbackToken.textContent = `✓ Connected as @${res.username}`;
+        feedbackToken.style.color = 'var(--green, #10b981)';
+      }
+      if (statusPill) {
+        statusPill.textContent = `@${res.username}`;
+        statusPill.className = 'gist-status-pill connected';
+      }
+    } else {
+      if (feedbackToken) {
+        feedbackToken.textContent = `✗ ${res.error}`;
+        feedbackToken.style.color = 'var(--red, #ef4444)';
+      }
+      if (statusPill) {
+        statusPill.textContent = 'Error';
+        statusPill.className = 'gist-status-pill error';
+      }
+    }
+  });
+
+  // Create Secret Gist
+  btnCreateGist?.addEventListener('click', async () => {
+    const token = (patInput?.value || '').trim();
+    if (!token) {
+      showActionFeedback('Please enter a Personal Access Token first.', true);
+      patInput?.focus();
+      return;
+    }
+
+    const origText = btnCreateGist.textContent;
+    btnCreateGist.textContent = 'Creating...';
+    (btnCreateGist as HTMLButtonElement).disabled = true;
+
+    try {
+      const res = await createSecretGist(token);
+      if (res.success && res.gistId) {
+        if (gistIdInput) gistIdInput.value = res.gistId;
+        await saveGistSyncConfig({
+          patToken: token,
+          gistId: res.gistId,
+          gistUrl: res.gistUrl,
+          enabled: true,
+          lastSyncTime: Date.now(),
+          lastSyncStatus: 'success',
+          lastSyncSummary: 'Initialized secret gist backup',
+        });
+        const updated = await getGistSyncConfig();
+        updateStatusDisplay(updated);
+        showActionFeedback('✓ Secret Gist created and linked!');
+      } else {
+        showActionFeedback(`Failed: ${res.error || 'Unknown error'}`, true);
+      }
+    } catch (err: any) {
+      showActionFeedback(`Error: ${err.message}`, true);
+    } finally {
+      btnCreateGist.textContent = origText;
+      (btnCreateGist as HTMLButtonElement).disabled = false;
+    }
+  });
+
+  // Save Gist Config manually
+  btnSaveConfig?.addEventListener('click', async () => {
+    const token = (patInput?.value || '').trim();
+    const rawId = (gistIdInput?.value || '').trim();
+    const cleanId = extractGistId(rawId) || rawId;
+
+    await saveGistSyncConfig({
+      patToken: token,
+      gistId: cleanId,
+      enabled: Boolean(token && cleanId),
+    });
+
+    const updated = await getGistSyncConfig();
+    updateStatusDisplay(updated);
+    showActionFeedback('✓ Gist configuration saved!');
+  });
+
+  // Push to Gist
+  btnPush?.addEventListener('click', async () => {
+    const token = (patInput?.value || '').trim();
+    const rawId = (gistIdInput?.value || '').trim();
+    const cleanId = extractGistId(rawId) || rawId;
+
+    if (!token || !cleanId) {
+      showActionFeedback('Token and Gist ID are both required to backup.', true);
+      return;
+    }
+
+    btnPush.disabled = true;
+    const origText = btnPush.textContent;
+    btnPush.textContent = 'Backing up...';
+
+    try {
+      const res = await pushToGist({ patToken: token, gistId: cleanId, enabled: true });
+      const updated = await getGistSyncConfig();
+      updateStatusDisplay(updated);
+
+      if (res.success) {
+        showActionFeedback('✓ Active configuration pushed to Secret Gist!');
+      } else {
+        showActionFeedback(`Push failed: ${res.error}`, true);
+      }
+    } catch (err: any) {
+      showActionFeedback(`Push error: ${err.message}`, true);
+    } finally {
+      btnPush.disabled = false;
+      btnPush.textContent = origText;
+    }
+  });
+
+  // Pull from Gist
+  btnPull?.addEventListener('click', async () => {
+    const token = (patInput?.value || '').trim();
+    const rawId = (gistIdInput?.value || '').trim();
+    const cleanId = extractGistId(rawId) || rawId;
+
+    if (!token || !cleanId) {
+      showActionFeedback('Token and Gist ID are both required to restore.', true);
+      return;
+    }
+
+    btnPull.disabled = true;
+    const origText = btnPull.textContent;
+    btnPull.textContent = 'Pulling...';
+
+    try {
+      const res = await pullFromGist({ patToken: token, gistId: cleanId, enabled: true });
+      const updated = await getGistSyncConfig();
+      updateStatusDisplay(updated);
+
+      if (res.success && res.reconciliation) {
+        if (res.reconciliation.hasModifications) {
+          showActionFeedback(`⚠️ Synced with ${res.reconciliation.modifiedFields.length} modified field(s) needing refill.`);
+        } else {
+          showActionFeedback(`✓ Successfully restored configuration from Gist!`);
+        }
+      } else {
+        showActionFeedback(`Pull failed: ${res.error}`, true);
+      }
+    } catch (err: any) {
+      showActionFeedback(`Pull error: ${err.message}`, true);
+    } finally {
+      btnPull.disabled = false;
+      btnPull.textContent = origText;
+    }
+  });
 }
 
 init();

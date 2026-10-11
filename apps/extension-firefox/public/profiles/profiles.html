@@ -1191,6 +1191,45 @@
         </div>
         <div class="profiles-grid" id="profiles-grid"></div>
       </div>
+
+      <!-- Cloud Backup & Gist Sync Card -->
+      <div class="hub-card" style="margin-top: 20px;">
+        <div class="hub-card-header">
+          <div>
+            <div class="hub-card-title">GitHub Secret Gist Sync &amp; Backup</div>
+            <div class="hub-card-desc">Sync and backup your profiles to a private GitHub Gist across devices. Note: Gists are unlisted but not encrypted; store personal data at your own risk.</div>
+          </div>
+          <a href="../settings/settings.html#section-gist-sync" class="btn-action-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+            ⚙ Configure Sync
+          </a>
+        </div>
+        <div class="gist-hub-summary" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; background: var(--bg-card); border-top: 1px solid var(--border);">
+          <div>
+            <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+              <span id="hub-gist-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; display: inline-block;"></span>
+              <span id="hub-gist-status-text">Gist sync not configured</span>
+            </div>
+            <div id="hub-gist-meta-text" style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">Open Settings to link a token and secret gist.</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" class="btn-action-secondary" id="btn-hub-gist-push" style="font-size: 12px; padding: 6px 14px;">
+              ⬆ Backup Now (Push)
+            </button>
+            <button type="button" class="btn-action-secondary" id="btn-hub-gist-pull" style="font-size: 12px; padding: 6px 14px;">
+              ⬇ Restore (Pull)
+            </button>
+          </div>
+        </div>
+        <div id="hub-gist-modified-alert" class="gist-modified-alert" style="display: none; margin: 12px 20px 20px;">
+          <div class="gist-modified-header">
+            <strong>⚠️ Schema Evolution Notice</strong>
+          </div>
+          <p style="font-size: 12px; margin: 4px 0 8px;">
+            The pulled configuration contained modified fields from an older format. Old values were reset to defaults to preserve compatibility. Please review and fill in these fields:
+          </p>
+          <ul id="hub-gist-modified-list" class="gist-modified-list" style="font-size: 12px;"></ul>
+        </div>
+      </div>
     </div>
   </div>
 

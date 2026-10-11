@@ -310,6 +310,136 @@
       </div>
     </div>
 
+    <!-- GitHub Secret Gist Sync -->
+    <div class="section" id="section-gist-sync">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div class="section-title">GitHub Secret Gist Sync &amp; Backup</div>
+          <div class="section-desc">Sync and backup your candidate profiles across devices using an unlisted GitHub Gist</div>
+        </div>
+        <span class="gist-status-pill" id="gist-status-pill">Disconnected</span>
+      </div>
+
+      <!-- Prominent Privacy & Security Warning Banner -->
+      <div class="gist-warning-banner" role="alert">
+        <div class="gist-warning-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="gist-warning-content">
+          <div class="gist-warning-title">Important Security &amp; Privacy Notice</div>
+          <div class="gist-warning-text">
+            GitHub Secret Gists are <strong>unlisted, but NOT end-to-end encrypted</strong>. GitHub and automated scanners can potentially scan, index, or inspect Gist contents. Storing confidential personal identifiers, passport numbers, and contact details in a Gist is done <strong>strictly at your own risk</strong>.
+          </div>
+        </div>
+      </div>
+
+      <!-- Setup Guide Steps -->
+      <div class="gist-setup-guide">
+        <div class="gist-guide-title">How to Set Up Secret Gist Sync</div>
+        <ol class="gist-steps-list">
+          <li class="gist-step-item">
+            <div class="gist-step-num">1</div>
+            <div class="gist-step-body">
+              <strong>Generate a GitHub Personal Access Token (PAT)</strong>
+              <p>Create a token with only the <code>gist</code> permission (allows reading and writing your gists).</p>
+              <a href="https://github.com/settings/tokens/new?description=PrivateApply+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" class="btn-external-link">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Generate GitHub Token (Pre-configured for Gists) ↗
+              </a>
+            </div>
+          </li>
+          <li class="gist-step-item">
+            <div class="gist-step-num">2</div>
+            <div class="gist-step-body">
+              <strong>Enter Token &amp; Create or Link a Secret Gist</strong>
+              <p>Paste your token below and click <em>"✨ Create Secret Gist"</em> to automatically initialize an unlisted Gist on your GitHub account, OR paste an existing Gist ID or URL.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Form Inputs -->
+      <div class="gist-form-container">
+        <!-- PAT Token Input -->
+        <div class="setting-group" style="padding: 14px 20px 8px;">
+          <label class="setting-label" for="gist-pat-token">GitHub Personal Access Token (PAT) *</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <div class="input-with-toggle" style="flex: 1; position: relative;">
+              <input type="password" id="gist-pat-token" class="input-text" placeholder="ghp_... or github_pat_..." style="width: 100%; padding-right: 40px; font-family: monospace; font-size: 13px;">
+              <button type="button" id="btn-toggle-pat-vis" class="btn-toggle-eye" title="Toggle visibility" aria-label="Toggle token visibility">
+                <svg id="eye-icon-pat" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <button type="button" class="action-btn" id="btn-test-gist-token" style="white-space: nowrap;">Test Token</button>
+          </div>
+          <div class="setting-hint" id="gist-token-feedback" style="margin-top: 4px;">Requires 'gist' scope permission on GitHub</div>
+        </div>
+
+        <!-- Gist ID / URL Input -->
+        <div class="setting-group" style="padding: 10px 20px 14px;">
+          <label class="setting-label" for="gist-id-input">Gist ID or URL *</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <input type="text" id="gist-id-input" class="input-text" placeholder="e.g. 8f64a13d7120e29b1248 or https://gist.github.com/..." style="flex: 1; font-family: monospace; font-size: 13px;">
+            <button type="button" class="action-btn" id="btn-create-gist" title="Automatically create a secret gist on your GitHub account" style="white-space: nowrap; font-weight: 600;">
+              ✨ Create Secret Gist
+            </button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <div class="setting-hint" id="gist-id-hint">Accepts either 20-32 character Gist ID or full browser URL</div>
+            <a id="link-view-gist" href="#" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: var(--accent-primary, #6366f1); text-decoration: none; display: none;">View on GitHub ↗</a>
+          </div>
+        </div>
+
+        <!-- Auto-Sync Toggle -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Auto-Sync on Profile Save</div>
+            <div class="setting-hint">Automatically backup your active configuration to the secret Gist whenever you save profile changes</div>
+          </div>
+          <div class="toggle" id="toggle-gist-autosync" role="switch" aria-checked="false" aria-label="Toggle auto-sync to Gist" tabindex="0"></div>
+        </div>
+
+        <!-- Action Buttons: Push & Pull -->
+        <div class="action-row" style="padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--border-color);">
+          <button class="action-btn" id="btn-gist-push" style="font-weight: 600;">
+            ⬆ Backup to Gist (Push)
+          </button>
+          <button class="action-btn" id="btn-gist-pull" style="font-weight: 600;">
+            ⬇ Restore &amp; Sync (Pull)
+          </button>
+          <button class="action-btn" id="btn-save-gist-config">
+            Save Sync Config
+          </button>
+          <span class="action-feedback" id="feedback-gist-action"></span>
+        </div>
+
+        <!-- Last Sync Info -->
+        <div class="setting-row" style="background: var(--bg-muted, #f8fafc); border-top: 1px solid var(--border-color); font-size: 12px;">
+          <div class="setting-info">
+            <div class="setting-label" style="font-size: 12px; color: var(--text-muted);">Sync Status</div>
+            <div id="gist-last-sync-time" style="color: var(--text-muted); margin-top: 2px;">Never synced</div>
+          </div>
+          <div id="gist-last-sync-badge" class="gist-sync-badge">Idle</div>
+        </div>
+
+        <!-- Schema Evolution & Modified Fields Alert Banner -->
+        <div id="gist-modified-alert" class="gist-modified-alert" style="display: none;">
+          <div class="gist-modified-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <strong>Schema Evolution Notice</strong>
+          </div>
+          <p style="font-size: 13px; margin: 6px 0 10px;">
+            The pulled configuration contained fields modified in this version of PrivateApply. To prevent corruption, older values were reset to defaults. <strong>Please re-enter these fields in the Applicant Hub:</strong>
+          </p>
+          <ul id="gist-modified-fields-list" class="gist-modified-list"></ul>
+        </div>
+      </div>
+    </div>
+
     <!-- Storage -->
     <div class="section">
       <div class="section-header">
