@@ -17,7 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "repository": {
     "type": "git",
