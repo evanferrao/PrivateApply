@@ -1,28 +1,63 @@
 {
   "name": "private-apply",
   "version": "1.0.0",
-  "description": "<div align=\"center\">   <img src=\"apps/extension-chrome/public/icons/logo-full-400w.png\" alt=\"Private Apply\" width=\"320\" />   <h3>Privacy-first job application assistant for Chrome & Firefox</h3>   <p>Auto-fill forms · AI cover letters · Local Ollama · Zero cloud · Zero tracking</p>",
+  "description": "<div align=\"center\">   <img src=\"public/icons/logo-full-400w.png\" alt=\"Private Apply\" width=\"320\" />   <h3>Privacy-first job application assistant for Chrome & Firefox</h3>   <p>Auto-fill forms · AI cover letters · Local Ollama · Zero cloud · Zero tracking</p>",
   "main": "index.js",
-  "directories": {
-    "doc": "docs",
-    "test": "tests"
-  },
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node scripts/build.mjs",
+    "build:chrome": "node scripts/build.mjs --browser=chrome",
+    "build:firefox": "node scripts/build.mjs --browser=firefox",
+    "dev": "node scripts/build.mjs --watch",
+    "dev:chrome": "node scripts/build.mjs --browser=chrome --watch",
+    "dev:firefox": "node scripts/build.mjs --browser=firefox --watch",
+    "package": "node scripts/package.mjs",
+    "package:chrome": "node scripts/package.mjs --browser=chrome",
+    "package:firefox": "node scripts/package.mjs --browser=firefox",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/joelnishanth/private-apply.git"
   },
-  "keywords": [],
+  "keywords": [
+    "chrome",
+    "firefox",
+    "webextension",
+    "job-application",
+    "automation"
+  ],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/joelnishanth/private-apply/issues"
-  },
-  "homepage": "https://github.com/joelnishanth/private-apply#readme",
+  "license": "MIT",
   "devDependencies": {
-    "playwright": "^1.59.1"
+    "@types/chrome": "^0.1.37",
+    "@types/node": "^20.10.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/webextension-polyfill": "^0.12.5",
+    "@vitest/coverage-v8": "^4.1.0",
+    "esbuild": "^0.19.8",
+    "eslint": "^9.0.0",
+    "jsdom": "^28.1.0",
+    "playwright": "^1.59.1",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.10.1",
+    "ai": "^6.0.73",
+    "elkjs": "^0.9.3",
+    "framer-motion": "^12.9.4",
+    "lucide-react": "^0.577.0",
+    "mammoth": "^1.12.0",
+    "ollama-ai-provider-v2": "^2.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "webextension-polyfill": "^0.12.0",
+    "zod": "^4.1.8"
   }
 }

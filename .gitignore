@@ -93,8 +93,7 @@ scripts/build-mac-pkg.sh
 **/*-signed.*
 **/signing/
 /marketing
-*.mjs
-*.mjs
-/scripts
 /vm-share
 /packages
+!scripts/build.mjs
+!scripts/package.mjs

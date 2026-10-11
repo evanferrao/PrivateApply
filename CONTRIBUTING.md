@@ -30,13 +30,9 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
    git clone https://github.com/<your-username>/private-apply.git
    ```
 
-2. **Navigate to the extension you want to work on:**
+2. **Navigate to the repository root:**
    ```bash
-   # For Chrome
-   cd private-apply/apps/extension-chrome
-
-   # For Firefox
-   cd private-apply/apps/extension-firefox
+   cd private-apply
    ```
 
 3. **Install dependencies:**
@@ -50,13 +46,17 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
    ollama pull llama3.2
    ```
 
-5. **Build and run:**
+5. **Build and test:**
    ```bash
-   # Chrome — load dist/ folder via chrome://extensions (Developer mode)
+   # Build both Chrome and Firefox extensions
    npm run build
 
-   # Firefox — launches browser with extension loaded
-   npm run run:firefox
+   # Or build individually
+   npm run build:chrome     # Outputs to .output/chrome
+   npm run build:firefox    # Outputs to .output/firefox
+
+   # Run test suite across all 460+ tests
+   npm test
    ```
 
 ---

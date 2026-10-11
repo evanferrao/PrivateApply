@@ -88,7 +88,7 @@ See [LaTeX Editor & Companion Documentation](docs/latex-editor-and-companion.md)
 
 ```bash
 git clone https://github.com/joelnishanth/private-apply.git
-cd private-apply/apps/extension-firefox
+cd private-apply
 ```
 
 ### 2. Install dependencies
@@ -104,41 +104,69 @@ ollama serve
 ollama pull llama3.2
 ```
 
-### 4. Build the extension
+### 4. Build the extensions
 
 ```bash
+# Build both Chrome & Firefox extensions
 npm run build
+
+# Or build individually:
+npm run build:chrome     # Outputs to .output/chrome
+npm run build:firefox    # Outputs to .output/firefox
+
+# Watch mode during development:
+npm run dev:chrome
+npm run dev:firefox
 ```
 
-### 5. Load in Firefox
+### 5. Load in Browser
 
-```bash
-npm run run:firefox
-```
+- **Chrome / Chromium / Edge / Brave**:
+  1. Open `chrome://extensions/`
+  2. Enable "Developer mode" (top right toggle)
+  3. Click "Load unpacked" and select `.output/chrome` (or `apps/extension-chrome/dist`).
 
-Or load manually: open `about:debugging` → "This Firefox" → "Load Temporary Add-on" → select `dist/manifest.json`.
+- **Firefox**:
+  1. Open `about:debugging` → "This Firefox"
+  2. Click "Load Temporary Add-on"
+  3. Select `.output/firefox/manifest.json` (or `apps/extension-firefox/dist/manifest.json`).
 
 ---
 
 ## Project Structure
 
+The project uses a unified single-source-of-truth architecture that eliminates code duplication between Chrome and Firefox while producing independent, native extension builds:
+
 ```
 private-apply/
-├── apps/
-│   ├── extension-chrome/         # Chrome extension (Manifest V3)
-│   │   ├── src/
-│   │   └── package.json
-│   └── extension-firefox/        # Firefox extension (Manifest V3)
-│       ├── src/
-│       │   ├── background.ts     # Service worker / background script
-│       │   ├── content.ts        # Content script (injected into pages)
-│       │   ├── popup/            # Popup UI
-│       │   ├── onboarding/       # First-run onboarding flow
-│       │   ├── dashboard/        # In-page job tracker
-│       │   ├── settings/         # Settings page
-│       │   └── shared/           # AI clients, autofill logic, utilities
-│       └── package.json
-├── assets/                       # Logo and screenshots
+├── src/                          # Shared TypeScript & React source code (Single Source of Truth)
+│   ├── background.ts             # Background service / worker
+│   ├── content.ts                # Primary DOM autofill & observer
+│   ├── content-whatsapp.ts       # WhatsApp status sync content script
+│   ├── popup/                    # Extension popup UI logic
+│   ├── onboarding/               # First-run resume parser & profile setup
+│   ├── dashboard/                # Application analytics dashboard
+│   ├── profiles/                 # Candidate Profile Hub & multi-profile manager
+│   ├── settings/                 # Providers, country-packs, gist sync settings
+│   ├── jobs/                     # Job tracker & discovery
+│   ├── resume-tailor/            # Resume & LaTeX tailoring engine
+│   ├── tutorial/                 # Extension interactive tour
+│   ├── data/                     # React Graph Memory Explorer
+│   └── shared/                   # Autofill matching, packs, graph memory, gist sync
+├── public/                       # Shared HTML pages, CSS stylesheets, icons, and static assets
+├── browser/                      # Browser-specific configurations
+│   ├── chrome/                   # Chrome Manifest V3 configuration
+│   └── firefox/                  # Firefox Manifest V2 configuration & native messaging host
+├── scripts/
+│   ├── build.mjs                 # Unified multi-browser esbuild compilation script
+│   └── package.mjs               # Release zip packaging script
+├── .output/                      # Output build artifacts (git-ignored)
+│   ├── chrome/                   # Unpacked Chrome extension
+│   └── firefox/                  # Unpacked Firefox extension
+├── apps/                         # Legacy paths with build delegates for backward compatibility
+│   ├── extension-chrome/
+│   └── extension-firefox/
+├── assets/                       # Brand assets, logos, and screenshots
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
 ├── SECURITY.md

@@ -177,12 +177,7 @@ When tailoring a résumé:
 
 ### 7.1 Extension Unit & Integration Tests (Vitest)
 ```bash
-# Chrome extension tests (343 tests)
-cd apps/extension-chrome
-npm test
-
-# Firefox extension tests (343 tests)
-cd ../extension-firefox
+# Run full automated test suite (460+ tests) across all modules
 npm test
 ```
 

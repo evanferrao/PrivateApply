@@ -39,12 +39,11 @@ A truly privacy-first, zero-cloud job application assistant. Unlike conventional
 
 - **Name:** Private Apply.
 - **Voice:** Direct, technical, transparent, and trustworthy; prioritizes utility and clarity over marketing hyperbole.
-- **Identity Assets:** Official logomarks, typography references, and badges located in `Brandkit/`, `assets/`, and `apps/extension-chrome/public/icons/`.
+- **Identity Assets:** Official logomarks, typography references, and badges located in `Brandkit/`, `assets/`, and `public/icons/`.
 
 ## Evidence on Hand
 
-- Chrome Extension implementation in `apps/extension-chrome/`.
-- Firefox Extension implementation in `apps/extension-firefox/`.
+- Unified Extension implementation in `src/` and `public/` (producing Chrome and Firefox builds in `.output/`).
 - Native messaging compilation companion in `companion/`.
 - Technical and security architecture in `docs/latex-editor-and-companion.md`.
 - Sample test resumes in root: `Resume.tex` and `Resume.pdf`.

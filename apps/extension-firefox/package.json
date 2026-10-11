@@ -4,14 +4,14 @@
   "description": "AI-powered Firefox extension for job application auto-fill, compatibility analysis, and cover letter generation",
   "type": "module",
   "scripts": {
-    "build": "node esbuild.config.mjs",
-    "dev": "node esbuild.config.mjs --watch",
-    "package": "web-ext build --source-dir dist --artifacts-dir web-ext-artifacts --overwrite-dest",
+    "build": "node ../../scripts/build.mjs --browser=firefox",
+    "dev": "node ../../scripts/build.mjs --browser=firefox --watch",
+    "package": "node ../../scripts/package.mjs --browser=firefox",
     "run:firefox": "web-ext run --source-dir dist",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "type-check": "cd ../.. && npm run type-check",
+    "lint": "cd ../.. && npm run lint",
+    "test": "cd ../.. && npm test",
+    "test:watch": "cd ../.. && npm run test:watch"
   },
   "keywords": [
     "firefox",

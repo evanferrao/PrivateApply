@@ -4,13 +4,13 @@
   "description": "AI-powered Chrome extension for job application auto-fill, compatibility analysis, and cover letter generation",
   "type": "module",
   "scripts": {
-    "build": "node esbuild.config.mjs",
-    "dev": "node esbuild.config.mjs --watch",
-    "package": "cd dist && zip -r ../private-apply-chrome.zip .",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "build": "node ../../scripts/build.mjs --browser=chrome",
+    "dev": "node ../../scripts/build.mjs --browser=chrome --watch",
+    "package": "node ../../scripts/package.mjs --browser=chrome",
+    "type-check": "cd ../.. && npm run type-check",
+    "lint": "cd ../.. && npm run lint",
+    "test": "cd ../.. && npm test",
+    "test:watch": "cd ../.. && npm run test:watch"
   },
   "keywords": [
     "chrome",
