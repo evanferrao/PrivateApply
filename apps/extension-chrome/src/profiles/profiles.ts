@@ -1387,6 +1387,30 @@ function populateScreeningForm(): void {
   (document.getElementById('scr-referral-source') as HTMLSelectElement).value = scr.referralSource || 'LinkedIn';
   (document.getElementById('scr-referrer-name') as HTMLInputElement).value = scr.referrerName || '';
   (document.getElementById('scr-referrer-email') as HTMLInputElement).value = scr.referrerEmail || '';
+
+  // Consents & Authorizations
+  const setCheck = (id: string, val: boolean | undefined) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.checked = val !== false;
+  };
+  setCheck('scr-consent-whatsapp', scr.consentWhatsApp);
+  setCheck('scr-consent-sms', scr.consentSms);
+  setCheck('scr-consent-phone-calls', scr.consentPhoneCalls);
+  setCheck('scr-consent-dnc-bypass', scr.consentDncBypass);
+  setCheck('scr-consent-future-opps', scr.consentFutureOpportunities);
+  setCheck('scr-consent-talent-sharing', scr.consentTalentPoolSharing);
+  setCheck('scr-consent-bg-check', scr.backgroundCheckConsent);
+  setCheck('scr-consent-ref-check', scr.consentReferenceCheck);
+  setCheck('scr-consent-drug-screen', scr.drugScreeningConsent);
+  setCheck('scr-consent-credit-check', scr.consentCreditCheck);
+  setCheck('scr-consent-privacy', scr.consentPrivacyPolicy);
+  setCheck('scr-consent-data-transfer', scr.consentDataTransfer);
+  setCheck('scr-consent-terms', scr.consentTermsOfService);
+  setCheck('scr-consent-esign', scr.consentElectronicSignature);
+  setCheck('scr-consent-truth', scr.consentAccurateInformation);
+  setCheck('scr-consent-at-will', scr.consentAtWillEmployment);
+  setCheck('scr-consent-ai', scr.consentArtificialIntelligence);
+  setCheck('scr-consent-eeo', scr.consentEqualOpportunity);
 }
 
 async function saveScreening(): Promise<void> {
@@ -1423,15 +1447,78 @@ async function saveScreening(): Promise<void> {
   scr.hasNonCompeteOrRestrictions = (document.getElementById('scr-noncompete') as HTMLSelectElement).value === 'true';
   scr.nonCompeteDetails = (document.getElementById('scr-noncompete-details') as HTMLInputElement).value.trim() || undefined;
 
-  scr.backgroundCheckConsent = (document.getElementById('scr-bg-check') as HTMLSelectElement).value === 'true';
-  scr.drugScreeningConsent = (document.getElementById('scr-drug-screen') as HTMLSelectElement).value === 'true';
-
   scr.referralSource = (document.getElementById('scr-referral-source') as HTMLSelectElement).value;
   scr.referrerName = (document.getElementById('scr-referrer-name') as HTMLInputElement).value.trim() || undefined;
   scr.referrerEmail = (document.getElementById('scr-referrer-email') as HTMLInputElement).value.trim() || undefined;
 
+  // Consents & Authorizations
+  const getCheck = (id: string, defVal = true) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    return el ? el.checked : defVal;
+  };
+  scr.consentWhatsApp = getCheck('scr-consent-whatsapp');
+  scr.consentSms = getCheck('scr-consent-sms');
+  scr.consentPhoneCalls = getCheck('scr-consent-phone-calls');
+  scr.consentDncBypass = getCheck('scr-consent-dnc-bypass');
+  scr.consentFutureOpportunities = getCheck('scr-consent-future-opps');
+  scr.consentTalentPoolSharing = getCheck('scr-consent-talent-sharing');
+  scr.backgroundCheckConsent = getCheck('scr-consent-bg-check', scr.backgroundCheckConsent ?? true);
+  scr.consentReferenceCheck = getCheck('scr-consent-ref-check');
+  scr.drugScreeningConsent = getCheck('scr-consent-drug-screen', scr.drugScreeningConsent ?? true);
+  scr.consentCreditCheck = getCheck('scr-consent-credit-check');
+  scr.consentPrivacyPolicy = getCheck('scr-consent-privacy');
+  scr.consentDataTransfer = getCheck('scr-consent-data-transfer');
+  scr.consentTermsOfService = getCheck('scr-consent-terms');
+  scr.consentElectronicSignature = getCheck('scr-consent-esign');
+  scr.consentAccurateInformation = getCheck('scr-consent-truth');
+  scr.consentAtWillEmployment = getCheck('scr-consent-at-will');
+  scr.consentArtificialIntelligence = getCheck('scr-consent-ai');
+  scr.consentEqualOpportunity = getCheck('scr-consent-eeo');
+
+  // Sync existing legacy dropdowns if present
+  if (document.getElementById('scr-bg-check')) {
+    (document.getElementById('scr-bg-check') as HTMLSelectElement).value = scr.backgroundCheckConsent ? 'true' : 'false';
+  }
+  if (document.getElementById('scr-drug-screen')) {
+    (document.getElementById('scr-drug-screen') as HTMLSelectElement).value = scr.drugScreeningConsent ? 'true' : 'false';
+  }
+
   await saveUserProfile(activeProfileData);
-  showToast('✓ Screening & Disclosures saved');
+  showToast('✓ Screening, Disclosures & Consents saved');
+}
+
+function setupConsentListeners(): void {
+  document.getElementById('btn-save-consents')?.addEventListener('click', saveScreening);
+  document.getElementById('btn-consent-select-all')?.addEventListener('click', () => {
+    document.querySelectorAll<HTMLInputElement>('.consent-checkbox').forEach(cb => {
+      cb.checked = true;
+    });
+    showToast('✓ All consents selected');
+  });
+  document.getElementById('btn-consent-clear-all')?.addEventListener('click', () => {
+    document.querySelectorAll<HTMLInputElement>('.consent-checkbox').forEach(cb => {
+      cb.checked = false;
+    });
+    showToast('✓ All consents cleared');
+  });
+  // Sync background check dropdown and checkbox
+  const bgCheckSelect = document.getElementById('scr-bg-check') as HTMLSelectElement | null;
+  const bgCheckCb = document.getElementById('scr-consent-bg-check') as HTMLInputElement | null;
+  bgCheckSelect?.addEventListener('change', () => {
+    if (bgCheckCb) bgCheckCb.checked = bgCheckSelect.value === 'true';
+  });
+  bgCheckCb?.addEventListener('change', () => {
+    if (bgCheckSelect) bgCheckSelect.value = bgCheckCb.checked ? 'true' : 'false';
+  });
+  // Sync drug screen dropdown and checkbox
+  const drugSelect = document.getElementById('scr-drug-screen') as HTMLSelectElement | null;
+  const drugCb = document.getElementById('scr-consent-drug-screen') as HTMLInputElement | null;
+  drugSelect?.addEventListener('change', () => {
+    if (drugCb) drugCb.checked = drugSelect.value === 'true';
+  });
+  drugCb?.addEventListener('change', () => {
+    if (drugSelect) drugSelect.value = drugCb.checked ? 'true' : 'false';
+  });
 }
 
 // ── Family & Contacts ──────────────────────────────────────────────────────
@@ -2244,6 +2331,7 @@ function setupActionButtons(): void {
   document.getElementById('btn-add-question')?.addEventListener('click', openQuestionModal);
   setupEducationModalEvents();
   setupCertificationModalEvents();
+  setupConsentListeners();
 
   // City tags events
   const cityInput = document.getElementById('wp-city-input') as HTMLInputElement | null;

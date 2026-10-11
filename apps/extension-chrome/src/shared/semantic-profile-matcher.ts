@@ -1479,7 +1479,7 @@ export class SemanticProfileMatcher {
       }
 
       // Background Check Consent
-      if (matchesAny(combined, ['background check', 'background investigation', 'consent to background', 'background screening'])) {
+      if (matchesAny(combined, ['background check', 'background investigation', 'consent to background', 'background screening', 'pre-employment background'])) {
         const val = ld.backgroundCheckConsent ?? true;
         return {
           value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
@@ -1494,8 +1494,40 @@ export class SemanticProfileMatcher {
         };
       }
 
+      // Reference Check Consent
+      if (matchesAny(combined, ['reference check', 'reference_check', 'contact references', 'reference verification', 'contact former employers', 'contact your former employers', 'contact previous employers', 'professional references', 'references consent'])) {
+        const val = ld.consentReferenceCheck ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'reference_check_consent',
+          fieldLabel: 'Reference Check Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved reference check consent',
+        };
+      }
+
+      // Credit / Financial History Check Consent
+      if (matchesAny(combined, ['credit check', 'credit report', 'credit history', 'consumer report', 'financial background check', 'financial history check'])) {
+        const val = ld.consentCreditCheck ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'credit_check_consent',
+          fieldLabel: 'Credit / Consumer Report Check Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved credit check consent',
+        };
+      }
+
       // Drug Screen Consent
-      if (matchesAny(combined, ['drug screen', 'drug test', 'drug screening', 'substance test'])) {
+      if (matchesAny(combined, ['drug screen', 'drug test', 'drug screening', 'substance test', 'alcohol and drug'])) {
         const val = ld.drugScreeningConsent ?? true;
         return {
           value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
@@ -1507,6 +1539,230 @@ export class SemanticProfileMatcher {
           requiresConfirmation: false,
           aiAccessPermitted: true,
           selectionReason: 'Resolved drug screening consent',
+        };
+      }
+
+      // WhatsApp Updates & Messaging Consent
+      if (matchesAny(combined, ['whatsapp', 'whats app', 'updates via whatsapp', 'messages via whatsapp', 'whatsapp notifications', 'whatsapp consent', 'contact via whatsapp'])) {
+        const val = ld.consentWhatsApp ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'whatsapp_consent',
+          fieldLabel: 'WhatsApp Messaging & Updates Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved WhatsApp communications consent',
+        };
+      }
+
+      // TCPA / Do Not Call (DNC) Bypass & Automated Calling Consent
+      if (matchesAny(combined, ['do not call', 'dnc', 'tcpa', 'telephone consumer protection', 'automated dialing', 'autodialer', 'prerecorded voice', 'artificial voice', 'bypass do not call', 'national do not call', 'federal do not call', 'automated technology to contact'])) {
+        const val = ld.consentDncBypass ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'dnc_bypass_consent',
+          fieldLabel: 'TCPA / Do Not Call (DNC) Bypass Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved Do Not Call bypass / automated calling consent',
+        };
+      }
+
+      // SMS / Text Messages Consent
+      if (matchesAny(combined, ['sms consent', 'text message', 'text messages', 'sms notifications', 'consent to receive texts', 'consent to receive sms', 'automated texts', 'text messaging consent', 'sms updates', 'receive sms'])) {
+        const val = ld.consentSms ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'sms_consent',
+          fieldLabel: 'SMS / Text Messages Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved SMS text notifications consent',
+        };
+      }
+
+      // Direct Recruiter Phone Calls Consent
+      if (matchesAny(combined, ['consent to call', 'consent to phone', 'phone calls', 'telephone calls', 'contact you by phone', 'contact via phone', 'reach you by phone', 'calls regarding your application'])) {
+        const val = ld.consentPhoneCalls ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'phone_calls_consent',
+          fieldLabel: 'Direct Phone Calls Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved phone calls communication consent',
+        };
+      }
+
+      // Future Relevant Jobs & Talent Community Consent
+      if (matchesAny(combined, ['future opportunities', 'future roles', 'future job', 'other relevant jobs', 'other open roles', 'talent pool', 'talent community', 'talent network', 'retain your profile', 'keep your resume on file', 'future openings', 'other positions at', 'future considerations', 'candidate pool', 'keep on file'])) {
+        const val = ld.consentFutureOpportunities ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'future_opportunities_consent',
+          fieldLabel: 'Future Job Opportunities & Talent Pool Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved future job opportunities and talent pool retention consent',
+        };
+      }
+
+      // Talent Pool Sharing / Affiliate & Subsidiary Consent
+      if (matchesAny(combined, ['affiliates', 'subsidiaries', 'group companies', 'affiliated companies', 'share your information with other companies', 'share profile with affiliates', 'corporate entities', 'other entities'])) {
+        const val = ld.consentTalentPoolSharing ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.96,
+          source: 'legal_disclosures',
+          fieldKey: 'talent_sharing_consent',
+          fieldLabel: 'Affiliate & Subsidiary Profile Sharing Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved corporate affiliates profile sharing consent',
+        };
+      }
+
+      // Privacy Policy & Candidate Data Processing Consent
+      if (matchesAny(combined, ['privacy policy', 'privacy notice', 'candidate privacy', 'data processing consent', 'consent to process personal data', 'consent to processing of my personal data', 'gdpr', 'ccpa', 'data protection policy', 'processing of my application data', 'protect your data', 'data privacy'])) {
+        const val = ld.consentPrivacyPolicy ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'privacy_policy_consent',
+          fieldLabel: 'Privacy Policy & Data Processing Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved Candidate Privacy Policy and data processing consent',
+        };
+      }
+
+      // Cross-Border / International Data Transfer Consent
+      if (matchesAny(combined, ['cross-border', 'data transfer', 'international transfer', 'transfer outside', 'transfer of personal data internationally', 'transferred across borders', 'transfer personal data outside'])) {
+        const val = ld.consentDataTransfer ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'data_transfer_consent',
+          fieldLabel: 'International Data Transfer Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved international cross-border data transfer consent',
+        };
+      }
+
+      // Terms of Service / Application Terms
+      if (matchesAny(combined, ['terms of service', 'terms and conditions', 'terms of use', 'application terms', 'portal terms', 'agree to the terms', 'accept terms', 'applicant agreement'])) {
+        const val = ld.consentTermsOfService ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'terms_of_service_consent',
+          fieldLabel: 'Terms of Service Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved Terms of Service agreement',
+        };
+      }
+
+      // Electronic Signature & Disclosures (E-SIGN)
+      if (matchesAny(combined, ['electronic signature', 'e-sign', 'electronic disclosures', 'sign electronically', 'consent to electronic delivery', 'consent to electronic records', 'electronic consent'])) {
+        const val = ld.consentElectronicSignature ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'electronic_signature_consent',
+          fieldLabel: 'Electronic Signature & Disclosures Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved electronic signature and disclosures consent',
+        };
+      }
+
+      // Accuracy of Information & Truthfulness Certification
+      if (matchesAny(combined, ['true and correct', 'true and accurate', 'certify that all statements', 'accuracy of information', 'certify the information', 'true to the best of my knowledge', 'falsification', 'penalty of perjury', 'accurate declaration', 'certify that the information', 'acknowledgment and certification', 'truthfulness'])) {
+        const val = ld.consentAccurateInformation ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.98,
+          source: 'legal_disclosures',
+          fieldKey: 'accurate_information_certification',
+          fieldLabel: 'Information Accuracy & Truthfulness Certification',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved application accuracy and truthfulness certification',
+        };
+      }
+
+      // At-Will Employment Acknowledgment
+      if (matchesAny(combined, ['at-will', 'at will employment', 'at-will relationship', 'employment at will', 'at will basis'])) {
+        const val = ld.consentAtWillEmployment ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'at_will_employment_consent',
+          fieldLabel: 'At-Will Employment Acknowledgment',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved at-will employment disclosure acknowledgment',
+        };
+      }
+
+      // AI Screening & Automated Decision-Making Consent
+      if (matchesAny(combined, ['artificial intelligence', 'ai screening', 'automated decision', 'automated employment decision', 'ai evaluation', 'automated tool', 'use of ai', 'automated processing'])) {
+        const val = ld.consentArtificialIntelligence ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.97,
+          source: 'legal_disclosures',
+          fieldKey: 'ai_screening_consent',
+          fieldLabel: 'AI & Automated Decision-Making Consent',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved AI screening and automated decision consent',
+        };
+      }
+
+      // Equal Employment Opportunity (EEO) Policy Acknowledgment
+      if (matchesAny(combined, ['equal employment opportunity', 'equal opportunity employer', 'eeo policy', 'non-discrimination policy', 'eeo disclosure'])) {
+        const val = ld.consentEqualOpportunity ?? true;
+        return {
+          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+          confidence: 0.96,
+          source: 'legal_disclosures',
+          fieldKey: 'eeo_policy_acknowledgment',
+          fieldLabel: 'Equal Employment Opportunity (EEO) Policy Acknowledgment',
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: 'Resolved EEO policy acknowledgment',
         };
       }
 

@@ -657,6 +657,24 @@ export interface LegalAndDisclosures {
   referralSource?: string; // "LinkedIn", "Indeed", "Company Career Site", "Employee Referral", "GitHub", "Other"
   referrerName?: string;
   referrerEmail?: string;
+
+  // ── Comprehensive Consents & Authorizations ──
+  consentWhatsApp?: boolean;
+  consentSms?: boolean;
+  consentPhoneCalls?: boolean;
+  consentDncBypass?: boolean;
+  consentFutureOpportunities?: boolean;
+  consentTalentPoolSharing?: boolean;
+  consentReferenceCheck?: boolean;
+  consentCreditCheck?: boolean;
+  consentPrivacyPolicy?: boolean;
+  consentDataTransfer?: boolean;
+  consentTermsOfService?: boolean;
+  consentElectronicSignature?: boolean;
+  consentAccurateInformation?: boolean;
+  consentAtWillEmployment?: boolean;
+  consentArtificialIntelligence?: boolean;
+  consentEqualOpportunity?: boolean;
 }
 
 export function createDefaultWorkPreferences(): WorkPreferences {
@@ -695,6 +713,23 @@ export function createDefaultLegalAndDisclosures(): LegalAndDisclosures {
     backgroundCheckConsent: true,
     drugScreeningConsent: true,
     referralSource: 'LinkedIn',
+    // Comprehensive Consents & Authorizations
+    consentWhatsApp: true,
+    consentSms: true,
+    consentPhoneCalls: true,
+    consentDncBypass: true,
+    consentFutureOpportunities: true,
+    consentTalentPoolSharing: true,
+    consentReferenceCheck: true,
+    consentCreditCheck: true,
+    consentPrivacyPolicy: true,
+    consentDataTransfer: true,
+    consentTermsOfService: true,
+    consentElectronicSignature: true,
+    consentAccurateInformation: true,
+    consentAtWillEmployment: true,
+    consentArtificialIntelligence: true,
+    consentEqualOpportunity: true,
   };
 }
 

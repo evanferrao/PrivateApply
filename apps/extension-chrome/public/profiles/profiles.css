@@ -783,3 +783,54 @@ body {
       color: var(--primary-700);
       font-weight: 600;
     }
+
+    /* ── Applicant Consents & Disclosures Grid ── */
+    .consent-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 820px) {
+      .consent-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .consent-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .consent-item:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary-400);
+    }
+    .consent-checkbox {
+      width: 17px;
+      height: 17px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--primary-600);
+      cursor: pointer;
+    }
+    .consent-item-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .consent-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .consent-item-desc {
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }

@@ -2449,6 +2449,59 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
     }
     
+    // Consents & Authorizations fallback for checkboxes
+    const ld = profile.legalDisclosures;
+    if (ld) {
+      if (fieldLabel.includes('whatsapp') || fieldLabel.includes('whats app')) {
+        return ld.consentWhatsApp ?? true;
+      }
+      if (fieldLabel.includes('do not call') || fieldLabel.includes('dnc') || fieldLabel.includes('tcpa')) {
+        return ld.consentDncBypass ?? true;
+      }
+      if (fieldLabel.includes('sms') || fieldLabel.includes('text message')) {
+        return ld.consentSms ?? true;
+      }
+      if (fieldLabel.includes('phone') && (fieldLabel.includes('call') || fieldLabel.includes('contact'))) {
+        return ld.consentPhoneCalls ?? true;
+      }
+      if (fieldLabel.includes('future') || fieldLabel.includes('talent pool') || fieldLabel.includes('talent community') || fieldLabel.includes('other roles') || fieldLabel.includes('other relevant') || fieldLabel.includes('keep on file')) {
+        return ld.consentFutureOpportunities ?? true;
+      }
+      if (fieldLabel.includes('affiliate') || fieldLabel.includes('subsidiary')) {
+        return ld.consentTalentPoolSharing ?? true;
+      }
+      if (fieldLabel.includes('background') && (fieldLabel.includes('check') || fieldLabel.includes('investigation') || fieldLabel.includes('consent'))) {
+        return ld.backgroundCheckConsent ?? true;
+      }
+      if (fieldLabel.includes('drug') && (fieldLabel.includes('screen') || fieldLabel.includes('test'))) {
+        return ld.drugScreeningConsent ?? true;
+      }
+      if (fieldLabel.includes('reference') && (fieldLabel.includes('check') || fieldLabel.includes('contact'))) {
+        return ld.consentReferenceCheck ?? true;
+      }
+      if (fieldLabel.includes('credit') && fieldLabel.includes('check')) {
+        return ld.consentCreditCheck ?? true;
+      }
+      if (fieldLabel.includes('privacy') || fieldLabel.includes('data protection') || fieldLabel.includes('gdpr') || fieldLabel.includes('ccpa')) {
+        return ld.consentPrivacyPolicy ?? true;
+      }
+      if (fieldLabel.includes('terms') || fieldLabel.includes('agreement')) {
+        return ld.consentTermsOfService ?? true;
+      }
+      if (fieldLabel.includes('electronic signature') || fieldLabel.includes('e-sign') || fieldLabel.includes('sign electronically')) {
+        return ld.consentElectronicSignature ?? true;
+      }
+      if (fieldLabel.includes('true') || fieldLabel.includes('certify') || fieldLabel.includes('accurate')) {
+        return ld.consentAccurateInformation ?? true;
+      }
+      if (fieldLabel.includes('at-will') || fieldLabel.includes('at will')) {
+        return ld.consentAtWillEmployment ?? true;
+      }
+      if (fieldLabel.includes('artificial intelligence') || fieldLabel.includes('ai screening')) {
+        return ld.consentArtificialIntelligence ?? true;
+      }
+    }
+
     console.log('[Autofill] Checkbox did not match any patterns, skipping');
   }
   
