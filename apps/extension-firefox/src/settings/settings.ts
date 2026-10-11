@@ -18,6 +18,16 @@ import {
 } from '../shared/ai-provider-config';
 import { getOllamaConfig, saveOllamaConfig, testOllamaConnection, DEFAULT_OLLAMA_CONFIG } from '../shared/ollama-config';
 import { setHTML, escapeHTML } from '../shared/html';
+import {
+  getAllPacks,
+  getActivePackIds,
+  togglePackActive,
+  saveCustomPack,
+  deleteCustomPack,
+  validatePackJson,
+  downloadCountryPackTemplate,
+  type CountryPack,
+} from '../shared/country-packs';
 
 async function init(): Promise<void> {
   const settings = await getSettings();
@@ -918,6 +928,135 @@ async function initAIProvidersSettings(): Promise<void> {
   // Initial render
   await renderProvidersList();
   await syncLegacyAndStatus();
+  await setupCountryPacksSettings();
+}
+
+async function setupCountryPacksSettings(): Promise<void> {
+  const listEl = document.getElementById('country-packs-list');
+  const btnDownload = document.getElementById('btn-download-pack-template');
+  const btnImport = document.getElementById('btn-import-pack-trigger');
+  const fileInput = document.getElementById('input-import-pack-file') as HTMLInputElement | null;
+  const feedbackEl = document.getElementById('feedback-pack-action');
+
+  if (!listEl) return;
+
+  function showPackFeedback(msg: string, isError = false) {
+    if (!feedbackEl) return;
+    feedbackEl.textContent = msg;
+    feedbackEl.style.color = isError ? '#ef4444' : '#10b981';
+    feedbackEl.classList.add('visible');
+    setTimeout(() => {
+      feedbackEl.classList.remove('visible');
+    }, 4000);
+  }
+
+  async function renderPacks() {
+    if (!listEl) return;
+    const allPacks = await getAllPacks();
+    const activeIds = await getActivePackIds();
+
+    listEl.innerHTML = '';
+
+    allPacks.forEach(pack => {
+      const isActive = activeIds.includes(pack.id);
+      const item = document.createElement('div');
+      item.className = 'country-pack-item';
+      item.dataset.packId = pack.id;
+
+      const flag = escapeHTML(pack.icon || '🌐');
+      const name = escapeHTML(pack.countryName);
+      const id = escapeHTML(pack.id);
+      const desc = escapeHTML(pack.description || '');
+      const fieldCount = pack.fields ? pack.fields.length : 0;
+      const customBadge = pack.isCustom ? '<span class="country-pack-badge custom">Custom</span>' : '';
+
+      item.innerHTML = `
+        <div class="country-pack-main">
+          <div class="country-pack-flag">${flag}</div>
+          <div class="country-pack-details">
+            <div class="country-pack-title-row">
+              <span class="country-pack-name">${name}</span>
+              <span class="country-pack-badge">${id}</span>
+              ${customBadge}
+            </div>
+            <div class="country-pack-desc">${desc}</div>
+            <div class="country-pack-meta">
+              <span>${fieldCount} localized fields</span>
+              <span>v${escapeHTML(pack.version || '1.0.0')}</span>
+              ${pack.maintainer ? `<span>By ${escapeHTML(pack.maintainer)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="country-pack-actions">
+          ${pack.isCustom ? `<button class="btn-pack-delete" title="Delete custom pack" data-delete-id="${id}">Delete</button>` : ''}
+          <div class="toggle ${isActive ? 'active' : ''}" role="switch" aria-checked="${isActive}" aria-label="Toggle ${name} pack" tabindex="0"></div>
+        </div>
+      `;
+
+      // Toggle switch listener
+      const toggle = item.querySelector('.toggle') as HTMLElement;
+      if (toggle) {
+        toggle.addEventListener('click', async () => {
+          const next = !toggle.classList.contains('active');
+          toggle.classList.toggle('active', next);
+          toggle.setAttribute('aria-checked', String(next));
+          await togglePackActive(pack.id, next);
+          showPackFeedback(`${pack.id} ${next ? 'enabled' : 'disabled'}`);
+        });
+      }
+
+      // Delete custom pack listener
+      const btnDel = item.querySelector('.btn-pack-delete') as HTMLElement;
+      if (btnDel) {
+        btnDel.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm(`Are you sure you want to delete custom pack "${pack.id}"?`)) {
+            await deleteCustomPack(pack.id);
+            await renderPacks();
+            showPackFeedback(`Deleted ${pack.id}`);
+          }
+        });
+      }
+
+      listEl.appendChild(item);
+    });
+  }
+
+  // Wire Download Template
+  btnDownload?.addEventListener('click', () => {
+    downloadCountryPackTemplate();
+    showPackFeedback('Template downloaded! Check your downloads folder.');
+  });
+
+  // Wire Import Pack
+  btnImport?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const val = validatePackJson(text);
+      if (!val.valid || !val.pack) {
+        showPackFeedback(`Invalid Country-Pack: ${val.error || 'Schema validation failed'}`, true);
+        return;
+      }
+
+      await saveCustomPack(val.pack);
+      await renderPacks();
+      showPackFeedback(`Successfully imported and enabled ${val.pack.id}!`);
+    } catch (err: any) {
+      showPackFeedback(`Failed to read file: ${err.message}`, true);
+    } finally {
+      fileInput.value = '';
+    }
+  });
+
+  await renderPacks();
 }
 
 init();
+

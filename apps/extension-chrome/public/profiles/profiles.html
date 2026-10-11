@@ -68,9 +68,9 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Family & Contacts
       </button>
-      <button type="button" class="hub-tab-btn" data-tab="tab-india">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
-        India Recruitment Pack
+      <button type="button" class="hub-tab-btn" data-tab="tab-country-packs">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Country-Packs
       </button>
       <button type="button" class="hub-tab-btn" data-tab="tab-custom">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -736,114 +736,22 @@
       </div>
     </div>
 
-    <!-- TAB 5: India Recruitment Pack -->
-    <div id="tab-india" class="tab-panel">
+    <!-- TAB 5: Country-Packs (Jurisdiction Modules) -->
+    <div id="tab-country-packs" class="tab-panel">
       <div class="hub-card">
         <div class="hub-card-header">
           <div>
-            <div class="hub-card-title">India Recruitment & Campus Placement Pack</div>
-            <div class="hub-card-desc">Indian campus and recruitment portals (Naukri, Digialm, Freshersworld, campus forms) frequently ask for 10th/12th marks, backlogs, arrears, student registration IDs, and bonds.</div>
+            <div class="hub-card-title">Country-Packs (Jurisdiction Modules)</div>
+            <div class="hub-card-desc">Configure localized compliance identifiers, tax IDs, and academic records for your active job jurisdictions (e.g. IN-pack, US-pack, DE-pack, GB-pack). You can enable or disable specific countries and add custom packs in Settings.</div>
           </div>
-          <button type="button" class="btn-action-primary" id="btn-save-india-pack">Save India Pack</button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <a href="../settings/settings.html#section-country-packs" target="_blank" class="btn-action-secondary" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-primary);background:var(--bg-card);">⚙ Manage Packs in Settings</a>
+            <button type="button" class="btn-action-primary" id="btn-save-country-packs">Save Country-Packs</button>
+          </div>
         </div>
 
-        <div style="margin-bottom: 20px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
-            <input type="checkbox" id="india-pack-enabled" style="width: 16px; height: 16px;">
-            <span>Enable India Recruitment Pack for Autofill & Semantic Matching</span>
-          </label>
-        </div>
-
-        <div class="form-grid-3">
-          <div class="field-group">
-            <label>Class 10 (SSC) Percentage (%)</label>
-            <input type="number" step="0.01" id="in-10th-pct" class="field-input" placeholder="e.g. 91.5">
-          </div>
-          <div class="field-group">
-            <label>Class 10 Passing Year</label>
-            <input type="text" id="in-10th-year" class="field-input" placeholder="e.g. 2018">
-          </div>
-          <div class="field-group">
-            <label>Class 10 Board</label>
-            <input type="text" id="in-10th-board" class="field-input" placeholder="CBSE, ICSE, State Board">
-          </div>
-
-          <div class="field-group">
-            <label>Class 12 (HSC) Percentage (%)</label>
-            <input type="number" step="0.01" id="in-12th-pct" class="field-input" placeholder="e.g. 88.2">
-          </div>
-          <div class="field-group">
-            <label>Class 12 Passing Year</label>
-            <input type="text" id="in-12th-year" class="field-input" placeholder="e.g. 2020">
-          </div>
-          <div class="field-group">
-            <label>Class 12 Board / Stream</label>
-            <input type="text" id="in-12th-board" class="field-input" placeholder="CBSE (Science)">
-          </div>
-
-          <div class="field-group">
-            <label>Undergraduate CGPA (out of 10)</label>
-            <input type="number" step="0.01" id="in-ug-cgpa" class="field-input" placeholder="e.g. 8.65">
-          </div>
-          <div class="field-group">
-            <label>UG Percentage (%) or Conversion Formula</label>
-            <input type="text" id="in-ug-formula" class="field-input" placeholder="e.g. CGPA * 9.5 (82.17%)">
-          </div>
-          <div class="field-group">
-            <label>Student Registration / Roll No / USN</label>
-            <input type="text" id="in-student-roll" class="field-input" placeholder="University Roll No / Registration No">
-          </div>
-
-          <div class="field-group">
-            <label>Active Backlogs / Arrears Count</label>
-            <input type="number" id="in-active-backlogs" class="field-input" placeholder="0">
-          </div>
-          <div class="field-group">
-            <label>Cleared Backlogs / History of Arrears</label>
-            <input type="number" id="in-cleared-backlogs" class="field-input" placeholder="0">
-          </div>
-          <div class="field-group">
-            <label>Academic Gap (Years)</label>
-            <input type="number" id="in-gap-years" class="field-input" placeholder="0">
-          </div>
-
-          <div class="field-group">
-            <label>Current CTC (LPA)</label>
-            <input type="number" step="0.1" id="in-ctc-lpa" class="field-input" placeholder="e.g. 8.5 LPA">
-          </div>
-          <div class="field-group">
-            <label>Expected CTC (LPA)</label>
-            <input type="number" step="0.1" id="in-exp-lpa" class="field-input" placeholder="e.g. 14 LPA">
-          </div>
-          <div class="field-group">
-            <label>Willing to Sign Service Bond?</label>
-            <select id="in-bond-willing" class="field-select">
-              <option value="false">No</option>
-              <option value="true">Yes</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label>
-              Aadhaar Number (Masked)
-              <span class="badge-sens restricted">Restricted</span>
-            </label>
-            <input type="text" id="in-aadhaar" class="field-input" placeholder="XXXX-XXXX-1234">
-          </div>
-          <div class="field-group">
-            <label>
-              PAN Card Number (Masked)
-              <span class="badge-sens restricted">Restricted</span>
-            </label>
-            <input type="text" id="in-pan" class="field-input" placeholder="ABCDE1234F">
-          </div>
-          <div class="field-group">
-            <label>Hosteller or Day Scholar?</label>
-            <select id="in-scholar-type" class="field-select">
-              <option value="day_scholar">Day Scholar</option>
-              <option value="hosteller">Hosteller</option>
-            </select>
-          </div>
+        <div id="country-packs-hub-container">
+          <!-- Dynamically populated cards for all active country packs -->
         </div>
       </div>
     </div>

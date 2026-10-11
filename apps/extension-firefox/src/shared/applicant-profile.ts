@@ -281,6 +281,9 @@ export interface IndiaRecruitmentPack {
   firstGenerationGraduate?: boolean;
 }
 
+export type CountryPacksData = Record<string, Record<string, any>>;
+export * from './country-packs';
+
 export interface QuestionBankItem {
   id: string;
   question: string;

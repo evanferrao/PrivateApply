@@ -10,6 +10,7 @@
 
 import type { FieldSchema } from './types';
 import type { UserProfile } from './profile';
+import { BUILTIN_COUNTRY_PACKS } from './country-packs';
 import {
   formatPhone,
   formatLocation,
@@ -29,6 +30,7 @@ export interface SemanticMatchResult {
     | 'family_contact'
     | 'education_history'
     | 'india_pack'
+    | 'country_pack'
     | 'employment_derived'
     | 'compensation'
     | 'reference'
@@ -94,7 +96,60 @@ export class SemanticProfileMatcher {
       }
     }
 
-    // ── 2. FAMILY / GUARDIAN / EMERGENCY CONTACTS ──────────────────────────────
+    // ── 2. COUNTRY PACKS (Modular jurisdiction fields: US-pack, DE-pack, GB-pack, IN-pack, custom) ──
+    if (profile.countryPacksData) {
+      // Check built-in packs first
+      for (const pack of BUILTIN_COUNTRY_PACKS) {
+        const packData = profile.countryPacksData[pack.id];
+        if (!packData) continue;
+
+        for (const fieldDef of pack.fields) {
+          const val = packData[fieldDef.key];
+          if (val === undefined || val === null || String(val).trim() === '') continue;
+
+          const keyMatch = matchesAny(combined, [fieldDef.key, fieldDef.label]);
+          const aliasMatch = fieldDef.aliases && fieldDef.aliases.length > 0 && matchesAny(combined, fieldDef.aliases);
+
+          if (keyMatch || aliasMatch) {
+            return {
+              value: val,
+              confidence: keyMatch ? 0.95 : 0.9,
+              source: pack.id === 'IN-pack' ? 'india_pack' : 'country_pack',
+              fieldKey: `${pack.id}_${fieldDef.key}`,
+              fieldLabel: fieldDef.label,
+              sensitivity: (fieldDef.sensitivity as SensitivityLevel) || 'ordinary',
+              requiresConfirmation: fieldDef.sensitivity === 'restricted_identifier',
+              aiAccessPermitted: fieldDef.sensitivity !== 'restricted_identifier',
+              selectionReason: `Matched Country-Pack (${pack.id}) field "${fieldDef.label}" via ${keyMatch ? 'key/label' : 'alias'}`,
+            };
+          }
+        }
+      }
+
+      // Check any imported custom packs in countryPacksData
+      for (const [packId, packData] of Object.entries(profile.countryPacksData)) {
+        if (!packData || BUILTIN_COUNTRY_PACKS.some(b => b.id === packId)) continue;
+        for (const [key, val] of Object.entries(packData)) {
+          if (val === undefined || val === null || String(val).trim() === '') continue;
+          const cleanKey = key.replace(/_/g, ' ');
+          if (matchesAny(combined, [key, cleanKey])) {
+            return {
+              value: val,
+              confidence: 0.9,
+              source: 'country_pack',
+              fieldKey: `${packId}_${key}`,
+              fieldLabel: key,
+              sensitivity: 'ordinary',
+              requiresConfirmation: false,
+              aiAccessPermitted: true,
+              selectionReason: `Matched Custom Country-Pack (${packId}) field "${key}"`,
+            };
+          }
+        }
+      }
+    }
+
+    // ── 3. FAMILY / GUARDIAN / EMERGENCY CONTACTS ──────────────────────────────
     // Distinguish Father vs Mother vs Guardian vs Emergency Contact vs Applicant
     const isFather = matchesAny(combined, [/\bfather\b/, /\bdad\b/, /\bfather's\b/]);
     const isMother = matchesAny(combined, [/\bmother\b/, /\bmom\b/, /\bmother's\b/]);

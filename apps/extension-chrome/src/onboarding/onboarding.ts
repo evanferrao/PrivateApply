@@ -26,6 +26,7 @@ import {
   setActiveAIProviderId,
 } from '../shared/ai-provider-config';
 import { companionClient, CompanionStatus } from '../shared/companion-client';
+import { setActivePackIds } from '../shared/country-packs';
 
 // PDF.js is loaded via CDN in the HTML
 declare const pdfjsLib: any;
@@ -3182,6 +3183,14 @@ async function init(): Promise<void> {
           extractedProfile.workAuth = workAuthData;
         }
       }
+
+      // Collect selected country packs
+      const packBoxes = document.querySelectorAll<HTMLInputElement>('input[name="country_pack"]:checked');
+      const selectedPacks = Array.from(packBoxes).map(b => b.value);
+      if (selectedPacks.length > 0) {
+        await setActivePackIds(selectedPacks);
+      }
+
       showStep('step-coverletter');
     });
   }

@@ -34,6 +34,7 @@ import {
   type LegalAndDisclosures,
 } from '../shared/applicant-profile';
 import { setHTML } from '../shared/html';
+import { getActivePacks, type CountryPack } from '../shared/country-packs';
 
 const COLORS = [
   '#7c3aed', '#2563eb', '#059669', '#d97706',
@@ -87,6 +88,24 @@ function updateStartDaysDisplay(days: number): void {
     } else {
       btn.classList.remove('active');
     }
+  });
+}
+
+function setupStartDaysEvents(): void {
+  const input = document.getElementById('wp-earliest-start-days') as HTMLInputElement | null;
+  input?.addEventListener('input', () => {
+    const val = parseInt(input.value, 10);
+    updateStartDaysDisplay(isNaN(val) ? 0 : val);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-preset-day').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const days = parseInt(btn.dataset.days || '0', 10);
+      if (input) {
+        input.value = String(days);
+      }
+      updateStartDaysDisplay(days);
+    });
   });
 }
 
@@ -163,7 +182,7 @@ async function init(): Promise<void> {
   populateWorkPreferencesForm();
   populateScreeningForm();
   populateFamilyList();
-  populateIndiaPackForm();
+  populateCountryPacksHub();
   populateCustomFieldsList();
   populateQuestionBankList();
   renderProfilesGrid();
@@ -1148,70 +1167,227 @@ function setupFamilyModalEvents(): void {
   });
 }
 
-// ── India Recruitment Pack ─────────────────────────────────────────────────
+// ── Country-Packs (Jurisdiction Modules) ───────────────────────────────────
 
-function populateIndiaPackForm(): void {
+async function populateCountryPacksHub(): Promise<void> {
   if (!activeProfileData) return;
-  const pack = activeProfileData.indiaPack || createDefaultIndiaPack();
+  const container = document.getElementById('country-packs-hub-container');
+  if (!container) return;
 
-  (document.getElementById('india-pack-enabled') as HTMLInputElement).checked = Boolean(pack.enabled);
-  (document.getElementById('in-10th-pct') as HTMLInputElement).value = String(pack.tenthPercentage ?? '');
-  (document.getElementById('in-10th-year') as HTMLInputElement).value = pack.tenthPassingYear || '';
-  (document.getElementById('in-10th-board') as HTMLInputElement).value = pack.tenthBoard || '';
+  const activePacks = await getActivePacks();
 
-  (document.getElementById('in-12th-pct') as HTMLInputElement).value = String(pack.twelfthPercentage ?? '');
-  (document.getElementById('in-12th-year') as HTMLInputElement).value = pack.twelfthPassingYear || '';
-  (document.getElementById('in-12th-board') as HTMLInputElement).value = pack.twelfthBoard || pack.twelfthStream || '';
+  if (activePacks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+        <div style="font-size: 32px; margin-bottom: 12px;">🌐</div>
+        <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">No Country-Packs Active</div>
+        <p style="font-size: 13px; max-width: 440px; margin: 0 auto 16px;">
+          Enable regional modules for India (IN-pack), United States (US-pack), Germany (DE-pack), or United Kingdom (GB-pack) in Settings to configure jurisdiction-specific compliance fields and campus records.
+        </p>
+        <a href="../settings/settings.html#section-country-packs" target="_blank" class="btn-action-primary" style="display: inline-block; text-decoration: none;">Go to Settings →</a>
+      </div>
+    `;
+    return;
+  }
 
-  (document.getElementById('in-ug-cgpa') as HTMLInputElement).value = String(pack.undergradCgpa ?? '');
-  (document.getElementById('in-ug-formula') as HTMLInputElement).value = pack.cgpaConversionFormula || '';
-  (document.getElementById('in-student-roll') as HTMLInputElement).value = pack.studentRegistrationNumber || pack.universityRollNumber || '';
+  // Ensure countryPacksData exists
+  if (!activeProfileData.countryPacksData) {
+    activeProfileData.countryPacksData = {};
+  }
 
-  (document.getElementById('in-active-backlogs') as HTMLInputElement).value = String(pack.activeBacklogsCount ?? 0);
-  (document.getElementById('in-cleared-backlogs') as HTMLInputElement).value = String(pack.clearedBacklogsCount ?? 0);
-  (document.getElementById('in-gap-years') as HTMLInputElement).value = String(pack.educationGapYears ?? 0);
+  // If India Pack exists in legacy object, ensure it's seeded in countryPacksData['IN-pack']
+  if (activeProfileData.indiaPack && !activeProfileData.countryPacksData['IN-pack']) {
+    const ip = activeProfileData.indiaPack;
+    activeProfileData.countryPacksData['IN-pack'] = {
+      tenth_percentage: ip.tenthPercentage,
+      tenth_passing_year: ip.tenthPassingYear,
+      tenth_board: ip.tenthBoard,
+      twelfth_percentage: ip.twelfthPercentage,
+      twelfth_passing_year: ip.twelfthPassingYear,
+      twelfth_board: ip.twelfthBoard || ip.twelfthStream,
+      undergrad_cgpa: ip.undergradCgpa,
+      cgpa_conversion_formula: ip.cgpaConversionFormula,
+      student_registration_number: ip.studentRegistrationNumber || ip.universityRollNumber,
+      active_backlogs: ip.activeBacklogsCount,
+      history_of_backlogs: ip.clearedBacklogsCount,
+      academic_gap_years: ip.educationGapYears,
+      current_ctc_lpa: ip.currentCtcLpa,
+      expected_ctc_lpa: ip.expectedCtcLpa,
+      willing_to_sign_bond: ip.willingToSignBond,
+      aadhaar_number: ip.aadhaarNumberMasked,
+      pan_number: ip.panNumberMasked,
+      day_scholar_or_hosteller: ip.dayScholarOrHosteller,
+    };
+  }
 
-  (document.getElementById('in-ctc-lpa') as HTMLInputElement).value = String(pack.currentCtcLpa ?? '');
-  (document.getElementById('in-exp-lpa') as HTMLInputElement).value = String(pack.expectedCtcLpa ?? '');
-  (document.getElementById('in-bond-willing') as HTMLSelectElement).value = pack.willingToSignBond ? 'true' : 'false';
+  container.innerHTML = '';
 
-  (document.getElementById('in-aadhaar') as HTMLInputElement).value = pack.aadhaarNumberMasked || '';
-  (document.getElementById('in-pan') as HTMLInputElement).value = pack.panNumberMasked || '';
-  (document.getElementById('in-scholar-type') as HTMLSelectElement).value = pack.dayScholarOrHosteller || 'day_scholar';
+  activePacks.forEach(pack => {
+    const packCard = document.createElement('div');
+    packCard.className = 'country-pack-hub-card';
+    packCard.dataset.packId = pack.id;
+    packCard.style.cssText = 'margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);';
+
+    const flag = pack.icon || '🌐';
+    const name = pack.countryName;
+    const pId = pack.id;
+    const desc = pack.description || '';
+    const storedPackData = activeProfileData?.countryPacksData?.[pack.id] || {};
+
+    let fieldsHtml = '';
+    pack.fields.forEach(f => {
+      const fieldId = `cp_${pack.id.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${f.key}`;
+      const curVal = storedPackData[f.key] ?? f.defaultValue ?? '';
+      
+      let sensBadge = '';
+      if (f.sensitivity === 'restricted_identifier') {
+        sensBadge = '<span class="badge-sens restricted" style="margin-left: 6px;">Restricted</span>';
+      } else if (f.sensitivity === 'sensitive_personal') {
+        sensBadge = '<span class="badge-sens sensitive" style="margin-left: 6px;">Sensitive</span>';
+      }
+
+      let inputHtml = '';
+      if (f.dataType === 'choice') {
+        const opts = (f.options || []).map(opt => {
+          const sel = String(curVal) === String(opt) ? 'selected' : '';
+          const optLabel = opt.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+          return `<option value="${opt}" ${sel}>${optLabel}</option>`;
+        }).join('');
+        inputHtml = `<select id="${fieldId}" data-field-key="${f.key}" class="field-select">${opts}</select>`;
+      } else if (f.dataType === 'boolean') {
+        const isTrue = curVal === true || String(curVal) === 'true';
+        inputHtml = `
+          <select id="${fieldId}" data-field-key="${f.key}" class="field-select">
+            <option value="false" ${!isTrue ? 'selected' : ''}>No</option>
+            <option value="true" ${isTrue ? 'selected' : ''}>Yes</option>
+          </select>
+        `;
+      } else if (f.dataType === 'number') {
+        inputHtml = `<input type="number" step="any" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal !== '' ? curVal : ''}">`;
+      } else if (f.dataType === 'date') {
+        inputHtml = `<input type="date" id="${fieldId}" data-field-key="${f.key}" class="field-input" value="${curVal || ''}">`;
+      } else if (f.dataType === 'masked_identifier') {
+        inputHtml = `
+          <div style="display: flex; gap: 6px;">
+            <input type="password" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}" style="flex: 1;">
+            <button type="button" class="btn-toggle-mask" data-target="${fieldId}" style="padding: 6px 10px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); cursor: pointer;" title="Toggle visibility">👁</button>
+          </div>
+        `;
+      } else {
+        inputHtml = `<input type="text" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}">`;
+      }
+
+      const helpTextHtml = f.helpText ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">${f.helpText}</div>` : '';
+
+      fieldsHtml += `
+        <div class="field-group">
+          <label style="display: flex; align-items: center; justify-content: space-between;">
+            <span>${f.label}</span>
+            ${sensBadge}
+          </label>
+          ${inputHtml}
+          ${helpTextHtml}
+        </div>
+      `;
+    });
+
+    packCard.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 22px;">${flag}</span>
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">${name} <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 6px;">(${pId})</span></h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">${desc}</p>
+          </div>
+        </div>
+        <span class="badge-sens" style="background: var(--bg-muted); color: var(--text-muted); font-size: 11px; font-weight: 600;">${pack.fields.length} Fields</span>
+      </div>
+      <div class="form-grid-3">
+        ${fieldsHtml}
+      </div>
+    `;
+
+    // Wire toggle-mask buttons
+    packCard.querySelectorAll('.btn-toggle-mask').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = (btn as HTMLElement).dataset.target!;
+        const targetInput = document.getElementById(targetId) as HTMLInputElement;
+        if (targetInput) {
+          targetInput.type = targetInput.type === 'password' ? 'text' : 'password';
+        }
+      });
+    });
+
+    container.appendChild(packCard);
+  });
 }
 
-async function saveIndiaPack(): Promise<void> {
+async function saveCountryPacks(): Promise<void> {
   if (!activeProfileData) return;
-  if (!activeProfileData.indiaPack) activeProfileData.indiaPack = createDefaultIndiaPack();
+  if (!activeProfileData.countryPacksData) {
+    activeProfileData.countryPacksData = {};
+  }
 
-  const p = activeProfileData.indiaPack;
-  p.enabled = (document.getElementById('india-pack-enabled') as HTMLInputElement).checked;
-  p.tenthPercentage = parseFloat((document.getElementById('in-10th-pct') as HTMLInputElement).value) || undefined;
-  p.tenthPassingYear = (document.getElementById('in-10th-year') as HTMLInputElement).value.trim() || undefined;
-  p.tenthBoard = (document.getElementById('in-10th-board') as HTMLInputElement).value.trim() || undefined;
+  const container = document.getElementById('country-packs-hub-container');
+  if (!container) return;
 
-  p.twelfthPercentage = parseFloat((document.getElementById('in-12th-pct') as HTMLInputElement).value) || undefined;
-  p.twelfthPassingYear = (document.getElementById('in-12th-year') as HTMLInputElement).value.trim() || undefined;
-  p.twelfthBoard = (document.getElementById('in-12th-board') as HTMLInputElement).value.trim() || undefined;
+  const packCards = container.querySelectorAll('.country-pack-hub-card');
+  packCards.forEach(card => {
+    const pId = (card as HTMLElement).dataset.packId!;
+    const packObj: Record<string, any> = {};
 
-  p.undergradCgpa = parseFloat((document.getElementById('in-ug-cgpa') as HTMLInputElement).value) || undefined;
-  p.cgpaConversionFormula = (document.getElementById('in-ug-formula') as HTMLInputElement).value.trim() || undefined;
-  p.studentRegistrationNumber = (document.getElementById('in-student-roll') as HTMLInputElement).value.trim() || undefined;
+    const inputs = card.querySelectorAll('[data-field-key]');
+    inputs.forEach(inputEl => {
+      const key = (inputEl as HTMLElement).dataset.fieldKey!;
+      let val: any;
+      if (inputEl instanceof HTMLInputElement) {
+        if (inputEl.type === 'number') {
+          val = inputEl.value !== '' ? parseFloat(inputEl.value) : undefined;
+        } else {
+          val = inputEl.value.trim() || undefined;
+        }
+      } else if (inputEl instanceof HTMLSelectElement) {
+        if (inputEl.value === 'true') val = true;
+        else if (inputEl.value === 'false') val = false;
+        else val = inputEl.value;
+      }
+      if (val !== undefined) {
+        packObj[key] = val;
+      }
+    });
 
-  p.activeBacklogsCount = parseInt((document.getElementById('in-active-backlogs') as HTMLInputElement).value, 10) || 0;
-  p.clearedBacklogsCount = parseInt((document.getElementById('in-cleared-backlogs') as HTMLInputElement).value, 10) || 0;
-  p.educationGapYears = parseInt((document.getElementById('in-gap-years') as HTMLInputElement).value, 10) || 0;
+    activeProfileData!.countryPacksData![pId] = packObj;
 
-  p.currentCtcLpa = parseFloat((document.getElementById('in-ctc-lpa') as HTMLInputElement).value) || undefined;
-  p.expectedCtcLpa = parseFloat((document.getElementById('in-exp-lpa') as HTMLInputElement).value) || undefined;
-  p.willingToSignBond = (document.getElementById('in-bond-willing') as HTMLSelectElement).value === 'true';
-
-  p.aadhaarNumberMasked = (document.getElementById('in-aadhaar') as HTMLInputElement).value.trim() || undefined;
-  p.panNumberMasked = (document.getElementById('in-pan') as HTMLInputElement).value.trim() || undefined;
-  p.dayScholarOrHosteller = (document.getElementById('in-scholar-type') as HTMLSelectElement).value as any;
+    // Sync back to legacy indiaPack for full backwards compatibility
+    if (pId === 'IN-pack') {
+      if (!activeProfileData!.indiaPack) {
+        activeProfileData!.indiaPack = createDefaultIndiaPack();
+      }
+      const ip = activeProfileData!.indiaPack;
+      ip.enabled = true;
+      ip.tenthPercentage = packObj.tenth_percentage;
+      ip.tenthPassingYear = packObj.tenth_passing_year;
+      ip.tenthBoard = packObj.tenth_board;
+      ip.twelfthPercentage = packObj.twelfth_percentage;
+      ip.twelfthPassingYear = packObj.twelfth_passing_year;
+      ip.twelfthBoard = packObj.twelfth_board;
+      ip.undergradCgpa = packObj.undergrad_cgpa;
+      ip.cgpaConversionFormula = packObj.cgpa_conversion_formula;
+      ip.studentRegistrationNumber = packObj.student_registration_number;
+      ip.activeBacklogsCount = packObj.active_backlogs ?? 0;
+      ip.clearedBacklogsCount = packObj.history_of_backlogs ?? 0;
+      ip.educationGapYears = packObj.academic_gap_years ?? 0;
+      ip.currentCtcLpa = packObj.current_ctc_lpa;
+      ip.expectedCtcLpa = packObj.expected_ctc_lpa;
+      ip.willingToSignBond = Boolean(packObj.willing_to_sign_bond);
+      ip.aadhaarNumberMasked = packObj.aadhaar_number;
+      ip.panNumberMasked = packObj.pan_number;
+      ip.dayScholarOrHosteller = packObj.day_scholar_or_hosteller;
+    }
+  });
 
   await saveUserProfile(activeProfileData);
-  showToast('✓ India Recruitment Pack saved');
+  showToast('✓ Country-Packs saved');
 }
 
 // ── Custom Field Builder ───────────────────────────────────────────────────
@@ -1503,7 +1679,8 @@ function setupActionButtons(): void {
   document.getElementById('btn-save-work-preferences')?.addEventListener('click', saveWorkPreferences);
   document.getElementById('btn-save-screening')?.addEventListener('click', saveScreening);
   document.getElementById('btn-add-family-contact')?.addEventListener('click', openFamilyModal);
-  document.getElementById('btn-save-india-pack')?.addEventListener('click', saveIndiaPack);
+  document.getElementById('btn-save-country-packs')?.addEventListener('click', saveCountryPacks);
+  document.getElementById('btn-save-india-pack')?.addEventListener('click', saveCountryPacks);
   document.getElementById('btn-add-question')?.addEventListener('click', openQuestionModal);
 
   // City tags events

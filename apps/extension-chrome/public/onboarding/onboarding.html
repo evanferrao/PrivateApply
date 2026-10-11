@@ -968,9 +968,42 @@
               <option value="Within 3 months">Within 3 months</option>
               <option value="Within 6 months">Within 6 months</option>
               <option value="Within 1 year">Within 1 year</option>
-              <option value="More than 1 year">More than 1 year</option>
-              <option value="Uncertain">Uncertain</option>
-            </select>
+          <!-- Target Regions & Country-Packs -->
+          <div class="question-group" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <label class="question-label" style="font-size: 14px; font-weight: 700;">Target Regions &amp; Country-Packs</label>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+              Select the job regions you are targeting. Private Apply will enable country-specific fields (tax IDs, campus records, veteran status) for autofill. You can modify these anytime in Settings.
+            </p>
+            <div class="checkbox-grid" id="onboarding-country-packs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="country_pack" value="IN-pack" checked style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">🇮🇳 India (IN-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">PAN, Aadhaar, 10th/12th, Backlogs, Service Bonds</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="country_pack" value="US-pack" checked style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">🇺🇸 United States (US-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">SSN Last 4, VEVRAA Veteran, E-Verify, DL State</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="country_pack" value="DE-pack" style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">🇩🇪 Germany (DE-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Steuer-ID, SVNR, Aufenthaltstitel</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; background: var(--bg-card); padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <input type="checkbox" name="country_pack" value="GB-pack" style="margin-top: 2px;">
+                <div>
+                  <div style="font-weight: 600;">🇬🇧 United Kingdom (GB-pack)</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">National Insurance (NI), Right to Work Share Code</div>
+                </div>
+              </label>
+            </div>
           </div>
         </form>
 

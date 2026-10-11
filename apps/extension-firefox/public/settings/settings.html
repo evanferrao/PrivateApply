@@ -276,6 +276,23 @@
       </div>
     </div>
 
+    <!-- Country-Packs (Jurisdiction Modules) -->
+    <div class="section" id="section-country-packs">
+      <div class="section-header">
+        <div class="section-title">Country-Packs (Jurisdiction Modules)</div>
+        <div class="section-desc">Enable localized compliance identifiers and fields for your target job regions (e.g. IN-pack, US-pack, DE-pack, GB-pack). You can also import community packs or download the starter JSON template to create your own pack for a GitHub PR.</div>
+      </div>
+      <div id="country-packs-list" class="country-packs-container">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="action-row" style="padding: 16px 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--border-color);">
+        <button class="action-btn" id="btn-download-pack-template">⬇ Download Pack Template (.json)</button>
+        <button class="action-btn" id="btn-import-pack-trigger">⤴ Import Custom Pack</button>
+        <input type="file" id="input-import-pack-file" accept=".json,application/json" style="display:none;">
+        <span class="action-feedback" id="feedback-pack-action"></span>
+      </div>
+    </div>
+
     <!-- Storage -->
     <div class="section">
       <div class="section-header">

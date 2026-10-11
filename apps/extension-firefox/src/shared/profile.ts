@@ -158,6 +158,7 @@ export interface UserProfile {
   references?: ApplicantReference[];
   compensation?: CompensationDetails;
   indiaPack?: IndiaRecruitmentPack;
+  countryPacksData?: Record<string, Record<string, any>>;
   customFields?: CustomFieldDefinition[];
   questionBank?: QuestionBankItem[];
   documents?: DocumentMetadata[];

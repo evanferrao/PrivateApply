@@ -646,3 +646,121 @@ body {
     html.dark .footer-link:hover { color: var(--gray-800); }
     html.dark .version { color: var(--gray-400); }
     html.dark .action-feedback { color: var(--green-mid); }
+
+/* Country-Packs Styling */
+.country-packs-container {
+  display: flex;
+  flex-direction: column;
+}
+.country-pack-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  transition: background 0.15s ease;
+}
+.country-pack-item:last-child {
+  border-bottom: none;
+}
+.country-pack-item:hover {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+}
+.country-pack-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+.country-pack-flag {
+  font-size: 26px;
+  line-height: 1;
+  user-select: none;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.country-pack-details {
+  flex: 1;
+  min-width: 0;
+}
+.country-pack-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+.country-pack-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.country-pack-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-muted, #f1f5f9);
+  color: var(--text-muted, #475569);
+  border: 1px solid var(--border-color);
+}
+.country-pack-badge.custom {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+.country-pack-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.country-pack-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  gap: 12px;
+}
+.country-pack-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.btn-pack-delete {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+  background: var(--bg-card);
+  color: #dc2626;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-pack-delete:hover {
+  background: #fef2f2;
+}
+
+html.dark .country-pack-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+html.dark .country-pack-badge {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+html.dark .country-pack-badge.custom {
+  background: #451a03;
+  color: #fde68a;
+  border-color: #78350f;
+}
+html.dark .btn-pack-delete {
+  background: #2d1515;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+html.dark .btn-pack-delete:hover {
+  background: #450a0a;
+}

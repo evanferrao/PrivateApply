@@ -1025,6 +1025,20 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
         `Work auth — requires sponsorship: ${profile.workAuth?.requiresSponsorship ? 'Yes' : 'No'}`,
         `Work auth — legally authorized (US): ${profile.workAuth?.legallyAuthorized ? 'Yes' : 'No'}`,
         profile.workAuth?.visaType ? `Visa: ${profile.workAuth.visaType}` : '',
+        ...(profile.countryPacksData
+          ? Object.entries(profile.countryPacksData).flatMap(([pId, pData]) =>
+              pData
+                ? Object.entries(pData)
+                    .filter(([_, v]) => v !== undefined && v !== null && String(v).trim() !== '')
+                    .map(([k, v]) => `Country Pack [${pId}] ${k.replace(/_/g, ' ')}: ${v}`)
+                : []
+            )
+          : []),
+        ...(profile.indiaPack
+          ? Object.entries(profile.indiaPack)
+              .filter(([k, v]) => v !== undefined && v !== null && String(v).trim() !== '' && k !== 'enabled')
+              .map(([k, v]) => `Country Pack [IN-pack] ${k.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${v}`)
+          : []),
       ].filter(Boolean).join('\n');
 
       const systemPrompt = `You are filling out a job application on behalf of this candidate.

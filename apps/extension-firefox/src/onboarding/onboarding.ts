@@ -26,6 +26,7 @@ import {
   setActiveAIProviderId,
 } from '../shared/ai-provider-config';
 import { companionClient, CompanionStatus } from '../shared/companion-client';
+import { setActivePackIds } from '../shared/country-packs';
 
 // PDF.js is loaded via CDN in the HTML
 declare const pdfjsLib: any;
@@ -305,13 +306,13 @@ function showErrorDetails(error: string, details?: any): void {
     html += `
       <p><strong>Cause:</strong> Ollama is running but blocking this extension's requests (CORS).</p>
       <p><strong>Fix — run this as one complete command, keep the terminal open:</strong></p>
-      <pre style="background:#1e2a3a;color:#a3e635;padding:10px 12px;border-radius:6px;font-size:12px;margin:8px 0;white-space:pre-wrap;word-break:break-all;">OLLAMA_ORIGINS='moz-extension://*' ollama serve</pre>
+      <pre style="background:#1e2a3a;color:#a3e635;padding:10px 12px;border-radius:6px;font-size:12px;margin:8px 0;white-space:pre-wrap;word-break:break-all;">OLLAMA_ORIGINS='chrome-extension://bjllpojjllhfghiemokcoknfmhpmfbph' ollama serve</pre>
       <p style="font-size:12px;color:#e65100;margin-bottom:10px;">
         Stop the currently running Ollama first (Ctrl+C or quit the menu-bar app),
         then run the command above and keep that terminal open.
       </p>
       <p><strong>Permanent fix</strong> (so you never need to do this again):</p>
-      <pre style="background:#1e2a3a;color:#a3e635;padding:10px 12px;border-radius:6px;font-size:12px;margin:8px 0;white-space:pre-wrap;word-break:break-all;">echo 'export OLLAMA_ORIGINS="moz-extension://*"' >> ~/.zshrc &amp;&amp; source ~/.zshrc</pre>
+      <pre style="background:#1e2a3a;color:#a3e635;padding:10px 12px;border-radius:6px;font-size:12px;margin:8px 0;white-space:pre-wrap;word-break:break-all;">echo 'export OLLAMA_ORIGINS="chrome-extension://bjllpojjllhfghiemokcoknfmhpmfbph"' >> ~/.zshrc &amp;&amp; source ~/.zshrc</pre>
       <p style="font-size:12px;color:#666;">After that, plain <code>ollama serve</code> will always allow this extension.</p>
       <p style="margin-top:10px;"><strong>Then:</strong> Click <em>Next</em> again to retry parsing, or go back to the AI Setup step to re-test the connection.</p>
     `;
@@ -335,7 +336,7 @@ function showErrorDetails(error: string, details?: any): void {
         <li>Verify Ollama is running: <pre style="display:inline;background:#f1f5f9;padding:2px 6px;border-radius:3px;font-size:12px;">ollama ps</pre></li>
         <li>Verify the model is downloaded: <pre style="display:inline;background:#f1f5f9;padding:2px 6px;border-radius:3px;font-size:12px;">ollama list</pre></li>
         <li>If you see "403 / Forbidden", restart Ollama with:
-          <pre style="background:#1e2a3a;color:#a3e635;padding:8px 10px;border-radius:5px;font-size:12px;margin:6px 0;">OLLAMA_ORIGINS='moz-extension://*' ollama serve</pre>
+          <pre style="background:#1e2a3a;color:#a3e635;padding:8px 10px;border-radius:5px;font-size:12px;margin:6px 0;">OLLAMA_ORIGINS='chrome-extension://bjllpojjllhfghiemokcoknfmhpmfbph' ollama serve</pre>
         </li>
         <li>Test Ollama directly: <pre style="display:inline;background:#f1f5f9;padding:2px 6px;border-radius:3px;font-size:12px;">curl http://localhost:11434/api/version</pre></li>
       </ul>
@@ -855,7 +856,7 @@ function updateHelperSubstate(helperInstalled: boolean): void {
 
 function getOllamaDownloadUrl(): string {
   const os = detectOS();
-  if (os === 'mac') return 'https://github.com/joelnishanth/private-apply/releases/latest/download/Private-Apply-Setup-Firefox.dmg';
+  if (os === 'mac') return 'https://github.com/joelnishanth/private-apply/releases/latest/download/Private-Apply-Setup.dmg';
   if (os === 'windows') return 'https://ollama.com/download/OllamaSetup.exe';
   return ''; // Linux uses terminal command
 }
@@ -3182,6 +3183,14 @@ async function init(): Promise<void> {
           extractedProfile.workAuth = workAuthData;
         }
       }
+
+      // Collect selected country packs
+      const packBoxes = document.querySelectorAll<HTMLInputElement>('input[name="country_pack"]:checked');
+      const selectedPacks = Array.from(packBoxes).map(b => b.value);
+      if (selectedPacks.length > 0) {
+        await setActivePackIds(selectedPacks);
+      }
+
       showStep('step-coverletter');
     });
   }
