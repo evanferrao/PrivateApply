@@ -95,30 +95,20 @@ const EXCLUDED_CONTAINER_SELECTORS = [
   '[id*="announcement-bar"]',
 ];
 
+const CONTAINER_TYPE_RULES: Array<{ test: RegExp; type: string }> = [
+  { test: /onetrust|cookie|gdpr|privacy|sp_message|didomi|qc-cmp|quantcast/, type: 'cookie_consent' },
+  { test: /intercom|drift|hubspot-messages|zendesk|qualified|crisp|livechat|freshchat|tawk|chat-widget/, type: 'chat_widget' },
+  { test: /recaptcha|captcha/, type: 'captcha' },
+  { test: /sharethis|addthis|social-share|optimizely/, type: 'marketing_widget' },
+  { test: /vendor-list|iab-vendor/, type: 'vendor_list' },
+];
+
 /** Returns true if `el` or any of its ancestors matches an excluded container. */
 function isInsideExcludedContainer(el: Element): { excluded: boolean; containerType: string } {
   for (const sel of EXCLUDED_CONTAINER_SELECTORS) {
     if (el.closest(sel)) {
-      // Derive a human-readable container type from the selector
-      let containerType = 'untrusted_widget';
-      if (sel.includes('onetrust') || sel.includes('cookie') || sel.includes('gdpr') ||
-          sel.includes('privacy') || sel.includes('sp_message') || sel.includes('didomi') ||
-          sel.includes('qc-cmp') || sel.includes('quantcast')) {
-        containerType = 'cookie_consent';
-      } else if (sel.includes('intercom') || sel.includes('drift') || sel.includes('hubspot-messages') ||
-                 sel.includes('zendesk') || sel.includes('qualified') || sel.includes('crisp') ||
-                 sel.includes('livechat') || sel.includes('freshchat') || sel.includes('tawk') ||
-                 sel.includes('chat-widget')) {
-        containerType = 'chat_widget';
-      } else if (sel.includes('recaptcha') || sel.includes('captcha')) {
-        containerType = 'captcha';
-      } else if (sel.includes('sharethis') || sel.includes('addthis') || sel.includes('social-share') ||
-                 sel.includes('optimizely')) {
-        containerType = 'marketing_widget';
-      } else if (sel.includes('vendor-list') || sel.includes('iab-vendor')) {
-        containerType = 'vendor_list';
-      }
-      return { excluded: true, containerType };
+      const matched = CONTAINER_TYPE_RULES.find(r => r.test.test(sel));
+      return { excluded: true, containerType: matched ? matched.type : 'untrusted_widget' };
     }
   }
   return { excluded: false, containerType: '' };
@@ -151,6 +141,23 @@ const CHECKOUT_URL_PATTERNS = [
   /\/checkout$/i,
 ];
 
+function makeClassification(
+  state: PageClassification['state'],
+  reason: string,
+  detectionReason: string,
+  overrides?: Partial<PageClassification>
+): PageClassification {
+  return {
+    state,
+    reason,
+    hasTrustedATSIframe: false,
+    parentFillSuppressed: false,
+    applicationFieldsVerified: state === 'JOB_APPLICATION_PAGE',
+    detectionReason,
+    ...overrides,
+  };
+}
+
 export function classifyPage(): PageClassification {
   const url = window.location.href.toLowerCase();
   const hostname = window.location.hostname.toLowerCase();
@@ -158,26 +165,12 @@ export function classifyPage(): PageClassification {
 
   // ── Hard-block payment processor iframes — always silent ─────────────────
   if (PAYMENT_PROCESSOR_HOSTNAMES.some(p => p.test(hostname))) {
-    return {
-      state: 'NOT_JOB_PAGE',
-      reason: 'Payment processor iframe — silent',
-      hasTrustedATSIframe: false,
-      parentFillSuppressed: false,
-      applicationFieldsVerified: false,
-      detectionReason: `Payment processor: ${hostname}`,
-    };
+    return makeClassification('NOT_JOB_PAGE', 'Payment processor iframe — silent', `Payment processor: ${hostname}`);
   }
 
   // ── Tier 1: We are running directly inside a known ATS hostname ──────────
   if (TRUSTED_ATS_HOSTNAMES.some(ats => hostname === ats || hostname.endsWith('.' + ats))) {
-    return {
-      state: 'JOB_APPLICATION_PAGE',
-      reason: 'Running on a trusted ATS hostname',
-      hasTrustedATSIframe: false,
-      parentFillSuppressed: false,
-      applicationFieldsVerified: true,
-      detectionReason: `ATS hostname: ${hostname}`,
-    };
+    return makeClassification('JOB_APPLICATION_PAGE', 'Running on a trusted ATS hostname', `ATS hostname: ${hostname}`);
   }
 
   // ── Trusted ATS iframe present ────────────────────────────────────────────
@@ -185,19 +178,15 @@ export function classifyPage(): PageClassification {
   const trustedIframe = iframes.find(iframe => isTrustedATSIframe(iframe.src));
   if (trustedIframe) {
     signals.push(`trusted ATS iframe: ${trustedIframe.src}`);
-    return {
-      state: 'JOB_APPLICATION_PAGE',
-      reason: 'Trusted ATS iframe detected',
-      hasTrustedATSIframe: true,
-      // Suppress parent page field scanning — the iframe has the real form
-      parentFillSuppressed: true,
-      applicationFieldsVerified: true,
-      detectionReason: signals.join('; '),
-    };
+    return makeClassification(
+      'JOB_APPLICATION_PAGE',
+      'Trusted ATS iframe detected',
+      signals.join('; '),
+      { hasTrustedATSIframe: true, parentFillSuppressed: true }
+    );
   }
 
   // ── Checkout / shopping pages — friendly form helper ─────────────────────
-  // Check before full scoring to short-circuit on known checkout URLs
   const hasCheckoutUrl = CHECKOUT_URL_PATTERNS.some(p => p.test(url));
 
   // ── Scoring for first-party pages ─────────────────────────────────────────
@@ -220,7 +209,6 @@ export function classifyPage(): PageClassification {
   }
 
   // ATS query parameters (gh_jid, lever_origin, etc.) are strong signals
-  // that an embedded ATS is powering this page
   try {
     const searchParams = new URL(url).search;
     if (hasATSQueryParams(searchParams)) {
@@ -237,7 +225,6 @@ export function classifyPage(): PageClassification {
     const fieldCount = form.querySelectorAll(substantialFormFields).length;
     if (fieldCount >= 4) {
       hasSubstantialForm = true;
-      // Reduced from 3→2 so a form alone no longer reaches the JOB_APPLICATION threshold
       score += 2;
       signals.push(`real form (${fieldCount} fields)`);
       break;
@@ -246,14 +233,7 @@ export function classifyPage(): PageClassification {
 
   // Checkout page with a fillable form → FORM_HELPER_PAGE (name/address fill, no credit cards)
   if (hasCheckoutUrl && hasSubstantialForm) {
-    return {
-      state: 'FORM_HELPER_PAGE',
-      reason: 'Shopping checkout with fillable form',
-      hasTrustedATSIframe: false,
-      parentFillSuppressed: false,
-      applicationFieldsVerified: false,
-      detectionReason: `checkout URL + form`,
-    };
+    return makeClassification('FORM_HELPER_PAGE', 'Shopping checkout with fillable form', 'checkout URL + form');
   }
 
   const applyBtnPattern = /\bapply\b|submit application|start application|begin application/i;
@@ -275,36 +255,15 @@ export function classifyPage(): PageClassification {
 
   // Need BOTH a job URL signal AND a verified form to reach APPLICATION_PAGE
   if (score >= 3 && hasSubstantialForm) {
-    return {
-      state: 'JOB_APPLICATION_PAGE',
-      reason: 'Verified application form on first-party page',
-      hasTrustedATSIframe: false,
-      parentFillSuppressed: false,
-      applicationFieldsVerified: true,
-      detectionReason,
-    };
+    return makeClassification('JOB_APPLICATION_PAGE', 'Verified application form on first-party page', detectionReason);
   }
 
   // Has job signals but no form = posting page only
   if (score >= 2 || hasApplyButton) {
-    return {
-      state: 'JOB_POSTING_PAGE',
-      reason: 'Job posting detected but no application form yet',
-      hasTrustedATSIframe: false,
-      parentFillSuppressed: false,
-      applicationFieldsVerified: false,
-      detectionReason,
-    };
+    return makeClassification('JOB_POSTING_PAGE', 'Job posting detected but no application form yet', detectionReason);
   }
 
-  return {
-    state: 'NOT_JOB_PAGE',
-    reason: 'No job signals detected',
-    hasTrustedATSIframe: false,
-    parentFillSuppressed: false,
-    applicationFieldsVerified: false,
-    detectionReason,
-  };
+  return makeClassification('NOT_JOB_PAGE', 'No job signals detected', detectionReason);
 }
 
 /**

@@ -58,9 +58,28 @@ body {
   transition: all .15s;
   flex-shrink: 0;
 }
-.dark-mode-toggle:hover {
-  background: var(--bg-card-hover);
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-back:hover {
+  background: var(--bg-card-hover);
   border-color: var(--primary-400);
 }
 

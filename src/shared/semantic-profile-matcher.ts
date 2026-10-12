@@ -63,6 +63,303 @@ function matchesAny(text: string, patterns: Array<string | RegExp>): boolean {
   return patterns.some(p => (typeof p === 'string' ? norm.includes(p.toLowerCase()) : p.test(norm)));
 }
 
+interface PackFieldDef {
+  key: string;
+  label: string;
+  aliases?: string[];
+  sensitivity?: string;
+}
+
+interface PackDef {
+  id: string;
+  fields: readonly PackFieldDef[] | PackFieldDef[];
+}
+
+function matchPackCollection(
+  packsData: Record<string, Record<string, any>> | undefined,
+  builtinPacks: readonly PackDef[],
+  combined: string,
+  defaultSource: 'country_pack' | 'employment_pack',
+  packTypeLabel: string
+): SemanticMatchResult | null {
+  if (!packsData) return null;
+
+  for (const pack of builtinPacks) {
+    const packData = packsData[pack.id];
+    if (!packData) continue;
+
+    for (const fieldDef of pack.fields) {
+      const val = packData[fieldDef.key];
+      if (val === undefined || val === null || String(val).trim() === '') continue;
+
+      const keyMatch = matchesAny(combined, [fieldDef.key, fieldDef.label]);
+      const aliasMatch = fieldDef.aliases && fieldDef.aliases.length > 0 && matchesAny(combined, fieldDef.aliases);
+
+      if (keyMatch || aliasMatch) {
+        return {
+          value: val,
+          confidence: keyMatch ? 0.95 : 0.9,
+          source: defaultSource === 'country_pack' && pack.id === 'IN-pack' ? 'india_pack' : defaultSource,
+          fieldKey: `${pack.id}_${fieldDef.key}`,
+          fieldLabel: fieldDef.label,
+          sensitivity: (fieldDef.sensitivity as SensitivityLevel) || 'ordinary',
+          requiresConfirmation: fieldDef.sensitivity === 'restricted_identifier',
+          aiAccessPermitted: fieldDef.sensitivity !== 'restricted_identifier',
+          selectionReason: `Matched ${packTypeLabel} (${pack.id}) field "${fieldDef.label}" via ${keyMatch ? 'key/label' : 'alias'}`,
+        };
+      }
+    }
+  }
+
+  for (const [packId, packData] of Object.entries(packsData)) {
+    if (!packData || builtinPacks.some(b => b.id === packId)) continue;
+    for (const [key, val] of Object.entries(packData)) {
+      if (val === undefined || val === null || String(val).trim() === '') continue;
+      const cleanKey = key.replace(/_/g, ' ');
+      if (matchesAny(combined, [key, cleanKey])) {
+        return {
+          value: val,
+          confidence: 0.9,
+          source: defaultSource,
+          fieldKey: `${packId}_${key}`,
+          fieldLabel: key,
+          sensitivity: 'ordinary',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: `Matched Custom ${packTypeLabel} (${packId}) field "${key}"`,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+interface SocialPlatformRule {
+  prop: keyof NonNullable<UserProfile['professional']>;
+  patterns: string[];
+  fieldKey: string;
+  fieldLabel: string;
+  reason: string;
+  source?: 'canonical_professional' | 'social_link';
+  confidence?: number;
+}
+
+const SOCIAL_PLATFORM_RULES: SocialPlatformRule[] = [
+  {
+    prop: 'linkedin',
+    patterns: ['linkedin', 'linked-in', 'linkedin profile', 'linkedin url', 'linkedin link'],
+    fieldKey: 'linkedin',
+    fieldLabel: 'LinkedIn Profile',
+    reason: 'Resolved candidate LinkedIn profile URL',
+    source: 'canonical_professional',
+    confidence: 0.96,
+  },
+  {
+    prop: 'github',
+    patterns: ['github', 'github url', 'github profile', 'github link', 'git repo', 'github repository'],
+    fieldKey: 'github',
+    fieldLabel: 'GitHub Profile',
+    reason: 'Resolved candidate GitHub profile URL',
+    source: 'canonical_professional',
+    confidence: 0.95,
+  },
+  {
+    prop: 'twitter',
+    patterns: ['twitter', 'twitter url', 'twitter profile', 'twitter handle', 'x profile', 'x url', 'x handle', 'twitter/x', 'x/twitter'],
+    fieldKey: 'twitter',
+    fieldLabel: 'Twitter / X Profile',
+    reason: 'Resolved candidate Twitter / X profile URL',
+  },
+  {
+    prop: 'youtube',
+    patterns: ['youtube', 'youtube url', 'youtube channel', 'video portfolio'],
+    fieldKey: 'youtube',
+    fieldLabel: 'YouTube Channel',
+    reason: 'Resolved candidate YouTube channel URL',
+  },
+  {
+    prop: 'instagram',
+    patterns: ['instagram', 'instagram url', 'instagram profile', 'instagram handle', 'ig profile'],
+    fieldKey: 'instagram',
+    fieldLabel: 'Instagram Profile',
+    reason: 'Resolved candidate Instagram profile URL',
+  },
+  {
+    prop: 'facebook',
+    patterns: ['facebook', 'facebook url', 'facebook profile', 'fb profile'],
+    fieldKey: 'facebook',
+    fieldLabel: 'Facebook Profile',
+    reason: 'Resolved candidate Facebook profile URL',
+  },
+  {
+    prop: 'threads',
+    patterns: ['threads', 'threads url', 'threads profile', 'meta threads'],
+    fieldKey: 'threads',
+    fieldLabel: 'Threads Profile',
+    reason: 'Resolved candidate Threads profile URL',
+  },
+  {
+    prop: 'bluesky',
+    patterns: ['bluesky', 'bsky', 'bluesky url', 'bluesky profile'],
+    fieldKey: 'bluesky',
+    fieldLabel: 'Bluesky Profile',
+    reason: 'Resolved candidate Bluesky profile URL',
+  },
+  {
+    prop: 'medium',
+    patterns: ['medium', 'medium url', 'medium profile', 'tech blog', 'blog url'],
+    fieldKey: 'medium',
+    fieldLabel: 'Medium / Tech Blog',
+    reason: 'Resolved candidate Medium/blog URL',
+  },
+];
+
+interface ConsentRule {
+  key: keyof NonNullable<UserProfile['legalDisclosures']>;
+  patterns: Array<string | RegExp>;
+  fieldKey: string;
+  fieldLabel: string;
+  reason: string;
+  confidence?: number;
+}
+
+const CONSENT_RULES: ConsentRule[] = [
+  {
+    key: 'backgroundCheckConsent',
+    patterns: ['background check', 'background investigation', 'consent to background', 'background screening', 'pre-employment background'],
+    fieldKey: 'background_check_consent',
+    fieldLabel: 'Background Check Consent',
+    reason: 'Resolved background check consent',
+  },
+  {
+    key: 'consentReferenceCheck',
+    patterns: ['reference check', 'reference_check', 'contact references', 'reference verification', 'contact former employers', 'contact your former employers', 'contact previous employers', 'professional references', 'references consent'],
+    fieldKey: 'reference_check_consent',
+    fieldLabel: 'Reference Check Consent',
+    reason: 'Resolved reference check consent',
+  },
+  {
+    key: 'consentCreditCheck',
+    patterns: ['credit check', 'credit report', 'credit history', 'consumer report', 'financial background check', 'financial history check'],
+    fieldKey: 'credit_check_consent',
+    fieldLabel: 'Credit / Consumer Report Check Consent',
+    reason: 'Resolved credit check consent',
+  },
+  {
+    key: 'drugScreeningConsent',
+    patterns: ['drug screen', 'drug test', 'drug screening', 'substance test', 'alcohol and drug'],
+    fieldKey: 'drug_screening_consent',
+    fieldLabel: 'Drug Screening Consent',
+    reason: 'Resolved drug screening consent',
+  },
+  {
+    key: 'consentWhatsApp',
+    patterns: ['whatsapp', 'whats app', 'updates via whatsapp', 'messages via whatsapp', 'whatsapp notifications', 'whatsapp consent', 'contact via whatsapp'],
+    fieldKey: 'whatsapp_consent',
+    fieldLabel: 'WhatsApp Messaging & Updates Consent',
+    reason: 'Resolved WhatsApp communications consent',
+    confidence: 0.98,
+  },
+  {
+    key: 'consentDncBypass',
+    patterns: ['do not call', 'dnc', 'tcpa', 'telephone consumer protection', 'automated dialing', 'autodialer', 'prerecorded voice', 'artificial voice', 'bypass do not call', 'national do not call', 'federal do not call', 'automated technology to contact'],
+    fieldKey: 'dnc_bypass_consent',
+    fieldLabel: 'TCPA / Do Not Call (DNC) Bypass Consent',
+    reason: 'Resolved Do Not Call bypass / automated calling consent',
+    confidence: 0.98,
+  },
+  {
+    key: 'consentSms',
+    patterns: ['sms consent', 'text message', 'text messages', 'sms notifications', 'consent to receive texts', 'consent to receive sms', 'automated texts', 'text messaging consent', 'sms updates', 'receive sms'],
+    fieldKey: 'sms_consent',
+    fieldLabel: 'SMS / Text Messages Consent',
+    reason: 'Resolved SMS text notifications consent',
+  },
+  {
+    key: 'consentPhoneCalls',
+    patterns: ['consent to call', 'consent to phone', 'phone calls', 'telephone calls', 'contact you by phone', 'contact via phone', 'reach you by phone', 'calls regarding your application'],
+    fieldKey: 'phone_calls_consent',
+    fieldLabel: 'Direct Phone Calls Consent',
+    reason: 'Resolved phone calls communication consent',
+  },
+  {
+    key: 'consentFutureOpportunities',
+    patterns: ['future opportunities', 'future roles', 'future job', 'other relevant jobs', 'other open roles', 'talent pool', 'talent community', 'talent network', 'retain your profile', 'keep your resume on file', 'future openings', 'other positions at', 'future considerations', 'candidate pool', 'keep on file'],
+    fieldKey: 'future_opportunities_consent',
+    fieldLabel: 'Future Job Opportunities & Talent Pool Consent',
+    reason: 'Resolved future job opportunities and talent pool retention consent',
+  },
+  {
+    key: 'consentTalentPoolSharing',
+    patterns: ['affiliates', 'subsidiaries', 'group companies', 'affiliated companies', 'share your information with other companies', 'share profile with affiliates', 'corporate entities', 'other entities'],
+    fieldKey: 'talent_sharing_consent',
+    fieldLabel: 'Affiliate & Subsidiary Profile Sharing Consent',
+    reason: 'Resolved corporate affiliates profile sharing consent',
+    confidence: 0.96,
+  },
+  {
+    key: 'consentPrivacyPolicy',
+    patterns: ['privacy policy', 'privacy notice', 'candidate privacy', 'data processing consent', 'consent to process personal data', 'consent to processing of my personal data', 'gdpr', 'ccpa', 'data protection policy', 'processing of my application data', 'protect your data', 'data privacy'],
+    fieldKey: 'privacy_policy_consent',
+    fieldLabel: 'Privacy Policy & Data Processing Consent',
+    reason: 'Resolved Candidate Privacy Policy and data processing consent',
+    confidence: 0.98,
+  },
+  {
+    key: 'consentDataTransfer',
+    patterns: ['cross-border', 'data transfer', 'international transfer', 'transfer outside', 'transfer of personal data internationally', 'transferred across borders', 'transfer personal data outside'],
+    fieldKey: 'data_transfer_consent',
+    fieldLabel: 'International Data Transfer Consent',
+    reason: 'Resolved international cross-border data transfer consent',
+  },
+  {
+    key: 'consentTermsOfService',
+    patterns: ['terms of service', 'terms and conditions', 'terms of use', 'application terms', 'portal terms', 'agree to the terms', 'accept terms', 'applicant agreement'],
+    fieldKey: 'terms_of_service_consent',
+    fieldLabel: 'Terms of Service Consent',
+    reason: 'Resolved Terms of Service agreement',
+  },
+  {
+    key: 'consentElectronicSignature',
+    patterns: ['electronic signature', 'e-sign', 'electronic disclosures', 'sign electronically', 'consent to electronic delivery', 'consent to electronic records', 'electronic consent'],
+    fieldKey: 'electronic_signature_consent',
+    fieldLabel: 'Electronic Signature & Disclosures Consent',
+    reason: 'Resolved electronic signature and disclosures consent',
+    confidence: 0.98,
+  },
+  {
+    key: 'consentAccurateInformation',
+    patterns: ['true and correct', 'true and accurate', 'certify that all statements', 'accuracy of information', 'certify the information', 'true to the best of my knowledge', 'falsification', 'penalty of perjury', 'accurate declaration', 'certify that the information', 'acknowledgment and certification', 'truthfulness'],
+    fieldKey: 'accurate_information_certification',
+    fieldLabel: 'Information Accuracy & Truthfulness Certification',
+    reason: 'Resolved application accuracy and truthfulness certification',
+    confidence: 0.98,
+  },
+  {
+    key: 'consentAtWillEmployment',
+    patterns: ['at-will', 'at will employment', 'at-will relationship', 'employment at will', 'at will basis'],
+    fieldKey: 'at_will_employment_consent',
+    fieldLabel: 'At-Will Employment Acknowledgment',
+    reason: 'Resolved at-will employment disclosure acknowledgment',
+  },
+  {
+    key: 'consentArtificialIntelligence',
+    patterns: ['artificial intelligence', 'ai screening', 'automated decision', 'automated employment decision', 'ai evaluation', 'automated tool', 'use of ai', 'automated processing'],
+    fieldKey: 'ai_screening_consent',
+    fieldLabel: 'AI & Automated Decision-Making Consent',
+    reason: 'Resolved AI screening and automated decision consent',
+  },
+  {
+    key: 'consentEqualOpportunity',
+    patterns: ['equal employment opportunity', 'equal opportunity employer', 'eeo policy', 'non-discrimination policy', 'eeo disclosure'],
+    fieldKey: 'eeo_policy_acknowledgment',
+    fieldLabel: 'Equal Employment Opportunity (EEO) Policy Acknowledgment',
+    reason: 'Resolved EEO policy acknowledgment',
+    confidence: 0.96,
+  },
+];
+
 // ── Matcher Implementation ───────────────────────────────────────────────────
 
 export class SemanticProfileMatcher {
@@ -102,110 +399,12 @@ export class SemanticProfileMatcher {
     }
 
     // ── 2. COUNTRY PACKS (Modular jurisdiction fields: US-pack, DE-pack, GB-pack, IN-pack, custom) ──
-    if (profile.countryPacksData) {
-      // Check built-in packs first
-      for (const pack of BUILTIN_COUNTRY_PACKS) {
-        const packData = profile.countryPacksData[pack.id];
-        if (!packData) continue;
+    const countryMatch = matchPackCollection(profile.countryPacksData, BUILTIN_COUNTRY_PACKS, combined, 'country_pack', 'Country-Pack');
+    if (countryMatch) return countryMatch;
 
-        for (const fieldDef of pack.fields) {
-          const val = packData[fieldDef.key];
-          if (val === undefined || val === null || String(val).trim() === '') continue;
-
-          const keyMatch = matchesAny(combined, [fieldDef.key, fieldDef.label]);
-          const aliasMatch = fieldDef.aliases && fieldDef.aliases.length > 0 && matchesAny(combined, fieldDef.aliases);
-
-          if (keyMatch || aliasMatch) {
-            return {
-              value: val,
-              confidence: keyMatch ? 0.95 : 0.9,
-              source: pack.id === 'IN-pack' ? 'india_pack' : 'country_pack',
-              fieldKey: `${pack.id}_${fieldDef.key}`,
-              fieldLabel: fieldDef.label,
-              sensitivity: (fieldDef.sensitivity as SensitivityLevel) || 'ordinary',
-              requiresConfirmation: fieldDef.sensitivity === 'restricted_identifier',
-              aiAccessPermitted: fieldDef.sensitivity !== 'restricted_identifier',
-              selectionReason: `Matched Country-Pack (${pack.id}) field "${fieldDef.label}" via ${keyMatch ? 'key/label' : 'alias'}`,
-            };
-          }
-        }
-      }
-
-      // Check any imported custom packs in countryPacksData
-      for (const [packId, packData] of Object.entries(profile.countryPacksData)) {
-        if (!packData || BUILTIN_COUNTRY_PACKS.some(b => b.id === packId)) continue;
-        for (const [key, val] of Object.entries(packData)) {
-          if (val === undefined || val === null || String(val).trim() === '') continue;
-          const cleanKey = key.replace(/_/g, ' ');
-          if (matchesAny(combined, [key, cleanKey])) {
-            return {
-              value: val,
-              confidence: 0.9,
-              source: 'country_pack',
-              fieldKey: `${packId}_${key}`,
-              fieldLabel: key,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Matched Custom Country-Pack (${packId}) field "${key}"`,
-            };
-          }
-        }
-      }
-    }
-
-    // ── 2.5. EMPLOYMENT PACKS (Discipline profiles: LeetCode, HackerRank, Codeforces, CodeChef, GitHub, Behance, Dribbble, Figma, etc.) ──
-    if (profile.employmentPacksData) {
-      // Check built-in employment packs first
-      for (const pack of BUILTIN_EMPLOYMENT_PACKS) {
-        const packData = profile.employmentPacksData[pack.id];
-        if (!packData) continue;
-
-        for (const fieldDef of pack.fields) {
-          const val = packData[fieldDef.key];
-          if (val === undefined || val === null || String(val).trim() === '') continue;
-
-          const keyMatch = matchesAny(combined, [fieldDef.key, fieldDef.label]);
-          const aliasMatch = fieldDef.aliases && fieldDef.aliases.length > 0 && matchesAny(combined, fieldDef.aliases);
-
-          if (keyMatch || aliasMatch) {
-            return {
-              value: val,
-              confidence: keyMatch ? 0.95 : 0.9,
-              source: 'employment_pack',
-              fieldKey: `${pack.id}_${fieldDef.key}`,
-              fieldLabel: fieldDef.label,
-              sensitivity: (fieldDef.sensitivity as SensitivityLevel) || 'ordinary',
-              requiresConfirmation: fieldDef.sensitivity === 'restricted_identifier',
-              aiAccessPermitted: fieldDef.sensitivity !== 'restricted_identifier',
-              selectionReason: `Matched Employment-Pack (${pack.id}) field "${fieldDef.label}" via ${keyMatch ? 'key/label' : 'alias'}`,
-            };
-          }
-        }
-      }
-
-      // Check custom employment packs in employmentPacksData
-      for (const [packId, packData] of Object.entries(profile.employmentPacksData)) {
-        if (!packData || BUILTIN_EMPLOYMENT_PACKS.some(b => b.id === packId)) continue;
-        for (const [key, val] of Object.entries(packData)) {
-          if (val === undefined || val === null || String(val).trim() === '') continue;
-          const cleanKey = key.replace(/_/g, ' ');
-          if (matchesAny(combined, [key, cleanKey])) {
-            return {
-              value: val,
-              confidence: 0.9,
-              source: 'employment_pack',
-              fieldKey: `${packId}_${key}`,
-              fieldLabel: key,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Matched Custom Employment-Pack (${packId}) field "${key}"`,
-            };
-          }
-        }
-      }
-    }
+    // ── 2.5. EMPLOYMENT PACKS (Discipline profiles: LeetCode, HackerRank, GitHub, Figma, etc.) ──
+    const empMatch = matchPackCollection(profile.employmentPacksData, BUILTIN_EMPLOYMENT_PACKS, combined, 'employment_pack', 'Employment-Pack');
+    if (empMatch) return empMatch;
 
     // ── 3. FAMILY / GUARDIAN / EMERGENCY CONTACTS ──────────────────────────────
     // Distinguish Father vs Mother vs Guardian vs Emergency Contact vs Applicant
@@ -745,139 +944,21 @@ export class SemanticProfileMatcher {
     // ── 7.5. PROFESSIONAL & SOCIAL MEDIA LINKS ─────────────────────────────────
     const prof = profile.professional;
     if (prof) {
-      // LinkedIn
-      if (matchesAny(combined, ['linkedin', 'linked-in', 'linkedin profile', 'linkedin url', 'linkedin link']) && prof.linkedin) {
-        return {
-          value: prof.linkedin,
-          confidence: 0.96,
-          source: 'canonical_professional',
-          fieldKey: 'linkedin',
-          fieldLabel: 'LinkedIn Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate LinkedIn profile URL',
-        };
-      }
-
-      // GitHub
-      if (matchesAny(combined, ['github', 'github url', 'github profile', 'github link', 'git repo', 'github repository']) && prof.github) {
-        return {
-          value: prof.github,
-          confidence: 0.95,
-          source: 'canonical_professional',
-          fieldKey: 'github',
-          fieldLabel: 'GitHub Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate GitHub profile URL',
-        };
-      }
-
-      // Twitter / X
-      if (matchesAny(combined, ['twitter', 'twitter url', 'twitter profile', 'twitter handle', 'x profile', 'x url', 'x handle', 'twitter/x', 'x/twitter']) && prof.twitter) {
-        return {
-          value: prof.twitter,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'twitter',
-          fieldLabel: 'Twitter / X Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate Twitter / X profile URL',
-        };
-      }
-
-      // YouTube
-      if (matchesAny(combined, ['youtube', 'youtube url', 'youtube channel', 'video portfolio']) && prof.youtube) {
-        return {
-          value: prof.youtube,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'youtube',
-          fieldLabel: 'YouTube Channel',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate YouTube channel URL',
-        };
-      }
-
-      // Instagram
-      if (matchesAny(combined, ['instagram', 'instagram url', 'instagram profile', 'instagram handle', 'ig profile']) && prof.instagram) {
-        return {
-          value: prof.instagram,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'instagram',
-          fieldLabel: 'Instagram Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate Instagram profile URL',
-        };
-      }
-
-      // Facebook
-      if (matchesAny(combined, ['facebook', 'facebook url', 'facebook profile', 'fb profile']) && prof.facebook) {
-        return {
-          value: prof.facebook,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'facebook',
-          fieldLabel: 'Facebook Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate Facebook profile URL',
-        };
-      }
-
-      // Threads
-      if (matchesAny(combined, ['threads', 'threads url', 'threads profile', 'meta threads']) && prof.threads) {
-        return {
-          value: prof.threads,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'threads',
-          fieldLabel: 'Threads Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate Threads profile URL',
-        };
-      }
-
-      // Bluesky
-      if (matchesAny(combined, ['bluesky', 'bsky', 'bluesky url', 'bluesky profile']) && prof.bluesky) {
-        return {
-          value: prof.bluesky,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'bluesky',
-          fieldLabel: 'Bluesky Profile',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate Bluesky profile URL',
-        };
-      }
-
-      // Medium / Blog
-      if (matchesAny(combined, ['medium', 'medium url', 'medium profile', 'tech blog', 'blog url']) && prof.medium) {
-        return {
-          value: prof.medium,
-          confidence: 0.95,
-          source: 'social_link',
-          fieldKey: 'medium',
-          fieldLabel: 'Medium / Tech Blog',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved candidate Medium/blog URL',
-        };
+      for (const rule of SOCIAL_PLATFORM_RULES) {
+        const val = prof[rule.prop];
+        if (val && matchesAny(combined, rule.patterns)) {
+          return {
+            value: val as string,
+            confidence: rule.confidence ?? 0.95,
+            source: rule.source ?? 'social_link',
+            fieldKey: rule.fieldKey,
+            fieldLabel: rule.fieldLabel,
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: rule.reason,
+          };
+        }
       }
 
       // Portfolio / Website (guard against referral source "how did you hear")
@@ -909,76 +990,63 @@ export class SemanticProfileMatcher {
         const isExamMatch = Boolean(cert.examCode && matchesAny(combined, [cert.examCode]));
 
         if (isNameMatch || isExamMatch || isIssuerMatch) {
-          // Specific sub-field queries
-          if (matchesAny(combined, ['verification', 'verify', 'badge link', 'badge url', 'credential url', 'credential link', 'credly', 'verify credential']) && cert.verificationUrl) {
-            return {
-              value: cert.verificationUrl,
-              confidence: 0.95,
-              source: 'certification',
-              fieldKey: `cert_${cert.id}_verification_url`,
-              fieldLabel: `${cert.name} Verification URL`,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Resolved verification link for "${cert.name}"`,
-            };
-          }
+          const certFieldRules = [
+            {
+              patterns: ['verification', 'verify', 'badge link', 'badge url', 'credential url', 'credential link', 'credly', 'verify credential'],
+              fieldSuffix: 'verification_url',
+              labelSuffix: 'Verification URL',
+              reasonLabel: 'verification link',
+              val: cert.verificationUrl,
+              conf: 0.95,
+            },
+            {
+              patterns: ['credential id', 'credential #', 'license number', 'license no', 'license #', 'certificate number', 'certificate id'],
+              fieldSuffix: 'credential_id',
+              labelSuffix: 'Credential ID',
+              reasonLabel: 'credential ID / license number',
+              val: cert.credentialId,
+              conf: 0.95,
+            },
+            {
+              patterns: ['exam code', 'exam #', 'exam number'],
+              fieldSuffix: 'exam_code',
+              labelSuffix: 'Exam Code',
+              reasonLabel: 'exam code',
+              val: cert.examCode,
+              conf: 0.95,
+            },
+            {
+              patterns: ['issue date', 'date of issue', 'date achieved', 'certification date', 'issued date'],
+              fieldSuffix: 'issue_date',
+              labelSuffix: 'Issue Date',
+              reasonLabel: 'issue date',
+              val: cert.issueDate,
+              conf: 0.93,
+            },
+            {
+              patterns: ['expiry date', 'expiration date', 'valid until', 'expiry', 'expiration'],
+              fieldSuffix: 'expiry_date',
+              labelSuffix: 'Expiration Date',
+              reasonLabel: 'expiration date',
+              val: cert.doesNotExpire ? 'Does not expire' : (cert.expiryDate || 'Does not expire'),
+              conf: 0.93,
+            },
+          ];
 
-          if (matchesAny(combined, ['credential id', 'credential #', 'license number', 'license no', 'license #', 'certificate number', 'certificate id']) && cert.credentialId) {
-            return {
-              value: cert.credentialId,
-              confidence: 0.95,
-              source: 'certification',
-              fieldKey: `cert_${cert.id}_credential_id`,
-              fieldLabel: `${cert.name} Credential ID`,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Resolved credential ID / license number for "${cert.name}"`,
-            };
-          }
-
-          if (matchesAny(combined, ['exam code', 'exam #', 'exam number']) && cert.examCode) {
-            return {
-              value: cert.examCode,
-              confidence: 0.95,
-              source: 'certification',
-              fieldKey: `cert_${cert.id}_exam_code`,
-              fieldLabel: `${cert.name} Exam Code`,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Resolved exam code for "${cert.name}"`,
-            };
-          }
-
-          if (matchesAny(combined, ['issue date', 'date of issue', 'date achieved', 'certification date', 'issued date']) && cert.issueDate) {
-            return {
-              value: cert.issueDate,
-              confidence: 0.93,
-              source: 'certification',
-              fieldKey: `cert_${cert.id}_issue_date`,
-              fieldLabel: `${cert.name} Issue Date`,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Resolved issue date for "${cert.name}"`,
-            };
-          }
-
-          if (matchesAny(combined, ['expiry date', 'expiration date', 'valid until', 'expiry', 'expiration'])) {
-            const expVal = cert.doesNotExpire ? 'Does not expire' : (cert.expiryDate || 'Does not expire');
-            return {
-              value: expVal,
-              confidence: 0.93,
-              source: 'certification',
-              fieldKey: `cert_${cert.id}_expiry_date`,
-              fieldLabel: `${cert.name} Expiration Date`,
-              sensitivity: 'ordinary',
-              requiresConfirmation: false,
-              aiAccessPermitted: true,
-              selectionReason: `Resolved expiration date for "${cert.name}"`,
-            };
+          for (const rule of certFieldRules) {
+            if (matchesAny(combined, rule.patterns) && rule.val) {
+              return {
+                value: rule.val,
+                confidence: rule.conf,
+                source: 'certification',
+                fieldKey: `cert_${cert.id}_${rule.fieldSuffix}`,
+                fieldLabel: `${cert.name} ${rule.labelSuffix}`,
+                sensitivity: 'ordinary',
+                requiresConfirmation: false,
+                aiAccessPermitted: true,
+                selectionReason: `Resolved ${rule.reasonLabel} for "${cert.name}"`,
+              };
+            }
           }
 
           // If it's a yes/no / checkbox question about having this certification
@@ -1083,65 +1151,52 @@ export class SemanticProfileMatcher {
       };
     }
 
-    // Passport Issuing Country / Authority
-    if (matchesAny(combined, [/\bpassport\s*(issuing\s*country|country\s*of\s*issue|issue\s*country|issued\s*by|authority)\b/, /\bpassport\s*country\b/]) && profile.passport?.issuingCountry) {
-      return {
-        value: profile.passport.issuingCountry,
-        confidence: 0.92,
-        source: 'passport_details',
-        fieldKey: 'passport_issuing_country',
-        fieldLabel: 'Passport Issuing Country',
-        sensitivity: 'sensitive_personal',
-        requiresConfirmation: false,
-        aiAccessPermitted: true,
-        selectionReason: 'Passport issuing country resolved',
-      };
-    }
+    // Passport metadata details
+    const passportFieldRules = [
+      {
+        patterns: [/\bpassport\s*(issuing\s*country|country\s*of\s*issue|issue\s*country|issued\s*by|authority)\b/, /\bpassport\s*country\b/],
+        val: profile.passport?.issuingCountry,
+        key: 'passport_issuing_country',
+        label: 'Passport Issuing Country',
+        reason: 'Passport issuing country resolved',
+      },
+      {
+        patterns: [/\bpassport\s*(expiry|expiration|valid\s*until|expires)\b/, /\bpassport\s*exp(ir)?\s*(date)?\b/],
+        val: profile.passport?.expiryDate,
+        key: 'passport_expiry_date',
+        label: 'Passport Expiration Date',
+        reason: 'Passport expiration date resolved',
+      },
+      {
+        patterns: [/\bpassport\s*(issue\s*date|date\s*of\s*issue|issued\s*date)\b/],
+        val: profile.passport?.issueDate,
+        key: 'passport_issue_date',
+        label: 'Passport Issue Date',
+        reason: 'Passport issue date resolved',
+      },
+      {
+        patterns: [/\bpassport\s*(nationality|citizenship)\b/],
+        val: profile.passport?.nationality || profile.personal?.nationality || profile.personal?.citizenship,
+        key: 'passport_nationality',
+        label: 'Passport Nationality',
+        reason: 'Passport nationality resolved',
+      },
+    ];
 
-    // Passport Expiration Date
-    if (matchesAny(combined, [/\bpassport\s*(expiry|expiration|valid\s*until|expires)\b/, /\bpassport\s*exp(ir)?\s*(date)?\b/]) && profile.passport?.expiryDate) {
-      return {
-        value: profile.passport.expiryDate,
-        confidence: 0.92,
-        source: 'passport_details',
-        fieldKey: 'passport_expiry_date',
-        fieldLabel: 'Passport Expiration Date',
-        sensitivity: 'sensitive_personal',
-        requiresConfirmation: false,
-        aiAccessPermitted: true,
-        selectionReason: 'Passport expiration date resolved',
-      };
-    }
-
-    // Passport Issue Date
-    if (matchesAny(combined, [/\bpassport\s*(issue\s*date|date\s*of\s*issue|issued\s*date)\b/]) && profile.passport?.issueDate) {
-      return {
-        value: profile.passport.issueDate,
-        confidence: 0.92,
-        source: 'passport_details',
-        fieldKey: 'passport_issue_date',
-        fieldLabel: 'Passport Issue Date',
-        sensitivity: 'sensitive_personal',
-        requiresConfirmation: false,
-        aiAccessPermitted: true,
-        selectionReason: 'Passport issue date resolved',
-      };
-    }
-
-    // Passport Nationality / Citizenship
-    if (matchesAny(combined, [/\bpassport\s*(nationality|citizenship)\b/]) && (profile.passport?.nationality || profile.personal?.nationality || profile.personal?.citizenship)) {
-      const natVal = profile.passport?.nationality || profile.personal?.nationality || profile.personal?.citizenship || '';
-      return {
-        value: natVal,
-        confidence: 0.92,
-        source: 'passport_details',
-        fieldKey: 'passport_nationality',
-        fieldLabel: 'Passport Nationality',
-        sensitivity: 'sensitive_personal',
-        requiresConfirmation: false,
-        aiAccessPermitted: true,
-        selectionReason: 'Passport nationality resolved',
-      };
+    for (const pr of passportFieldRules) {
+      if (matchesAny(combined, pr.patterns) && pr.val) {
+        return {
+          value: pr.val,
+          confidence: 0.92,
+          source: 'passport_details',
+          fieldKey: pr.key,
+          fieldLabel: pr.label,
+          sensitivity: 'sensitive_personal',
+          requiresConfirmation: false,
+          aiAccessPermitted: true,
+          selectionReason: pr.reason,
+        };
+      }
     }
 
     // Passport Number — strictly protected identifier (never sent to remote AI, requires explicit user confirmation)
@@ -1478,292 +1533,21 @@ export class SemanticProfileMatcher {
         };
       }
 
-      // Background Check Consent
-      if (matchesAny(combined, ['background check', 'background investigation', 'consent to background', 'background screening', 'pre-employment background'])) {
-        const val = ld.backgroundCheckConsent ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'background_check_consent',
-          fieldLabel: 'Background Check Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved background check consent',
-        };
-      }
-
-      // Reference Check Consent
-      if (matchesAny(combined, ['reference check', 'reference_check', 'contact references', 'reference verification', 'contact former employers', 'contact your former employers', 'contact previous employers', 'professional references', 'references consent'])) {
-        const val = ld.consentReferenceCheck ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'reference_check_consent',
-          fieldLabel: 'Reference Check Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved reference check consent',
-        };
-      }
-
-      // Credit / Financial History Check Consent
-      if (matchesAny(combined, ['credit check', 'credit report', 'credit history', 'consumer report', 'financial background check', 'financial history check'])) {
-        const val = ld.consentCreditCheck ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'credit_check_consent',
-          fieldLabel: 'Credit / Consumer Report Check Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved credit check consent',
-        };
-      }
-
-      // Drug Screen Consent
-      if (matchesAny(combined, ['drug screen', 'drug test', 'drug screening', 'substance test', 'alcohol and drug'])) {
-        const val = ld.drugScreeningConsent ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'drug_screening_consent',
-          fieldLabel: 'Drug Screening Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved drug screening consent',
-        };
-      }
-
-      // WhatsApp Updates & Messaging Consent
-      if (matchesAny(combined, ['whatsapp', 'whats app', 'updates via whatsapp', 'messages via whatsapp', 'whatsapp notifications', 'whatsapp consent', 'contact via whatsapp'])) {
-        const val = ld.consentWhatsApp ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.98,
-          source: 'legal_disclosures',
-          fieldKey: 'whatsapp_consent',
-          fieldLabel: 'WhatsApp Messaging & Updates Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved WhatsApp communications consent',
-        };
-      }
-
-      // TCPA / Do Not Call (DNC) Bypass & Automated Calling Consent
-      if (matchesAny(combined, ['do not call', 'dnc', 'tcpa', 'telephone consumer protection', 'automated dialing', 'autodialer', 'prerecorded voice', 'artificial voice', 'bypass do not call', 'national do not call', 'federal do not call', 'automated technology to contact'])) {
-        const val = ld.consentDncBypass ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.98,
-          source: 'legal_disclosures',
-          fieldKey: 'dnc_bypass_consent',
-          fieldLabel: 'TCPA / Do Not Call (DNC) Bypass Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved Do Not Call bypass / automated calling consent',
-        };
-      }
-
-      // SMS / Text Messages Consent
-      if (matchesAny(combined, ['sms consent', 'text message', 'text messages', 'sms notifications', 'consent to receive texts', 'consent to receive sms', 'automated texts', 'text messaging consent', 'sms updates', 'receive sms'])) {
-        const val = ld.consentSms ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'sms_consent',
-          fieldLabel: 'SMS / Text Messages Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved SMS text notifications consent',
-        };
-      }
-
-      // Direct Recruiter Phone Calls Consent
-      if (matchesAny(combined, ['consent to call', 'consent to phone', 'phone calls', 'telephone calls', 'contact you by phone', 'contact via phone', 'reach you by phone', 'calls regarding your application'])) {
-        const val = ld.consentPhoneCalls ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'phone_calls_consent',
-          fieldLabel: 'Direct Phone Calls Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved phone calls communication consent',
-        };
-      }
-
-      // Future Relevant Jobs & Talent Community Consent
-      if (matchesAny(combined, ['future opportunities', 'future roles', 'future job', 'other relevant jobs', 'other open roles', 'talent pool', 'talent community', 'talent network', 'retain your profile', 'keep your resume on file', 'future openings', 'other positions at', 'future considerations', 'candidate pool', 'keep on file'])) {
-        const val = ld.consentFutureOpportunities ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'future_opportunities_consent',
-          fieldLabel: 'Future Job Opportunities & Talent Pool Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved future job opportunities and talent pool retention consent',
-        };
-      }
-
-      // Talent Pool Sharing / Affiliate & Subsidiary Consent
-      if (matchesAny(combined, ['affiliates', 'subsidiaries', 'group companies', 'affiliated companies', 'share your information with other companies', 'share profile with affiliates', 'corporate entities', 'other entities'])) {
-        const val = ld.consentTalentPoolSharing ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.96,
-          source: 'legal_disclosures',
-          fieldKey: 'talent_sharing_consent',
-          fieldLabel: 'Affiliate & Subsidiary Profile Sharing Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved corporate affiliates profile sharing consent',
-        };
-      }
-
-      // Privacy Policy & Candidate Data Processing Consent
-      if (matchesAny(combined, ['privacy policy', 'privacy notice', 'candidate privacy', 'data processing consent', 'consent to process personal data', 'consent to processing of my personal data', 'gdpr', 'ccpa', 'data protection policy', 'processing of my application data', 'protect your data', 'data privacy'])) {
-        const val = ld.consentPrivacyPolicy ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.98,
-          source: 'legal_disclosures',
-          fieldKey: 'privacy_policy_consent',
-          fieldLabel: 'Privacy Policy & Data Processing Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved Candidate Privacy Policy and data processing consent',
-        };
-      }
-
-      // Cross-Border / International Data Transfer Consent
-      if (matchesAny(combined, ['cross-border', 'data transfer', 'international transfer', 'transfer outside', 'transfer of personal data internationally', 'transferred across borders', 'transfer personal data outside'])) {
-        const val = ld.consentDataTransfer ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'data_transfer_consent',
-          fieldLabel: 'International Data Transfer Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved international cross-border data transfer consent',
-        };
-      }
-
-      // Terms of Service / Application Terms
-      if (matchesAny(combined, ['terms of service', 'terms and conditions', 'terms of use', 'application terms', 'portal terms', 'agree to the terms', 'accept terms', 'applicant agreement'])) {
-        const val = ld.consentTermsOfService ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'terms_of_service_consent',
-          fieldLabel: 'Terms of Service Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved Terms of Service agreement',
-        };
-      }
-
-      // Electronic Signature & Disclosures (E-SIGN)
-      if (matchesAny(combined, ['electronic signature', 'e-sign', 'electronic disclosures', 'sign electronically', 'consent to electronic delivery', 'consent to electronic records', 'electronic consent'])) {
-        const val = ld.consentElectronicSignature ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.98,
-          source: 'legal_disclosures',
-          fieldKey: 'electronic_signature_consent',
-          fieldLabel: 'Electronic Signature & Disclosures Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved electronic signature and disclosures consent',
-        };
-      }
-
-      // Accuracy of Information & Truthfulness Certification
-      if (matchesAny(combined, ['true and correct', 'true and accurate', 'certify that all statements', 'accuracy of information', 'certify the information', 'true to the best of my knowledge', 'falsification', 'penalty of perjury', 'accurate declaration', 'certify that the information', 'acknowledgment and certification', 'truthfulness'])) {
-        const val = ld.consentAccurateInformation ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.98,
-          source: 'legal_disclosures',
-          fieldKey: 'accurate_information_certification',
-          fieldLabel: 'Information Accuracy & Truthfulness Certification',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved application accuracy and truthfulness certification',
-        };
-      }
-
-      // At-Will Employment Acknowledgment
-      if (matchesAny(combined, ['at-will', 'at will employment', 'at-will relationship', 'employment at will', 'at will basis'])) {
-        const val = ld.consentAtWillEmployment ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'at_will_employment_consent',
-          fieldLabel: 'At-Will Employment Acknowledgment',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved at-will employment disclosure acknowledgment',
-        };
-      }
-
-      // AI Screening & Automated Decision-Making Consent
-      if (matchesAny(combined, ['artificial intelligence', 'ai screening', 'automated decision', 'automated employment decision', 'ai evaluation', 'automated tool', 'use of ai', 'automated processing'])) {
-        const val = ld.consentArtificialIntelligence ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.97,
-          source: 'legal_disclosures',
-          fieldKey: 'ai_screening_consent',
-          fieldLabel: 'AI & Automated Decision-Making Consent',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved AI screening and automated decision consent',
-        };
-      }
-
-      // Equal Employment Opportunity (EEO) Policy Acknowledgment
-      if (matchesAny(combined, ['equal employment opportunity', 'equal opportunity employer', 'eeo policy', 'non-discrimination policy', 'eeo disclosure'])) {
-        const val = ld.consentEqualOpportunity ?? true;
-        return {
-          value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
-          confidence: 0.96,
-          source: 'legal_disclosures',
-          fieldKey: 'eeo_policy_acknowledgment',
-          fieldLabel: 'Equal Employment Opportunity (EEO) Policy Acknowledgment',
-          sensitivity: 'ordinary',
-          requiresConfirmation: false,
-          aiAccessPermitted: true,
-          selectionReason: 'Resolved EEO policy acknowledgment',
-        };
+      for (const rule of CONSENT_RULES) {
+        if (matchesAny(combined, rule.patterns)) {
+          const val = (ld as any)[rule.key] ?? true;
+          return {
+            value: field.type === 'checkbox' ? val : val ? 'Yes' : 'No',
+            confidence: rule.confidence ?? 0.97,
+            source: 'legal_disclosures',
+            fieldKey: rule.fieldKey,
+            fieldLabel: rule.fieldLabel,
+            sensitivity: 'ordinary',
+            requiresConfirmation: false,
+            aiAccessPermitted: true,
+            selectionReason: rule.reason,
+          };
+        }
       }
 
       // Referral Source / How did you hear about us?

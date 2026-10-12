@@ -8,185 +8,485 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="../shared/theme-init.js"></script>
-  <title>Help - Private Apply</title>
+  <title>Help &amp; Documentation — Private Apply</title>
   <link rel="stylesheet" href="../shared/theme.css">
   <link rel="stylesheet" href="help.css">
 </head>
 <body>
 
-  <div class="header">
+  <!-- Top Header with in-place Back & Home navigation -->
+  <header class="header">
     <div class="header-inner">
-      <div style="display:flex;align-items:center;gap:14px;">
+      <div class="header-brand">
         <img class="header-icon" src="../icons/primary-logo.png" alt="Private Apply">
         <div class="header-text">
-          <h1>Help & Tutorial</h1>
-          <p>Learn how to get the most out of Private Apply</p>
+          <h1>Help &amp; Tutorial</h1>
+          <p>Comprehensive guide &amp; FAQ for all Private Apply features</p>
         </div>
       </div>
-      <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode"></button>
+      <div class="header-actions">
+        <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode" title="Toggle theme"></button>
+        <button type="button" class="btn-back" id="btn-back-nav" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '../home/home.html'; }" title="Go back to previous page">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span>Back</span>
+        </button>
+        <a href="../home/home.html" class="btn-back" id="btn-home-nav" title="Return to Workspace Home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Home</span>
+        </a>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <div class="main">
+  <main class="main">
 
-    <!-- Quick Start -->
-    <div class="quick-start">
-      <h2>Quick Start Guide</h2>
+    <!-- Quick Jump Nav Pills -->
+    <nav class="jump-nav" aria-label="Quick jump links">
+      <a href="#quick-start" class="jump-pill">⚡ Quick Start</a>
+      <a href="#features" class="jump-pill">✨ Core Features</a>
+      <a href="#multi-profiles" class="jump-pill">👤 Multi-Profiles</a>
+      <a href="#country-packs" class="jump-pill">🌐 Country &amp; Employment Packs</a>
+      <a href="#latex-tailor" class="jump-pill">📄 Local LaTeX Tailoring</a>
+      <a href="#ai-providers" class="jump-pill">🤖 Multi-AI Engines</a>
+      <a href="#gist-sync" class="jump-pill">🔐 Encrypted Gist Sync</a>
+      <a href="#faq" class="jump-pill">❓ In-Depth FAQs</a>
+      <a href="#shortcuts" class="jump-pill">⌨️ Shortcuts</a>
+    </nav>
+
+    <!-- Quick Start Guide (Modern 6-step workflow) -->
+    <section class="guide-section" id="quick-start">
+      <div class="guide-section-header">
+        <h2>⚡ Quick Start Guide (2026 Workflow)</h2>
+        <p>Get up and running in minutes with multi-profile auto-filling, local LaTeX tailoring, and regional compliance packs.</p>
+      </div>
 
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-content">
-          <div class="step-title">Set Up Your Profile</div>
-          <div class="step-desc">Click the extension icon and select <strong>Manage Profile</strong>. Upload your resume or manually enter your details (name, email, phone, work history).</div>
-          <div class="step-tip">Tip: Uploading a resume auto-fills most fields for you.</div>
+          <div class="step-title">
+            Set Up Your Primary Profile &amp; Multi-Profiles
+            <span class="step-badge">Profile Hub</span>
+          </div>
+          <div class="step-desc">
+            Open the <a href="../profiles/profiles.html" style="color:var(--primary-600);font-weight:600;text-decoration:none;">Applicant Profile &amp; Question Bank</a>. Upload your PDF resume to auto-populate personal details, education, and work history. You can create distinct profiles (e.g., <em>Full-Stack Engineer</em> vs <em>AI/ML Engineer</em>) with dedicated colors and target titles.
+          </div>
+          <div class="step-tip">
+            <strong>Pro Tip:</strong> Click <em>Clone Profile</em> to duplicate your primary profile and tailor specific skills or summaries without re-entering contact details.
+          </div>
         </div>
       </div>
 
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-content">
-          <div class="step-title">Visit a Job Application Page</div>
-          <div class="step-desc">Navigate to any job application form (LinkedIn, Indeed, Greenhouse, Lever, etc.). The extension automatically detects application pages and shows a small floating icon.</div>
+          <div class="step-title">
+            Activate Jurisdiction Country-Packs &amp; Employment-Packs
+            <span class="step-badge">Compliance</span>
+          </div>
+          <div class="step-desc">
+            Navigate to <a href="../settings/settings.html#section-country-packs" style="color:var(--primary-600);font-weight:600;text-decoration:none;">Settings &rarr; Country-Packs</a>. Enable regional modules for your job market (<strong>India IN</strong>, <strong>United States US</strong>, <strong>Germany DE</strong>, <strong>United Kingdom GB</strong>) to standardize local IDs (PAN, SSN, NI, Steuer-ID), university scores, and work authorization. Then enable <strong>Employment-Packs</strong> to link GitHub, LeetCode, Figma, or Kaggle handles.
+          </div>
         </div>
       </div>
 
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-content">
-          <div class="step-title">Auto-Fill the Form</div>
-          <div class="step-desc">Click <strong>Auto-Fill</strong> in the popup or on the floating panel. The extension fills in detected fields using your profile data.</div>
-          <div class="step-tip">Tip: Use Dry Run mode (in Settings) to preview what would be filled without changing the form.</div>
+          <div class="step-title">
+            Choose Your AI Engine: Local Ollama or Cloud BYOK
+            <span class="step-badge">AI Setup</span>
+          </div>
+          <div class="step-desc">
+            Configure your AI backend in <a href="../settings/settings.html#section-ai-providers" style="color:var(--primary-600);font-weight:600;text-decoration:none;">Settings &rarr; AI Configuration</a>. Use <strong>100% offline Ollama</strong> (Llama 3.2, Mistral, DeepSeek-R1, Qwen2.5) with zero data leaving your machine, or connect directly to <strong>OpenAI, Anthropic Claude, Google Gemini, Groq, or OpenRouter</strong> using your private API keys stored strictly in browser storage.
+          </div>
+          <div class="step-tip">
+            <strong>Zero Telemetry:</strong> Private Apply has no centralized tracking servers. All inference requests route directly to your chosen provider or local Ollama host.
+          </div>
         </div>
       </div>
 
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-content">
-          <div class="step-title">Review and Submit</div>
-          <div class="step-desc">Review the filled fields, make any adjustments, and submit your application. Private Apply learns from your corrections to improve future suggestions.</div>
+          <div class="step-title">
+            1-Click Auto-Fill on Any ATS Job Application
+            <span class="step-badge">Auto-Fill</span>
+          </div>
+          <div class="step-desc">
+            Navigate to any job application portal (Greenhouse, Lever, Workday, Ashby, Taleo, BambooHR, LinkedIn). Private Apply detects the form and shows a floating action badge. Click <strong>Auto-Fill</strong> to populate personal information, country pack fields, employment links, and custom questions.
+          </div>
         </div>
       </div>
 
       <div class="step">
         <div class="step-num">5</div>
         <div class="step-content">
-          <div class="step-title">Track Your Progress</div>
-          <div class="step-desc">Open the <strong>Dashboard</strong> to see all your applications in a Kanban board. Drag cards between columns to update their status (Submitted, Interviewing, Accepted, etc.).</div>
+          <div class="step-title">
+            Tailor Your LaTeX Résumé Locally
+            <span class="step-badge">LaTeX Engine</span>
+          </div>
+          <div class="step-desc">
+            Open the <a href="../resume-tailor/resume-tailor.html" style="color:var(--primary-600);font-weight:600;text-decoration:none;">LaTeX Résumé Tailor</a>. Paste the job description to run an instant ATS keyword match analysis. The AI aligns your bullet points to the target role while preserving your LaTeX formatting. The local companion daemon compiles the <code>.tex</code> source into a crisp PDF directly on your laptop.
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Features -->
-    <div class="features">
-      <h2>Key Features</h2>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">
+            Track Applications &amp; Sync via Encrypted Secret Gist
+            <span class="step-badge">Zero-Cloud Sync</span>
+          </div>
+          <div class="step-desc">
+            Submitted applications automatically log to the <a href="../dashboard/dashboard.html" style="color:var(--primary-600);font-weight:600;text-decoration:none;">Application Dashboard</a> Kanban board. To sync profiles and tracker history across your personal computers without trusting a cloud SaaS, enable <strong>GitHub Secret Gist Sync</strong> with end-to-end encryption in Settings.
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <div class="feature-card">
-        <div class="feature-icon" style="background: #1e2a3a;">AF</div>
-        <h3>Smart Auto-Fill</h3>
-        <p>Fills job application forms using your profile. Works with React, Vue, Angular, and plain HTML forms.</p>
+    <!-- Key Features Grid -->
+    <section class="guide-section" id="features">
+      <div class="guide-section-header">
+        <h2>✨ Core Architecture &amp; Features</h2>
+        <p>Private Apply is built from the ground up to empower candidate autonomy, protect privacy, and eliminate repetitive job search friction.</p>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon" style="background: #7cb342;">CL</div>
-        <h3>Cover Letter Generator</h3>
-        <p>AI-powered cover letters tailored to each job. Requires Ollama running locally.</p>
+      <div class="features-grid">
+        <div class="feature-card" id="multi-profiles">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">MP</div>
+            <span class="feature-tag">Profiles</span>
+          </div>
+          <h3>Multi-Profile Management</h3>
+          <p>Create and switch between distinct candidate personas (e.g. Backend Engineer, Tech Lead, Product Specialist). Each profile supports custom tags, color badges, and tailored question answers.</p>
+          <div class="feature-card-footer">
+            <a href="../profiles/profiles.html">Manage Profiles &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card" id="country-packs">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">CP</div>
+            <span class="feature-tag">Regional</span>
+          </div>
+          <h3>Jurisdiction Country-Packs</h3>
+          <p>Standardized modules for <strong>India (IN)</strong>, <strong>United States (US)</strong>, <strong>Germany (DE)</strong>, and <strong>United Kingdom (GB)</strong> handling tax IDs (PAN, SSN, NI, Steuer-ID), academic grading, and work auth.</p>
+          <div class="feature-card-footer">
+            <a href="../settings/settings.html#section-country-packs">Configure Country-Packs &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">EP</div>
+            <span class="feature-tag">Domain</span>
+          </div>
+          <h3>Employment &amp; Discipline Packs</h3>
+          <p>Targeted developer and designer packs: link competitive programming (LeetCode, Codeforces), GitHub repositories, Figma design portfolios, or Kaggle/HuggingFace datasets.</p>
+          <div class="feature-card-footer">
+            <a href="../settings/settings.html#section-employment-packs">Employment-Packs &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card" id="latex-tailor">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">LX</div>
+            <span class="feature-tag">Companion</span>
+          </div>
+          <h3>Local LaTeX Résumé Tailor</h3>
+          <p>Side-by-side LaTeX editor with ATS keyword radar. Compiles PDF on your machine using a local companion daemon (Tectonic / PDFLaTeX). Zero cloud PDF rendering.</p>
+          <div class="feature-card-footer">
+            <a href="../resume-tailor/resume-tailor.html">Open LaTeX Tailor &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card" id="ai-providers">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">AI</div>
+            <span class="feature-tag">Hybrid Engine</span>
+          </div>
+          <h3>Multi-AI Provider Integration</h3>
+          <p>Support for 100% offline Ollama inference plus Bring-Your-Own-Key cloud engines (OpenAI GPT-4o, Anthropic Claude 3.5, Google Gemini, Groq, OpenRouter). Keys stay purely local.</p>
+          <div class="feature-card-footer">
+            <a href="../settings/settings.html#section-ai-providers">AI Provider Settings &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card" id="gist-sync">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">GS</div>
+            <span class="feature-tag">Encrypted</span>
+          </div>
+          <h3>Secret Gist Encrypted Sync</h3>
+          <p>Zero-cloud backup using your private GitHub Secret Gist with AES-GCM encryption. Features automatic timestamping and bidirectional conflict reconciliation across devices.</p>
+          <div class="feature-card-footer">
+            <a href="../settings/settings.html#section-gist-sync">Gist Sync Setup &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">QB</div>
+            <span class="feature-tag">Adaptive</span>
+          </div>
+          <h3>Question Bank &amp; Custom Fields</h3>
+          <p>Save responses to recurring behavioral questions (<em>"Why our company?"</em>, <em>"Difficult challenge"</em>). Custom field builder supports sensitivity tiers and adaptive alias matching.</p>
+          <div class="feature-card-footer">
+            <a href="../profiles/profiles.html#tab-question-bank">View Question Bank &rarr;</a>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header-row">
+            <div class="feature-icon-badge">KB</div>
+            <span class="feature-tag">Kanban</span>
+          </div>
+          <h3>Application Tracker Dashboard</h3>
+          <p>Drag-and-drop Kanban board with auto-detection for submitted applications. Includes velocity metrics, stage conversion rates, and CSV/JSON export &amp; import.</p>
+          <div class="feature-card-footer">
+            <a href="../dashboard/dashboard.html">View Dashboard &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- In-Depth Anticipating FAQ Section -->
+    <section class="guide-section" id="faq">
+      <div class="guide-section-header">
+        <h2>❓ Frequently Anticipated Questions</h2>
+        <p>Answers to common questions regarding navigation, multi-profiles, local companion daemon, country packs, AI engines, and synchronization.</p>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon" style="background: #3b82f6;">KB</div>
-        <h3>Kanban Dashboard</h3>
-        <p>Track all applications with drag-and-drop status updates, charts, and CSV export.</p>
+      <!-- FAQ Category 1: Navigation & Workspace Flow -->
+      <div class="faq-category">
+        <div class="faq-category-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Workspace Navigation &amp; Single-Tab Architecture
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Why do pages stay in the same tab instead of opening new tabs?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Private Apply uses a unified in-place navigation workflow. In older versions, clicking links created a new browser tab for every page, leading to duplicate tabs (e.g. multiple Home tabs or multiple Dashboard tabs).
+            Now, internal pages (Home, Dashboard, Profiles, Settings, Help, LaTeX Tailor, etc.) navigate in-place while preserving your browser history. You can use the top <strong>Back</strong> button, <strong>Home</strong> button, or your browser's back button (<kbd>Alt</kbd> + <kbd>&larr;</kbd>) without cluttering your browser with duplicate tabs.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">How do I return to the Home page or go back from any page?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Every workspace screen features two persistent header buttons:
+            <ul>
+              <li><strong>Back:</strong> Takes you directly to the previous page in your session history.</li>
+              <li><strong>Home:</strong> Instantly returns you to the main Application Workspace dashboard (<code>home/home.html</code>).</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon" style="background: #f59e0b;">LV</div>
-        <h3>Learning System</h3>
-        <p>Learns from your corrections. The more you use it, the better suggestions get.</p>
+      <!-- FAQ Category 2: Multi-Profiles & Switching -->
+      <div class="faq-category">
+        <div class="faq-category-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Multi-Profile Management
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">How do I create and switch between multiple applicant profiles?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Open the <strong>Applicant Profile</strong> page (<a href="../profiles/profiles.html">profiles/profiles.html</a>). At the top, you'll see your profile selector bar with active profile badges.
+            <ul>
+              <li>Click <strong>+ New Profile</strong> to create an empty profile with a custom target role and color theme.</li>
+              <li>Click <strong>Clone</strong> to copy all existing education, work history, and contact details into a new profile variant.</li>
+              <li>Click <strong>Set as Default</strong> to choose which profile is automatically activated when filling new job application forms.</li>
+            </ul>
+            You can also switch the active profile directly from the extension popup with one click before auto-filling.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Can different profiles have different resumes or skills?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Yes! Each profile is completely independent. For example, your <em>Full-Stack Engineer</em> profile can highlight React and Node.js, while your <em>AI/ML Engineer</em> profile highlights PyTorch, CUDA, and LLMs. Auto-fill, Cover Letter generation, and Resume Tailoring will always draw exclusively from the currently active profile.
+          </div>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon" style="background: #ef4444;">RP</div>
-        <h3>Resume Parsing</h3>
-        <p>Upload a PDF resume and the AI extracts your details automatically.</p>
+      <!-- FAQ Category 3: Country-Packs & Regional Compliance -->
+      <div class="faq-category">
+        <div class="faq-category-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Jurisdiction Country-Packs &amp; Compliance Fields
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Which Country-Packs are supported and what fields do they include?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Private Apply includes built-in jurisdiction modules:
+            <ul>
+              <li><strong>India (IN-Pack):</strong> Permanent Account Number (PAN), Aadhaar, UAN/EPFO, 10th &amp; 12th Board marks, CGPA/CPI, College Tier, Backlog history, and University Roll Number.</li>
+              <li><strong>United States (US-Pack):</strong> Masked SSN, Work Authorization (US Citizen, Green Card, OPT/CPT, H1B, STEM OPT), and voluntary Self-ID (Veteran, Disability, Race/Ethnicity).</li>
+              <li><strong>Germany (DE-Pack):</strong> Steuer-ID, Arbeitserlaubnis (EU Citizen, Blue Card), German academic grading (1.0–5.0 scale), and K&uuml;ndigungsfrist (Notice Period).</li>
+              <li><strong>United Kingdom (GB-Pack):</strong> National Insurance Number (NI), Right to Work (Settled Status, Skilled Worker, Graduate Route), and UK Degree classification (1st, 2:1, 2:2).</li>
+            </ul>
+            Enable or disable packs under <a href="../settings/settings.html#section-country-packs">Settings &rarr; Country-Packs</a>.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Are sensitive fields like SSN or PAN protected?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Yes. Sensitive identifiers are assigned a <strong>Confidential</strong> trust tier. They are masked by default in the UI (showing only the last 4 digits) and require an explicit unmask click to view. When synced via Secret Gist, they are encrypted with AES-GCM encryption. They are never sent to external servers.
+          </div>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon" style="background: #64748b;">PR</div>
-        <h3>Privacy First</h3>
-        <p>All data stays on your device. No accounts, no cloud, no tracking.</p>
-      </div>
-    </div>
+      <!-- FAQ Category 4: Local LaTeX Tailor & Companion Daemon -->
+      <div class="faq-category">
+        <div class="faq-category-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Local LaTeX Résumé Tailoring &amp; Companion Daemon
+        </div>
 
-    <!-- FAQ -->
-    <div class="faq-section">
-      <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+          <div class="faq-q">How does the LaTeX Tailor compile TeX into PDF locally?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Private Apply connects to a lightweight local companion daemon running on <code>http://127.0.0.1:5005</code>.
+            The daemon compiles LaTeX directly on your computer using either <strong>Tectonic</strong> (recommended, self-contained) or system <strong>pdflatex/xelatex</strong>. This guarantees your resume is rendered instantly without sending sensitive career history to remote compilation servers.
+          </div>
+        </div>
 
-      <div class="faq-item">
-        <div class="faq-q">Why isn't the extension detecting my job page?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">The extension uses heuristics to detect job application pages. It looks for form fields, apply buttons, and known ATS platforms (Greenhouse, Lever, etc.). If a page isn't detected, it may not have enough signals. Try clicking "Auto-Fill" manually from the popup.</div>
-      </div>
+        <div class="faq-item">
+          <div class="faq-q">How do I start the LaTeX Companion Daemon?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            If you have Node.js or Python installed, run the companion daemon script included in the extension:
+            <div class="code-box">npm run companion  # or: python3 native-host/latex-daemon.py</div>
+            Once running, the LaTeX Tailor editor will show a green <strong>Daemon Connected</strong> indicator and automatically live-render your PDF as you edit.
+          </div>
+        </div>
 
-      <div class="faq-item">
-        <div class="faq-q">What is Ollama and do I need it?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">Ollama is a local AI runtime that runs language models on your computer. It's needed for advanced features like resume parsing and cover letter generation. Basic autofill works without it. Install Ollama from <strong>ollama.com</strong> and the native host bridge from the extension's native-host folder.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">Is my data sent to any server?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">No. All your data (profile, applications, learned values) is stored in your browser's local storage. AI features use Ollama which runs on your own computer. The only external resource loaded is Chart.js from a CDN for the dashboard charts.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">How do I update my profile?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">Click the extension icon, then "Manage Profile". This opens the onboarding page where you can update any of your personal details, work history, or cover letter preferences.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q">What is Dry Run mode?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">Dry Run mode lets you preview what would be filled in without actually changing any form values. It's useful for testing the extension on a new site. Enable it in Settings or from the popup's Advanced section.</div>
+        <div class="faq-item">
+          <div class="faq-q">Can I use the Résumé Tailor without LaTeX or without the companion daemon?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Yes! If the daemon is not running, the Résumé Tailor offers a <strong>Plain Text / Markdown</strong> mode. You can still perform full ATS keyword gap analysis, synthesize tailored bullet points, and copy your optimized content directly into Google Docs or Word.
+          </div>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q">How do I delete my data?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">Go to Settings to clear application history or reset Self-ID data. To remove everything, simply uninstall the extension - all data is deleted automatically since it's stored only in your browser.</div>
+      <!-- FAQ Category 5: Multi-AI Providers & Offline Privacy -->
+      <div class="faq-category">
+        <div class="faq-category-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          Multi-AI Providers &amp; Offline Privacy
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">What is the difference between Ollama and Cloud AI providers?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            <ul>
+              <li><strong>Ollama (Local Offline):</strong> Runs open-source language models (Llama 3.2, Mistral, Qwen 2.5, DeepSeek-R1) directly on your laptop's GPU/CPU. It requires zero API keys, costs $0, and functions with complete offline privacy.</li>
+              <li><strong>Cloud Providers (BYOK):</strong> Direct connections to OpenAI (GPT-4o), Anthropic (Claude 3.5 Sonnet), Google Gemini, Groq (Llama-3.3-70B), or OpenRouter. Recommended if your laptop has limited RAM or if you prefer frontier cloud models. Your API keys are stored in encrypted browser local storage and communicated directly to the respective provider's HTTPS endpoint.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Why is Ollama showing "Disconnected" or not responding?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Follow this quick checklist:
+            <ol>
+              <li>Verify that Ollama is running in your terminal: <code>ollama serve</code> (or the Ollama menu bar icon).</li>
+              <li>Ensure you have pulled at least one model: <code>ollama run llama3.2</code> or <code>ollama run mistral</code>.</li>
+              <li>Check CORS permissions: if your browser blocks localhost requests, launch Ollama with <code>OLLAMA_ORIGINS="*" ollama serve</code>.</li>
+              <li>Check <a href="../settings/settings.html#section-ai-providers">Settings &rarr; AI Configuration</a> to run the integrated connection diagnostic.</li>
+            </ol>
+          </div>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q">Can I export or import my applications?<span class="faq-arrow">&#9660;</span></div>
-        <div class="faq-a">Yes! Open the Dashboard and click "Export CSV" to download or "Import CSV" to restore your tracked applications from CSV or JSON. You can also export and import your profile data from Settings or Home.</div>
-      </div>
-    </div>
+      <!-- FAQ Category 6: Encrypted Secret Gist Sync -->
+      <div class="faq-category">
+        <div class="faq-category-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Encrypted Secret Gist Sync &amp; Backups
+        </div>
 
-    <!-- Keyboard shortcuts -->
-    <div class="shortcuts">
-      <h2>Tips & Tricks</h2>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Open extension popup</span>
-        <span>Click the <img src="../icons/primary-logo.png" alt="Private Apply" style="width:16px;height:16px;vertical-align:middle;border-radius:3px;"> icon in toolbar</span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Quick autofill from page</span>
-        <span>Click the floating icon on job pages</span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Move application status</span>
-        <span>Drag cards between columns in Dashboard</span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Search applications</span>
-        <span>Type in the search bar on the Dashboard</span>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-action">Edit application details</span>
-        <span>Click "Edit" on any application card</span>
-      </div>
-    </div>
+        <div class="faq-item">
+          <div class="faq-q">How does Secret Gist Sync work and can anyone else see my data?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Secret Gist Sync uses a private GitHub Gist owned entirely by your personal GitHub account.
+            Before any profile data or application records are uploaded, they are encrypted client-side using <strong>AES-GCM encryption</strong> with your chosen secret passphrase. Even GitHub cannot view your resume or job submissions.
+          </div>
+        </div>
 
-    <div class="footer">
-      <p><a href="../settings/settings.html">Settings</a> &middot; <a href="../privacy/privacy.html">Privacy Policy</a> &middot; <a href="../dashboard/dashboard.html">Dashboard</a></p>
-    </div>
+        <div class="faq-item">
+          <div class="faq-q">How does conflict reconciliation work between two computers?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Every profile update includes a cryptographic content hash and a UTC timestamp.
+            When syncing across multiple laptops, Private Apply compares the remote Gist timestamp against your local record. If an edit is detected on both sides, the extension notifies you and gives you the option to merge records, accept the newer version, or retain your local copy.
+          </div>
+        </div>
 
-  </div>
+        <div class="faq-item">
+          <div class="faq-q">Can I export and import my data without using GitHub?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">
+            Yes! On the <a href="../home/home.html">Home page</a> sidebar under <em>Data Management</em>, or on the <a href="../dashboard/dashboard.html">Dashboard</a>, you can click <strong>Export Profile (JSON)</strong> and <strong>Export CSV</strong> to save your complete workspace data locally to your Downloads folder at any time.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tips & Keyboard Shortcuts -->
+    <section class="guide-section" id="shortcuts">
+      <div class="guide-section-header">
+        <h2>⌨️ Productivity &amp; Keyboard Shortcuts</h2>
+        <p>Speed up your application workflow with handy hotkeys and rapid access patterns.</p>
+      </div>
+
+      <div class="shortcuts-grid">
+        <div class="shortcut-row">
+          <span class="shortcut-action">Navigate Back</span>
+          <kbd>Alt + &larr;</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-action">Open Extension Popup</span>
+          <kbd>Ctrl + Shift + Y</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-action">Trigger Quick Auto-Fill</span>
+          <kbd>Alt + Shift + F</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-action">Toggle Dark / Light Theme</span>
+          <kbd>Alt + Shift + D</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-action">Kanban Drag Status</span>
+          <span style="font-size:12px;color:var(--text-muted);">Drag card to column</span>
+        </div>
+        <div class="shortcut-row">
+          <span class="shortcut-action">Interactive Tutorial</span>
+          <a href="../tutorial/tutorial.html" style="font-size:12px;color:var(--primary-600);text-decoration:none;font-weight:600;">Launch Tutorial &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clean Enterprise Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="../home/home.html">Home</a> &bull;
+        <a href="../dashboard/dashboard.html">Application Dashboard</a> &bull;
+        <a href="../profiles/profiles.html">Profile Manager</a> &bull;
+        <a href="../resume-tailor/resume-tailor.html">LaTeX Tailor</a> &bull;
+        <a href="../settings/settings.html">Settings</a> &bull;
+        <a href="../tutorial/tutorial.html">Interactive Tutorial</a> &bull;
+        <a href="../privacy/privacy.html">Privacy Policy</a>
+      </div>
+      <p>Private Apply &bull; 100% Local-First &bull; Zero Centralized Telemetry</p>
+    </footer>
+
+  </main>
 
   <script src="help.js"></script>
   <script src="../shared/dark-mode.js"></script>

@@ -19,7 +19,17 @@
     <img class="tutorial-header-logo" src="../icons/primary-logo.png" alt="Private Apply">
     <span class="tutorial-header-badge">Interactive Tutorial</span>
   </div>
-  <button class="tutorial-skip" id="skip-tutorial">Skip Tutorial</button>
+  <div class="tutorial-header-right">
+    <button type="button" class="tutorial-nav-btn" id="btn-tutorial-back" title="Go back to previous page">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </button>
+    <a href="../home/home.html" class="tutorial-nav-btn" id="btn-tutorial-home" title="Return to Home">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <button class="tutorial-skip" id="skip-tutorial">Skip Tutorial</button>
+  </div>
 </div>
 
 <!-- Fake job page (triggers the widget) -->
@@ -80,9 +90,19 @@
         <input type="tel" id="field-phone" placeholder="+1 (555) 000-0000">
       </div>
     </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>LinkedIn Profile URL</label>
+        <input type="url" id="field-linkedin" placeholder="https://linkedin.com/in/...">
+      </div>
+      <div class="form-row">
+        <label>GitHub Profile / Portfolio (CS-Pack)</label>
+        <input type="url" id="field-github" placeholder="https://github.com/...">
+      </div>
+    </div>
     <div class="form-row">
-      <label>LinkedIn Profile URL</label>
-      <input type="url" id="field-linkedin" placeholder="https://linkedin.com/in/...">
+      <label>Work Authorization (Country-Pack: US)</label>
+      <input type="text" id="field-workauth" placeholder="Authorized to work in US">
     </div>
     <div class="form-row">
       <label>Cover Letter</label>
@@ -124,8 +144,11 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <h2>You're all set!</h2>
-    <p>You now know how to use Private Apply. Auto-fill applications, generate cover letters, tailor your resume, and chat with your profile -- all powered by local AI on your device.</p>
-    <button class="completion-btn" id="start-applying-btn">Start Applying</button>
+    <p>You now know how to use Private Apply. Auto-fill applications with multi-profiles, country &amp; employment packs, tailor your LaTeX résumé locally, and sync securely via private encrypted Gist.</p>
+    <div class="completion-actions">
+      <button class="completion-btn" id="start-applying-btn">Start Applying (Job Board)</button>
+      <a href="../home/home.html" class="completion-secondary-btn" id="return-home-btn">Return to Home</a>
+    </div>
   </div>
 </div>
 

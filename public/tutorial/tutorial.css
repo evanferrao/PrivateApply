@@ -31,6 +31,32 @@ body {
 html.dark .tutorial-header-badge {
   background: #1b2418; color: #adc1a4; border-color: #2f3d29;
 }
+.tutorial-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tutorial-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all .15s;
+}
+.tutorial-nav-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--primary-400);
+}
 .tutorial-skip {
   background: var(--bg-card); border: 1px solid var(--border-color);
   color: var(--text-muted); padding: 6px 16px;
@@ -250,13 +276,32 @@ html.dark .completion-icon {
   font-size: 14px; color: var(--text-muted); line-height: 1.6;
   margin-bottom: 24px;
 }
+.completion-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .completion-btn {
-  padding: 12px 32px; background: var(--primary-600); color: var(--background-50);
+  padding: 12px 28px; background: var(--primary-600); color: var(--background-50);
   border: none; border-radius: var(--radius-sm); font-size: 14px;
   font-weight: 700; cursor: pointer; font-family: inherit;
   transition: background .15s;
+  text-decoration: none;
 }
 .completion-btn:hover { background: var(--primary-700); }
+.completion-secondary-btn {
+  padding: 11px 24px; background: var(--bg-card); color: var(--text-primary);
+  border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+  text-decoration: none; transition: all .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.completion-secondary-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary-400);
+}
 
 /* ── Filled state animation ── */
 .form-row input.filled, .form-row textarea.filled {

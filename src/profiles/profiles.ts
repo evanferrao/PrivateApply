@@ -60,6 +60,29 @@ function escapeHtml(s: string): string {
   return d.innerHTML;
 }
 
+function getVal(id: string): string {
+  return ((document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)?.value || '').trim();
+}
+
+function getOptVal(id: string): string | undefined {
+  return getVal(id) || undefined;
+}
+
+function setVal(id: string, val: string | number | undefined | null): void {
+  const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+  if (el) el.value = val !== undefined && val !== null ? String(val) : '';
+}
+
+function getChecked(id: string, def = false): boolean {
+  const el = document.getElementById(id) as HTMLInputElement | null;
+  return el ? el.checked : def;
+}
+
+function setChecked(id: string, checked: boolean | undefined | null, def = false): void {
+  const el = document.getElementById(id) as HTMLInputElement | null;
+  if (el) el.checked = checked !== undefined && checked !== null ? Boolean(checked) : def;
+}
+
 function parsePhoneComponents(phone: string | PhoneDetails | undefined): { countryCode: string; number: string } {
   if (!phone) return { countryCode: '+1', number: '' };
   if (isPhoneDetails(phone)) {
@@ -227,121 +250,59 @@ function populatePersonalForm(): void {
   const p = activeProfileData.personal;
   const prof = activeProfileData.professional;
 
-  (document.getElementById('core-first-name') as HTMLInputElement).value = p.firstName || '';
-  (document.getElementById('core-middle-name') as HTMLInputElement).value = p.middleName || '';
-  (document.getElementById('core-last-name') as HTMLInputElement).value = p.lastName || '';
-  (document.getElementById('core-full-name') as HTMLInputElement).value = p.fullName || '';
-  (document.getElementById('core-preferred-name') as HTMLInputElement).value = p.preferredName || '';
-  (document.getElementById('core-email') as HTMLInputElement).value = p.email || '';
+  setVal('core-first-name', p.firstName);
+  setVal('core-middle-name', p.middleName);
+  setVal('core-last-name', p.lastName);
+  setVal('core-full-name', p.fullName);
+  setVal('core-preferred-name', p.preferredName);
+  setVal('core-email', p.email);
 
   // Phone - split country code and national number
   const parsedPhone = parsePhoneComponents(p.phone);
-  const phoneCcEl = document.getElementById('core-phone-cc') as HTMLInputElement | null;
-  const phoneNumEl = document.getElementById('core-phone-num') as HTMLInputElement | null;
-  const phoneHiddenEl = document.getElementById('core-phone') as HTMLInputElement | null;
-  if (phoneCcEl) phoneCcEl.value = parsedPhone.countryCode;
-  if (phoneNumEl) phoneNumEl.value = parsedPhone.number;
-  if (phoneHiddenEl) phoneHiddenEl.value = formatPhone(p.phone) || '';
+  setVal('core-phone-cc', parsedPhone.countryCode);
+  setVal('core-phone-num', parsedPhone.number);
+  setVal('core-phone', formatPhone(p.phone) || '');
 
   // Alternate phone
   const parsedAltPhone = parsePhoneComponents(p.alternatePhone);
-  const altCcEl = document.getElementById('core-alt-phone-cc') as HTMLInputElement | null;
-  const altNumEl = document.getElementById('core-alt-phone-num') as HTMLInputElement | null;
-  const altHiddenEl = document.getElementById('core-alternate-phone') as HTMLInputElement | null;
-  if (altCcEl) altCcEl.value = parsedAltPhone.countryCode;
-  if (altNumEl) altNumEl.value = parsedAltPhone.number;
-  if (altHiddenEl) altHiddenEl.value = formatPhone(p.alternatePhone || '') || '';
+  setVal('core-alt-phone-cc', parsedAltPhone.countryCode);
+  setVal('core-alt-phone-num', parsedAltPhone.number);
+  setVal('core-alternate-phone', formatPhone(p.alternatePhone || '') || '');
 
-  (document.getElementById('core-univ-email') as HTMLInputElement).value = p.universityEmail || '';
-  (document.getElementById('core-address') as HTMLInputElement).value = formatLocation(p.location) || '';
-  (document.getElementById('core-permanent-address') as HTMLInputElement).value = formatLocation(p.permanentAddress || '') || '';
-  (document.getElementById('core-nationality') as HTMLInputElement).value = p.nationality || p.citizenship || '';
+  setVal('core-univ-email', p.universityEmail);
+  setVal('core-address', formatLocation(p.location) || '');
+  setVal('core-permanent-address', formatLocation(p.permanentAddress || '') || '');
+  setVal('core-nationality', p.nationality || p.citizenship || '');
 
-  (document.getElementById('core-linkedin') as HTMLInputElement).value = prof?.linkedin || '';
-  (document.getElementById('core-github') as HTMLInputElement).value = prof?.github || '';
-  (document.getElementById('core-portfolio') as HTMLInputElement).value = prof?.portfolio || prof?.website || '';
+  setVal('core-linkedin', prof?.linkedin);
+  setVal('core-github', prof?.github);
+  setVal('core-portfolio', prof?.portfolio || prof?.website);
 
   // Social Links
-  const twitterEl = document.getElementById('core-twitter') as HTMLInputElement | null;
-  const youtubeEl = document.getElementById('core-youtube') as HTMLInputElement | null;
-  const instagramEl = document.getElementById('core-instagram') as HTMLInputElement | null;
-  const facebookEl = document.getElementById('core-facebook') as HTMLInputElement | null;
-  const threadsEl = document.getElementById('core-threads') as HTMLInputElement | null;
-  const blueskyEl = document.getElementById('core-bluesky') as HTMLInputElement | null;
-  const mediumEl = document.getElementById('core-medium') as HTMLInputElement | null;
-
-  if (twitterEl) twitterEl.value = prof?.twitter || '';
-  if (youtubeEl) youtubeEl.value = prof?.youtube || '';
-  if (instagramEl) instagramEl.value = prof?.instagram || '';
-  if (facebookEl) facebookEl.value = prof?.facebook || '';
-  if (threadsEl) threadsEl.value = prof?.threads || '';
-  if (blueskyEl) blueskyEl.value = prof?.bluesky || '';
-  if (mediumEl) mediumEl.value = prof?.medium || '';
+  setVal('core-twitter', prof?.twitter);
+  setVal('core-youtube', prof?.youtube);
+  setVal('core-instagram', prof?.instagram);
+  setVal('core-facebook', prof?.facebook);
+  setVal('core-threads', prof?.threads);
+  setVal('core-bluesky', prof?.bluesky);
+  setVal('core-medium', prof?.medium);
 
   // Passport (Protected Field)
   const pass = activeProfileData.passport;
-  const passNumEl = document.getElementById('core-passport-num') as HTMLInputElement | null;
-  const passCountryEl = document.getElementById('core-passport-country') as HTMLInputElement | null;
-  const passExpiryEl = document.getElementById('core-passport-expiry') as HTMLInputElement | null;
-  const passIssueEl = document.getElementById('core-passport-issue-date') as HTMLInputElement | null;
-  const passNatEl = document.getElementById('core-passport-nationality') as HTMLInputElement | null;
-
-  if (passNumEl) passNumEl.value = pass?.passportNumber || '';
-  if (passCountryEl) passCountryEl.value = pass?.issuingCountry || '';
-  if (passExpiryEl) passExpiryEl.value = pass?.expiryDate || '';
-  if (passIssueEl) passIssueEl.value = pass?.issueDate || '';
-  if (passNatEl) passNatEl.value = pass?.nationality || p.nationality || p.citizenship || '';
+  setVal('core-passport-num', pass?.passportNumber);
+  setVal('core-passport-country', pass?.issuingCountry);
+  setVal('core-passport-expiry', pass?.expiryDate);
+  setVal('core-passport-issue-date', pass?.issueDate);
+  setVal('core-passport-nationality', pass?.nationality || p.nationality || p.citizenship);
 }
 
-async function savePersonal(): Promise<void> {
+function syncPassportFromDom(): void {
   if (!activeProfileData) return;
-  const p = activeProfileData.personal;
-  p.firstName = (document.getElementById('core-first-name') as HTMLInputElement).value.trim();
-  p.middleName = (document.getElementById('core-middle-name') as HTMLInputElement).value.trim() || undefined;
-  p.lastName = (document.getElementById('core-last-name') as HTMLInputElement).value.trim();
-  p.fullName = (document.getElementById('core-full-name') as HTMLInputElement).value.trim() || undefined;
-  p.preferredName = (document.getElementById('core-preferred-name') as HTMLInputElement).value.trim() || undefined;
-  p.email = (document.getElementById('core-email') as HTMLInputElement).value.trim();
-
-  // Save phone as structured PhoneDetails
-  const phoneCc = ((document.getElementById('core-phone-cc') as HTMLInputElement)?.value || '+1').trim();
-  const phoneNum = ((document.getElementById('core-phone-num') as HTMLInputElement)?.value || '').trim();
-  const normalizedCc = phoneCc.startsWith('+') ? phoneCc : `+${phoneCc}`;
-  if (phoneNum) {
-    p.phone = {
-      countryCode: normalizedCc,
-      number: phoneNum,
-      formatted: `${normalizedCc} ${phoneNum}`,
-    };
-  } else {
-    p.phone = '';
-  }
-
-  // Save alternate phone
-  const altCc = ((document.getElementById('core-alt-phone-cc') as HTMLInputElement)?.value || '+1').trim();
-  const altNum = ((document.getElementById('core-alt-phone-num') as HTMLInputElement)?.value || '').trim();
-  const normalizedAltCc = altCc.startsWith('+') ? altCc : `+${altCc}`;
-  if (altNum) {
-    p.alternatePhone = {
-      countryCode: normalizedAltCc,
-      number: altNum,
-      formatted: `${normalizedAltCc} ${altNum}`,
-    };
-  } else {
-    p.alternatePhone = undefined;
-  }
-
-  p.universityEmail = (document.getElementById('core-univ-email') as HTMLInputElement).value.trim() || undefined;
-  p.location = (document.getElementById('core-address') as HTMLInputElement).value.trim();
-  p.permanentAddress = (document.getElementById('core-permanent-address') as HTMLInputElement).value.trim() || undefined;
-  p.nationality = (document.getElementById('core-nationality') as HTMLInputElement).value.trim() || undefined;
-
-  // Also sync passport details from form
-  const passNum = (document.getElementById('core-passport-num') as HTMLInputElement)?.value.trim() || '';
-  const passCountry = (document.getElementById('core-passport-country') as HTMLInputElement)?.value.trim() || '';
-  const passExpiry = (document.getElementById('core-passport-expiry') as HTMLInputElement)?.value || undefined;
-  const passIssue = (document.getElementById('core-passport-issue-date') as HTMLInputElement)?.value || undefined;
-  const passNat = (document.getElementById('core-passport-nationality') as HTMLInputElement)?.value.trim() || undefined;
+  const passNum = getVal('core-passport-num');
+  const passCountry = getVal('core-passport-country');
+  const passExpiry = getOptVal('core-passport-expiry');
+  const passIssue = getOptVal('core-passport-issue-date');
+  const passNat = getOptVal('core-passport-nationality');
 
   if (passNum || passCountry || passExpiry || passIssue || passNat) {
     activeProfileData.passport = {
@@ -354,6 +315,36 @@ async function savePersonal(): Promise<void> {
   } else {
     activeProfileData.passport = undefined;
   }
+}
+
+async function savePersonal(): Promise<void> {
+  if (!activeProfileData) return;
+  const p = activeProfileData.personal;
+  p.firstName = getVal('core-first-name');
+  p.middleName = getOptVal('core-middle-name');
+  p.lastName = getVal('core-last-name');
+  p.fullName = getOptVal('core-full-name');
+  p.preferredName = getOptVal('core-preferred-name');
+  p.email = getVal('core-email');
+
+  // Save phone as structured PhoneDetails
+  const phoneCc = getVal('core-phone-cc') || '+1';
+  const phoneNum = getVal('core-phone-num');
+  const normalizedCc = phoneCc.startsWith('+') ? phoneCc : `+${phoneCc}`;
+  p.phone = phoneNum ? { countryCode: normalizedCc, number: phoneNum, formatted: `${normalizedCc} ${phoneNum}` } : '';
+
+  // Save alternate phone
+  const altCc = getVal('core-alt-phone-cc') || '+1';
+  const altNum = getVal('core-alt-phone-num');
+  const normalizedAltCc = altCc.startsWith('+') ? altCc : `+${altCc}`;
+  p.alternatePhone = altNum ? { countryCode: normalizedAltCc, number: altNum, formatted: `${normalizedAltCc} ${altNum}` } : undefined;
+
+  p.universityEmail = getOptVal('core-univ-email');
+  p.location = getVal('core-address');
+  p.permanentAddress = getOptVal('core-permanent-address');
+  p.nationality = getOptVal('core-nationality');
+
+  syncPassportFromDom();
 
   await saveUserProfile(activeProfileData);
   showToast('✓ Personal details saved');
@@ -361,24 +352,7 @@ async function savePersonal(): Promise<void> {
 
 async function savePassport(): Promise<void> {
   if (!activeProfileData) return;
-  const passNum = (document.getElementById('core-passport-num') as HTMLInputElement)?.value.trim() || '';
-  const passCountry = (document.getElementById('core-passport-country') as HTMLInputElement)?.value.trim() || '';
-  const passExpiry = (document.getElementById('core-passport-expiry') as HTMLInputElement)?.value || undefined;
-  const passIssue = (document.getElementById('core-passport-issue-date') as HTMLInputElement)?.value || undefined;
-  const passNat = (document.getElementById('core-passport-nationality') as HTMLInputElement)?.value.trim() || undefined;
-
-  if (passNum || passCountry || passExpiry || passIssue || passNat) {
-    activeProfileData.passport = {
-      passportNumber: passNum,
-      issuingCountry: passCountry,
-      expiryDate: passExpiry,
-      issueDate: passIssue,
-      nationality: passNat,
-    };
-  } else {
-    activeProfileData.passport = undefined;
-  }
-
+  syncPassportFromDom();
   await saveUserProfile(activeProfileData);
   showToast('✓ Passport details saved (Protected)');
 }
@@ -386,18 +360,17 @@ async function savePassport(): Promise<void> {
 async function saveLinks(): Promise<void> {
   if (!activeProfileData) return;
   if (!activeProfileData.professional) activeProfileData.professional = {};
-  activeProfileData.professional.linkedin = (document.getElementById('core-linkedin') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.github = (document.getElementById('core-github') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.portfolio = (document.getElementById('core-portfolio') as HTMLInputElement)?.value.trim() || undefined;
-
-  // Social Links
-  activeProfileData.professional.twitter = (document.getElementById('core-twitter') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.youtube = (document.getElementById('core-youtube') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.instagram = (document.getElementById('core-instagram') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.facebook = (document.getElementById('core-facebook') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.threads = (document.getElementById('core-threads') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.bluesky = (document.getElementById('core-bluesky') as HTMLInputElement)?.value.trim() || undefined;
-  activeProfileData.professional.medium = (document.getElementById('core-medium') as HTMLInputElement)?.value.trim() || undefined;
+  const prof = activeProfileData.professional;
+  prof.linkedin = getOptVal('core-linkedin');
+  prof.github = getOptVal('core-github');
+  prof.portfolio = getOptVal('core-portfolio');
+  prof.twitter = getOptVal('core-twitter');
+  prof.youtube = getOptVal('core-youtube');
+  prof.instagram = getOptVal('core-instagram');
+  prof.facebook = getOptVal('core-facebook');
+  prof.threads = getOptVal('core-threads');
+  prof.bluesky = getOptVal('core-bluesky');
+  prof.medium = getOptVal('core-medium');
 
   await saveUserProfile(activeProfileData);
   showToast('✓ Professional and social links saved');
@@ -469,11 +442,11 @@ function populateEducationList(): void {
 function openEducationModal(): void {
   const modal = document.getElementById('edu-modal');
   if (!modal) return;
-  (document.getElementById('edu-modal-title-input') as HTMLInputElement).value = '';
-  (document.getElementById('edu-modal-school') as HTMLInputElement).value = '';
-  (document.getElementById('edu-modal-score') as HTMLInputElement).value = '';
-  (document.getElementById('edu-modal-year') as HTMLInputElement).value = '';
-  (document.getElementById('edu-modal-level') as HTMLSelectElement).value = 'undergraduate';
+  setVal('edu-modal-title-input', '');
+  setVal('edu-modal-school', '');
+  setVal('edu-modal-score', '');
+  setVal('edu-modal-year', '');
+  setVal('edu-modal-level', 'undergraduate');
   modal.classList.add('active');
 }
 
@@ -496,19 +469,13 @@ function setupEducationModalEvents(): void {
     if (!activeProfileData) return;
     if (!activeProfileData.educationHistory) activeProfileData.educationHistory = [];
 
-    const level = (document.getElementById('edu-modal-level') as HTMLSelectElement).value;
-    const title = (document.getElementById('edu-modal-title-input') as HTMLInputElement).value.trim();
-    const school = (document.getElementById('edu-modal-school') as HTMLInputElement).value.trim();
-    const score = (document.getElementById('edu-modal-score') as HTMLInputElement).value.trim();
-    const year = (document.getElementById('edu-modal-year') as HTMLInputElement).value.trim();
-
     const rec: EducationRecord = {
       id: `edu_${Date.now()}`,
-      level: level as any,
-      qualificationTitle: title,
-      schoolOrInstitution: school,
-      scoreValue: score,
-      yearOfPassing: year,
+      level: getVal('edu-modal-level') as any,
+      qualificationTitle: getVal('edu-modal-title-input'),
+      schoolOrInstitution: getVal('edu-modal-school'),
+      scoreValue: getVal('edu-modal-score'),
+      yearOfPassing: getVal('edu-modal-year'),
       resultStatus: 'passed',
     };
 
@@ -667,35 +634,25 @@ function populateCertificationsList(): void {
 function openCertificationModal(certId?: string): void {
   const modal = document.getElementById('cert-modal');
   if (!modal) return;
-  const idInput = document.getElementById('cert-modal-id') as HTMLInputElement;
-  const nameInput = document.getElementById('cert-modal-name') as HTMLInputElement;
-  const issuerInput = document.getElementById('cert-modal-issuer') as HTMLInputElement;
-  const examInput = document.getElementById('cert-modal-exam-code') as HTMLInputElement;
-  const credIdInput = document.getElementById('cert-modal-credential-id') as HTMLInputElement;
-  const scoreInput = document.getElementById('cert-modal-score') as HTMLInputElement;
-  const urlInput = document.getElementById('cert-modal-verification-url') as HTMLInputElement;
-  const issueInput = document.getElementById('cert-modal-issue-date') as HTMLInputElement;
-  const expiryInput = document.getElementById('cert-modal-expiry-date') as HTMLInputElement;
-  const noExpireCheckbox = document.getElementById('cert-modal-no-expire') as HTMLInputElement;
-  const skillsInput = document.getElementById('cert-modal-skills') as HTMLInputElement;
   const titleEl = document.getElementById('cert-modal-title');
+  const expiryEl = document.getElementById('cert-modal-expiry-date') as HTMLInputElement | null;
 
   if (certId && activeProfileData?.certifications) {
     const existing = activeProfileData.certifications.find(c => c.id === certId);
     if (existing) {
       if (titleEl) titleEl.textContent = 'Edit Certification / License';
-      idInput.value = existing.id;
-      nameInput.value = existing.name;
-      issuerInput.value = existing.issuer;
-      examInput.value = existing.examCode || '';
-      credIdInput.value = existing.credentialId || '';
-      scoreInput.value = existing.scoreOrGrade || '';
-      urlInput.value = existing.verificationUrl || '';
-      issueInput.value = existing.issueDate || '';
-      expiryInput.value = existing.expiryDate || '';
-      noExpireCheckbox.checked = Boolean(existing.doesNotExpire);
-      expiryInput.disabled = Boolean(existing.doesNotExpire);
-      skillsInput.value = (existing.skillsCovered || []).join(', ');
+      setVal('cert-modal-id', existing.id);
+      setVal('cert-modal-name', existing.name);
+      setVal('cert-modal-issuer', existing.issuer);
+      setVal('cert-modal-exam-code', existing.examCode || '');
+      setVal('cert-modal-credential-id', existing.credentialId || '');
+      setVal('cert-modal-score', existing.scoreOrGrade || '');
+      setVal('cert-modal-verification-url', existing.verificationUrl || '');
+      setVal('cert-modal-issue-date', existing.issueDate || '');
+      setVal('cert-modal-expiry-date', existing.expiryDate || '');
+      setChecked('cert-modal-no-expire', Boolean(existing.doesNotExpire));
+      if (expiryEl) expiryEl.disabled = Boolean(existing.doesNotExpire);
+      setVal('cert-modal-skills', (existing.skillsCovered || []).join(', '));
       currentCertModalAliases = [...(existing.issuerAliases || [])];
       renderCertModalAliases();
       modal.classList.add('active');
@@ -704,18 +661,18 @@ function openCertificationModal(certId?: string): void {
   }
 
   if (titleEl) titleEl.textContent = 'Add Certification / License';
-  idInput.value = '';
-  nameInput.value = '';
-  issuerInput.value = '';
-  examInput.value = '';
-  credIdInput.value = '';
-  scoreInput.value = '';
-  urlInput.value = '';
-  issueInput.value = '';
-  expiryInput.value = '';
-  expiryInput.disabled = false;
-  noExpireCheckbox.checked = false;
-  skillsInput.value = '';
+  setVal('cert-modal-id', '');
+  setVal('cert-modal-name', '');
+  setVal('cert-modal-issuer', '');
+  setVal('cert-modal-exam-code', '');
+  setVal('cert-modal-credential-id', '');
+  setVal('cert-modal-score', '');
+  setVal('cert-modal-verification-url', '');
+  setVal('cert-modal-issue-date', '');
+  setVal('cert-modal-expiry-date', '');
+  if (expiryEl) expiryEl.disabled = false;
+  setChecked('cert-modal-no-expire', false);
+  setVal('cert-modal-skills', '');
   currentCertModalAliases = [];
   renderCertModalAliases();
   modal.classList.add('active');
@@ -761,18 +718,9 @@ function setupCertificationModalEvents(): void {
     if (!activeProfileData) return;
     if (!activeProfileData.certifications) activeProfileData.certifications = [];
 
-    const idInput = (document.getElementById('cert-modal-id') as HTMLInputElement).value.trim();
-    const name = (document.getElementById('cert-modal-name') as HTMLInputElement).value.trim();
-    const issuer = (document.getElementById('cert-modal-issuer') as HTMLInputElement).value.trim();
-    const examCode = (document.getElementById('cert-modal-exam-code') as HTMLInputElement).value.trim() || undefined;
-    const credentialId = (document.getElementById('cert-modal-credential-id') as HTMLInputElement).value.trim() || undefined;
-    const scoreOrGrade = (document.getElementById('cert-modal-score') as HTMLInputElement).value.trim() || undefined;
-    const verificationUrl = (document.getElementById('cert-modal-verification-url') as HTMLInputElement).value.trim() || undefined;
-    const issueDate = (document.getElementById('cert-modal-issue-date') as HTMLInputElement).value.trim();
-    const doesNotExpire = Boolean(noExpireCheckbox?.checked);
-    const expiryDate = doesNotExpire ? undefined : ((document.getElementById('cert-modal-expiry-date') as HTMLInputElement).value.trim() || undefined);
-    const rawSkills = (document.getElementById('cert-modal-skills') as HTMLInputElement).value.trim();
-    const skillsCovered = rawSkills ? rawSkills.split(',').map(s => s.trim()).filter(Boolean) : undefined;
+    const idInput = getVal('cert-modal-id');
+    const doesNotExpire = getChecked('cert-modal-no-expire');
+    const rawSkills = getVal('cert-modal-skills');
 
     if (aliasInput && aliasInput.value.trim()) {
       addCertAliasFromInput();
@@ -780,17 +728,17 @@ function setupCertificationModalEvents(): void {
 
     const certRecord: CertificationRecord = {
       id: idInput || `cert_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      name,
-      issuer,
+      name: getVal('cert-modal-name'),
+      issuer: getVal('cert-modal-issuer'),
       issuerAliases: [...currentCertModalAliases],
-      examCode,
-      credentialId,
-      verificationUrl,
-      issueDate,
-      expiryDate,
+      examCode: getOptVal('cert-modal-exam-code'),
+      credentialId: getOptVal('cert-modal-credential-id'),
+      verificationUrl: getOptVal('cert-modal-verification-url'),
+      issueDate: getVal('cert-modal-issue-date'),
+      expiryDate: doesNotExpire ? undefined : getOptVal('cert-modal-expiry-date'),
       doesNotExpire,
-      scoreOrGrade,
-      skillsCovered,
+      scoreOrGrade: getOptVal('cert-modal-score'),
+      skillsCovered: rawSkills ? rawSkills.split(',').map(s => s.trim()).filter(Boolean) : undefined,
     };
 
     if (idInput) {
@@ -967,12 +915,12 @@ async function saveCompensation(): Promise<void> {
     };
   }
 
-  const notice = parseInt((document.getElementById('comp-notice-days') as HTMLInputElement).value, 10);
-  const currentCtc = parseFloat((document.getElementById('comp-current-ctc') as HTMLInputElement).value);
-  const expCtc = parseFloat((document.getElementById('comp-expected-ctc') as HTMLInputElement).value);
-  const curr = (document.getElementById('comp-currency') as HTMLSelectElement).value;
-  const neg = (document.getElementById('comp-negotiable') as HTMLSelectElement).value === 'true';
-  const pref = (document.getElementById('comp-work-pref') as HTMLSelectElement).value as any;
+  const notice = parseInt(getVal('comp-notice-days'), 10);
+  const currentCtc = parseFloat(getVal('comp-current-ctc'));
+  const expCtc = parseFloat(getVal('comp-expected-ctc'));
+  const curr = getVal('comp-currency');
+  const neg = getVal('comp-negotiable') === 'true';
+  const pref = getVal('comp-work-pref') as any;
 
   if (!activeProfileData.professional) activeProfileData.professional = {};
   if (!isNaN(notice)) {
@@ -993,39 +941,29 @@ async function saveCompensation(): Promise<void> {
 function openJobModal(idx?: number, defaultType: string = 'full_time'): void {
   const modal = document.getElementById('job-modal');
   const titleEl = document.getElementById('job-modal-title');
-  const editIdxInput = document.getElementById('job-edit-idx') as HTMLInputElement;
-  const typeSelect = document.getElementById('job-type') as HTMLSelectElement;
-  const companyInput = document.getElementById('job-company') as HTMLInputElement;
-  const titleInput = document.getElementById('job-title') as HTMLInputElement;
-  const startInput = document.getElementById('job-start') as HTMLInputElement;
-  const endInput = document.getElementById('job-end') as HTMLInputElement;
-  const currentCheckbox = document.getElementById('job-current') as HTMLInputElement;
-  const countsCheckbox = document.getElementById('job-counts-exp') as HTMLInputElement;
-
   if (!modal) return;
 
   if (idx !== undefined && idx >= 0 && activeProfileData?.employmentHistory?.[idx]) {
     const job = activeProfileData.employmentHistory[idx];
     if (titleEl) titleEl.textContent = 'Edit Record';
-    editIdxInput.value = String(idx);
-    typeSelect.value = job.employmentType || 'full_time';
-    companyInput.value = job.employerName || '';
-    titleInput.value = job.jobTitle || '';
-    startInput.value = job.startDate || '';
-    endInput.value = job.endDate || '';
-    currentCheckbox.checked = Boolean(job.currentlyEmployed);
-    countsCheckbox.checked = job.countsTowardsExperience !== false;
+    setVal('job-edit-idx', idx);
+    setVal('job-type', job.employmentType || 'full_time');
+    setVal('job-company', job.employerName || '');
+    setVal('job-title', job.jobTitle || '');
+    setVal('job-start', job.startDate || '');
+    setVal('job-end', job.endDate || '');
+    setChecked('job-current', Boolean(job.currentlyEmployed));
+    setChecked('job-counts-exp', job.countsTowardsExperience !== false);
   } else {
     if (titleEl) titleEl.textContent = defaultType === 'internship' ? 'Add Internship' : 'Add Employment';
-    editIdxInput.value = '-1';
-    typeSelect.value = defaultType;
-    companyInput.value = '';
-    titleInput.value = '';
-    startInput.value = '';
-    endInput.value = '';
-    currentCheckbox.checked = false;
-    // Default: internships and open-source roles do not count towards work experience by default
-    countsCheckbox.checked = defaultType !== 'internship' && defaultType !== 'open_source';
+    setVal('job-edit-idx', '-1');
+    setVal('job-type', defaultType);
+    setVal('job-company', '');
+    setVal('job-title', '');
+    setVal('job-start', '');
+    setVal('job-end', '');
+    setChecked('job-current', false);
+    setChecked('job-counts-exp', defaultType !== 'internship' && defaultType !== 'open_source');
   }
 
   modal.classList.add('active');
@@ -1041,7 +979,6 @@ function setupJobModalEvents(): void {
   const cancelBtn = document.getElementById('job-cancel');
   const typeSelect = document.getElementById('job-type') as HTMLSelectElement;
   const countsCheckbox = document.getElementById('job-counts-exp') as HTMLInputElement;
-  const editIdxInput = document.getElementById('job-edit-idx') as HTMLInputElement;
 
   cancelBtn?.addEventListener('click', closeJobModal);
   modal?.addEventListener('click', (e) => {
@@ -1049,10 +986,9 @@ function setupJobModalEvents(): void {
   });
 
   typeSelect?.addEventListener('change', () => {
-    // If adding a new record, automatically adjust counts checkbox based on selected type
-    if (editIdxInput.value === '-1') {
+    if (getVal('job-edit-idx') === '-1') {
       const selectedType = typeSelect.value;
-      countsCheckbox.checked = selectedType !== 'internship' && selectedType !== 'open_source';
+      setChecked('job-counts-exp', selectedType !== 'internship' && selectedType !== 'open_source');
     }
   });
 
@@ -1061,14 +997,14 @@ function setupJobModalEvents(): void {
     if (!activeProfileData) return;
     if (!activeProfileData.employmentHistory) activeProfileData.employmentHistory = [];
 
-    const idx = parseInt(editIdxInput.value, 10);
-    const type = typeSelect.value as DetailedEmploymentRecord['employmentType'];
-    const company = (document.getElementById('job-company') as HTMLInputElement).value.trim();
-    const title = (document.getElementById('job-title') as HTMLInputElement).value.trim();
-    const start = (document.getElementById('job-start') as HTMLInputElement).value.trim();
-    const current = (document.getElementById('job-current') as HTMLInputElement).checked;
-    const end = current ? undefined : (document.getElementById('job-end') as HTMLInputElement).value.trim() || undefined;
-    const counts = countsCheckbox.checked;
+    const idx = parseInt(getVal('job-edit-idx'), 10);
+    const type = getVal('job-type') as DetailedEmploymentRecord['employmentType'];
+    const company = getVal('job-company');
+    const title = getVal('job-title');
+    const start = getVal('job-start');
+    const current = getChecked('job-current');
+    const end = current ? undefined : getOptVal('job-end');
+    const counts = getChecked('job-counts-exp');
 
     if (!company || !title) {
       showToast('Please provide both employer name and title');
@@ -1110,20 +1046,11 @@ function openExpOverrideModal(): void {
   );
 
   const overrides = activeProfileData.experienceOverrides;
-  (document.getElementById('override-total-exp') as HTMLInputElement).value = String(
-    overrides?.totalExperienceYears ?? derived.totalExperienceYears
-  );
-  (document.getElementById('override-fulltime-exp') as HTMLInputElement).value = String(
-    overrides?.fullTimeYears ?? derived.fullTimeYears
-  );
-  (document.getElementById('override-tenure') as HTMLInputElement).value = String(
-    overrides?.currentEmployerTenureYears ?? derived.currentEmployerTenureYears
-  );
-  (document.getElementById('override-employers') as HTMLInputElement).value = String(
-    overrides?.totalEmployersCount ?? derived.totalEmployersCount
-  );
-  (document.getElementById('override-display-text') as HTMLInputElement).value =
-    overrides?.displayTotalExperience ?? (derived.isOverridden ? derived.displayTotalExperience : '');
+  setVal('override-total-exp', overrides?.totalExperienceYears ?? derived.totalExperienceYears);
+  setVal('override-fulltime-exp', overrides?.fullTimeYears ?? derived.fullTimeYears);
+  setVal('override-tenure', overrides?.currentEmployerTenureYears ?? derived.currentEmployerTenureYears);
+  setVal('override-employers', overrides?.totalEmployersCount ?? derived.totalEmployersCount);
+  setVal('override-display-text', overrides?.displayTotalExperience ?? (derived.isOverridden ? derived.displayTotalExperience : ''));
 
   modal.classList.add('active');
 }
@@ -1147,11 +1074,11 @@ function setupExpOverrideModalEvents(): void {
   });
 
   fresherBtn?.addEventListener('click', () => {
-    (document.getElementById('override-total-exp') as HTMLInputElement).value = '0';
-    (document.getElementById('override-fulltime-exp') as HTMLInputElement).value = '0';
-    (document.getElementById('override-tenure') as HTMLInputElement).value = '0';
-    (document.getElementById('override-employers') as HTMLInputElement).value = '0';
-    (document.getElementById('override-display-text') as HTMLInputElement).value = '0 years (Fresher)';
+    setVal('override-total-exp', 0);
+    setVal('override-fulltime-exp', 0);
+    setVal('override-tenure', 0);
+    setVal('override-employers', 0);
+    setVal('override-display-text', '0 years (Fresher)');
   });
 
   resetBtn?.addEventListener('click', async () => {
@@ -1167,11 +1094,11 @@ function setupExpOverrideModalEvents(): void {
     e.preventDefault();
     if (!activeProfileData) return;
 
-    const total = parseFloat((document.getElementById('override-total-exp') as HTMLInputElement).value);
-    const ft = parseFloat((document.getElementById('override-fulltime-exp') as HTMLInputElement).value);
-    const tenure = parseFloat((document.getElementById('override-tenure') as HTMLInputElement).value);
-    const emps = parseInt((document.getElementById('override-employers') as HTMLInputElement).value, 10);
-    const customDisplay = (document.getElementById('override-display-text') as HTMLInputElement).value.trim();
+    const total = parseFloat(getVal('override-total-exp'));
+    const ft = parseFloat(getVal('override-fulltime-exp'));
+    const tenure = parseFloat(getVal('override-tenure'));
+    const emps = parseInt(getVal('override-employers'), 10);
+    const customDisplay = getVal('override-display-text');
 
     activeProfileData.experienceOverrides = {
       isOverridden: true,
@@ -1241,10 +1168,9 @@ function populateWorkPreferencesForm(): void {
   const wp = activeProfileData.workPreferences || createDefaultWorkPreferences();
 
   const types = wp.workplaceTypes || [];
-  (document.getElementById('wp-type-remote') as HTMLInputElement).checked = types.includes('remote');
-  (document.getElementById('wp-type-hybrid') as HTMLInputElement).checked = types.includes('hybrid');
-  (document.getElementById('wp-type-onsite') as HTMLInputElement).checked = types.includes('onsite');
-  (document.getElementById('wp-type-flexible') as HTMLInputElement).checked = types.includes('flexible');
+  (['remote', 'hybrid', 'onsite', 'flexible'] as const).forEach(t =>
+    setChecked(`wp-type-${t}`, types.includes(t))
+  );
 
   currentPreferredLocations = [...(wp.preferredLocations || [])];
   renderCityTags();
@@ -1253,19 +1179,18 @@ function populateWorkPreferencesForm(): void {
   const relocateVal = typeof wp.willingToRelocate === 'boolean' 
     ? (wp.willingToRelocate ? 'true' : 'false') 
     : (wp.willingToRelocate || 'false');
-  (document.getElementById('wp-relocate') as HTMLSelectElement).value = String(relocateVal);
-  (document.getElementById('wp-relocate-assist') as HTMLInputElement).checked = Boolean(wp.relocationAssistanceRequired);
+  setVal('wp-relocate', String(relocateVal));
+  setChecked('wp-relocate-assist', Boolean(wp.relocationAssistanceRequired));
 
   // Travel
-  (document.getElementById('wp-travel-willing') as HTMLInputElement).checked = Boolean(wp.willingToTravel);
-  (document.getElementById('wp-travel-pct') as HTMLInputElement).value = String(wp.travelPercentage ?? '');
+  setChecked('wp-travel-willing', Boolean(wp.willingToTravel));
+  setVal('wp-travel-pct', wp.travelPercentage ?? '');
 
   // Earliest start (numeric days)
   const startDays = wp.earliestStartDays !== undefined 
     ? wp.earliestStartDays 
     : (wp.earliestStartDate && !isNaN(parseInt(wp.earliestStartDate, 10)) ? parseInt(wp.earliestStartDate, 10) : 0);
-  const startDaysEl = document.getElementById('wp-earliest-start-days') as HTMLInputElement | null;
-  if (startDaysEl) startDaysEl.value = String(startDays);
+  setVal('wp-earliest-start-days', startDays);
   updateStartDaysDisplay(startDays);
 
   // Employment types
@@ -1279,20 +1204,20 @@ function populateWorkPreferencesForm(): void {
   document.querySelectorAll<HTMLInputElement>('.wp-shift').forEach(cb => {
     cb.checked = shifts.includes(cb.value as any);
   });
-  (document.getElementById('wp-overtime') as HTMLInputElement).checked = Boolean(wp.overtimeWilling);
+  setChecked('wp-overtime', Boolean(wp.overtimeWilling));
 
   // Targets
-  (document.getElementById('wp-target-roles') as HTMLInputElement).value = (wp.targetRoleTitles || []).join(', ');
-  (document.getElementById('wp-target-industries') as HTMLInputElement).value = (wp.targetIndustries || []).join(', ');
+  setVal('wp-target-roles', (wp.targetRoleTitles || []).join(', '));
+  setVal('wp-target-industries', (wp.targetIndustries || []).join(', '));
 
   // Salary
-  (document.getElementById('wp-min-salary') as HTMLInputElement).value = String(wp.minimumAcceptableSalary ?? '');
-  (document.getElementById('wp-target-salary') as HTMLInputElement).value = String(wp.targetSalary ?? '');
-  (document.getElementById('wp-salary-currency') as HTMLSelectElement).value = wp.salaryCurrency || 'USD';
-  (document.getElementById('wp-salary-period') as HTMLSelectElement).value = wp.salaryPeriod || 'annual';
+  setVal('wp-min-salary', wp.minimumAcceptableSalary ?? '');
+  setVal('wp-target-salary', wp.targetSalary ?? '');
+  setVal('wp-salary-currency', wp.salaryCurrency || 'USD');
+  setVal('wp-salary-period', wp.salaryPeriod || 'annual');
 
   // Notes
-  (document.getElementById('wp-notes') as HTMLTextAreaElement).value = wp.notes || '';
+  setVal('wp-notes', wp.notes || '');
 }
 
 async function saveWorkPreferences(): Promise<void> {
@@ -1302,56 +1227,40 @@ async function saveWorkPreferences(): Promise<void> {
   }
   const wp = activeProfileData.workPreferences;
 
-  const types: Array<'remote' | 'hybrid' | 'onsite' | 'flexible'> = [];
-  if ((document.getElementById('wp-type-remote') as HTMLInputElement).checked) types.push('remote');
-  if ((document.getElementById('wp-type-hybrid') as HTMLInputElement).checked) types.push('hybrid');
-  if ((document.getElementById('wp-type-onsite') as HTMLInputElement).checked) types.push('onsite');
-  if ((document.getElementById('wp-type-flexible') as HTMLInputElement).checked) types.push('flexible');
-  wp.workplaceTypes = types;
-
+  wp.workplaceTypes = (['remote', 'hybrid', 'onsite', 'flexible'] as const).filter(t => getChecked(`wp-type-${t}`));
   wp.preferredLocations = [...currentPreferredLocations];
 
-  const relocVal = (document.getElementById('wp-relocate') as HTMLSelectElement).value;
+  const relocVal = getVal('wp-relocate');
   wp.willingToRelocate = relocVal === 'true' ? true : relocVal === 'false' ? false : (relocVal as any);
-  wp.relocationAssistanceRequired = (document.getElementById('wp-relocate-assist') as HTMLInputElement).checked;
+  wp.relocationAssistanceRequired = getChecked('wp-relocate-assist');
 
-  wp.willingToTravel = (document.getElementById('wp-travel-willing') as HTMLInputElement).checked;
-  const travelPct = parseInt((document.getElementById('wp-travel-pct') as HTMLInputElement).value, 10);
+  wp.willingToTravel = getChecked('wp-travel-willing');
+  const travelPct = parseInt(getVal('wp-travel-pct'), 10);
   wp.travelPercentage = isNaN(travelPct) ? undefined : travelPct;
 
-  const startDaysInput = document.getElementById('wp-earliest-start-days') as HTMLInputElement | null;
-  const startDaysVal = startDaysInput ? parseInt(startDaysInput.value, 10) : 0;
+  const startDaysVal = parseInt(getVal('wp-earliest-start-days'), 10);
   wp.earliestStartDays = isNaN(startDaysVal) ? 0 : Math.max(0, startDaysVal);
   wp.earliestStartDate = wp.earliestStartDays === 0 ? 'Immediately' : `${wp.earliestStartDays} days`;
 
-  const empTypes: Array<any> = [];
-  document.querySelectorAll<HTMLInputElement>('.wp-emp-type:checked').forEach(cb => {
-    empTypes.push(cb.value);
-  });
-  wp.employmentTypes = empTypes;
+  wp.employmentTypes = Array.from(document.querySelectorAll<HTMLInputElement>('.wp-emp-type:checked')).map(cb => cb.value as any);
+  wp.shiftPreferences = Array.from(document.querySelectorAll<HTMLInputElement>('.wp-shift:checked')).map(cb => cb.value as any);
+  wp.overtimeWilling = getChecked('wp-overtime');
 
-  const shifts: Array<any> = [];
-  document.querySelectorAll<HTMLInputElement>('.wp-shift:checked').forEach(cb => {
-    shifts.push(cb.value);
-  });
-  wp.shiftPreferences = shifts;
-  wp.overtimeWilling = (document.getElementById('wp-overtime') as HTMLInputElement).checked;
-
-  const rolesStr = (document.getElementById('wp-target-roles') as HTMLInputElement).value.trim();
+  const rolesStr = getVal('wp-target-roles');
   wp.targetRoleTitles = rolesStr ? rolesStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
-  const indStr = (document.getElementById('wp-target-industries') as HTMLInputElement).value.trim();
+  const indStr = getVal('wp-target-industries');
   wp.targetIndustries = indStr ? indStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
-  const minSal = parseFloat((document.getElementById('wp-min-salary') as HTMLInputElement).value);
+  const minSal = parseFloat(getVal('wp-min-salary'));
   wp.minimumAcceptableSalary = isNaN(minSal) ? undefined : minSal;
 
-  const tgtSal = parseFloat((document.getElementById('wp-target-salary') as HTMLInputElement).value);
+  const tgtSal = parseFloat(getVal('wp-target-salary'));
   wp.targetSalary = isNaN(tgtSal) ? undefined : tgtSal;
 
-  wp.salaryCurrency = (document.getElementById('wp-salary-currency') as HTMLSelectElement).value;
-  wp.salaryPeriod = (document.getElementById('wp-salary-period') as HTMLSelectElement).value as any;
-  wp.notes = (document.getElementById('wp-notes') as HTMLTextAreaElement).value.trim() || undefined;
+  wp.salaryCurrency = getVal('wp-salary-currency');
+  wp.salaryPeriod = getVal('wp-salary-period') as any;
+  wp.notes = getOptVal('wp-notes');
 
   await saveUserProfile(activeProfileData);
   showToast('✓ Work Preferences saved');
@@ -1359,66 +1268,68 @@ async function saveWorkPreferences(): Promise<void> {
 
 // ── Screening & Legal Disclosures ──────────────────────────────────────────
 
+const CONSENT_FIELDS = [
+  ['scr-consent-whatsapp', 'consentWhatsApp'],
+  ['scr-consent-sms', 'consentSms'],
+  ['scr-consent-phone-calls', 'consentPhoneCalls'],
+  ['scr-consent-dnc-bypass', 'consentDncBypass'],
+  ['scr-consent-future-opps', 'consentFutureOpportunities'],
+  ['scr-consent-talent-sharing', 'consentTalentPoolSharing'],
+  ['scr-consent-bg-check', 'backgroundCheckConsent'],
+  ['scr-consent-ref-check', 'consentReferenceCheck'],
+  ['scr-consent-drug-screen', 'drugScreeningConsent'],
+  ['scr-consent-credit-check', 'consentCreditCheck'],
+  ['scr-consent-privacy', 'consentPrivacyPolicy'],
+  ['scr-consent-data-transfer', 'consentDataTransfer'],
+  ['scr-consent-terms', 'consentTermsOfService'],
+  ['scr-consent-esign', 'consentElectronicSignature'],
+  ['scr-consent-truth', 'consentAccurateInformation'],
+  ['scr-consent-at-will', 'consentAtWillEmployment'],
+  ['scr-consent-ai', 'consentArtificialIntelligence'],
+  ['scr-consent-eeo', 'consentEqualOpportunity'],
+] as const;
+
 function populateScreeningForm(): void {
   if (!activeProfileData) return;
   const scr = activeProfileData.legalDisclosures || createDefaultLegalAndDisclosures();
 
-  (document.getElementById('scr-over-18') as HTMLSelectElement).value = scr.over18 ? 'true' : 'false';
-  (document.getElementById('scr-authorized') as HTMLSelectElement).value = scr.legallyAuthorized ? 'true' : 'false';
-  (document.getElementById('scr-sponsorship') as HTMLSelectElement).value = scr.requiresSponsorship ? 'true' : 'false';
+  setVal('scr-over-18', scr.over18 ? 'true' : 'false');
+  setVal('scr-authorized', scr.legallyAuthorized ? 'true' : 'false');
+  setVal('scr-sponsorship', scr.requiresSponsorship ? 'true' : 'false');
 
-  (document.getElementById('scr-visa-status') as HTMLSelectElement).value = scr.visaStatus || 'US Citizen / Permanent Resident';
-  (document.getElementById('scr-sponsorship-timeline') as HTMLSelectElement).value = scr.sponsorshipTimeline || 'Not in foreseeable future';
+  setVal('scr-visa-status', scr.visaStatus || 'US Citizen / Permanent Resident');
+  setVal('scr-sponsorship-timeline', scr.sponsorshipTimeline || 'Not in foreseeable future');
 
-  (document.getElementById('scr-opt-stem') as HTMLInputElement).checked = Boolean(scr.optStemEligible);
-  (document.getElementById('scr-opt-months') as HTMLInputElement).value = String(scr.optMonthsRemaining ?? '');
+  setChecked('scr-opt-stem', Boolean(scr.optStemEligible));
+  setVal('scr-opt-months', scr.optMonthsRemaining ?? '');
 
-  (document.getElementById('scr-clearance') as HTMLSelectElement).value = scr.securityClearance || 'none';
-  (document.getElementById('scr-itar') as HTMLSelectElement).value = scr.itarCompliant ? 'true' : 'false';
+  setVal('scr-clearance', scr.securityClearance || 'none');
+  setVal('scr-itar', scr.itarCompliant ? 'true' : 'false');
 
-  (document.getElementById('scr-driver-license') as HTMLInputElement).checked = Boolean(scr.hasValidDriverLicense);
-  (document.getElementById('scr-driver-state') as HTMLInputElement).value = scr.driverLicenseState || '';
-  (document.getElementById('scr-clean-driving') as HTMLInputElement).checked = Boolean(scr.hasCleanDrivingRecord);
+  setChecked('scr-driver-license', Boolean(scr.hasValidDriverLicense));
+  setVal('scr-driver-state', scr.driverLicenseState || '');
+  setChecked('scr-clean-driving', Boolean(scr.hasCleanDrivingRecord));
 
-  (document.getElementById('scr-prev-employed') as HTMLSelectElement).value = scr.previouslyEmployedAtCompany ? 'true' : 'false';
-  (document.getElementById('scr-prev-employed-details') as HTMLInputElement).value = scr.previousEmploymentDetails || '';
+  setVal('scr-prev-employed', scr.previouslyEmployedAtCompany ? 'true' : 'false');
+  setVal('scr-prev-employed-details', scr.previousEmploymentDetails || '');
 
-  (document.getElementById('scr-relatives') as HTMLSelectElement).value = scr.hasRelativesAtCompany ? 'true' : 'false';
-  (document.getElementById('scr-relatives-details') as HTMLInputElement).value = scr.relativesDetails || '';
+  setVal('scr-relatives', scr.hasRelativesAtCompany ? 'true' : 'false');
+  setVal('scr-relatives-details', scr.relativesDetails || '');
 
-  (document.getElementById('scr-noncompete') as HTMLSelectElement).value = scr.hasNonCompeteOrRestrictions ? 'true' : 'false';
-  (document.getElementById('scr-noncompete-details') as HTMLInputElement).value = scr.nonCompeteDetails || '';
+  setVal('scr-noncompete', scr.hasNonCompeteOrRestrictions ? 'true' : 'false');
+  setVal('scr-noncompete-details', scr.nonCompeteDetails || '');
 
-  (document.getElementById('scr-bg-check') as HTMLSelectElement).value = scr.backgroundCheckConsent ? 'true' : 'false';
-  (document.getElementById('scr-drug-screen') as HTMLSelectElement).value = scr.drugScreeningConsent ? 'true' : 'false';
+  setVal('scr-bg-check', scr.backgroundCheckConsent ? 'true' : 'false');
+  setVal('scr-drug-screen', scr.drugScreeningConsent ? 'true' : 'false');
 
-  (document.getElementById('scr-referral-source') as HTMLSelectElement).value = scr.referralSource || 'LinkedIn';
-  (document.getElementById('scr-referrer-name') as HTMLInputElement).value = scr.referrerName || '';
-  (document.getElementById('scr-referrer-email') as HTMLInputElement).value = scr.referrerEmail || '';
+  setVal('scr-referral-source', scr.referralSource || 'LinkedIn');
+  setVal('scr-referrer-name', scr.referrerName || '');
+  setVal('scr-referrer-email', scr.referrerEmail || '');
 
   // Consents & Authorizations
-  const setCheck = (id: string, val: boolean | undefined) => {
-    const el = document.getElementById(id) as HTMLInputElement | null;
-    if (el) el.checked = val !== false;
-  };
-  setCheck('scr-consent-whatsapp', scr.consentWhatsApp);
-  setCheck('scr-consent-sms', scr.consentSms);
-  setCheck('scr-consent-phone-calls', scr.consentPhoneCalls);
-  setCheck('scr-consent-dnc-bypass', scr.consentDncBypass);
-  setCheck('scr-consent-future-opps', scr.consentFutureOpportunities);
-  setCheck('scr-consent-talent-sharing', scr.consentTalentPoolSharing);
-  setCheck('scr-consent-bg-check', scr.backgroundCheckConsent);
-  setCheck('scr-consent-ref-check', scr.consentReferenceCheck);
-  setCheck('scr-consent-drug-screen', scr.drugScreeningConsent);
-  setCheck('scr-consent-credit-check', scr.consentCreditCheck);
-  setCheck('scr-consent-privacy', scr.consentPrivacyPolicy);
-  setCheck('scr-consent-data-transfer', scr.consentDataTransfer);
-  setCheck('scr-consent-terms', scr.consentTermsOfService);
-  setCheck('scr-consent-esign', scr.consentElectronicSignature);
-  setCheck('scr-consent-truth', scr.consentAccurateInformation);
-  setCheck('scr-consent-at-will', scr.consentAtWillEmployment);
-  setCheck('scr-consent-ai', scr.consentArtificialIntelligence);
-  setCheck('scr-consent-eeo', scr.consentEqualOpportunity);
+  CONSENT_FIELDS.forEach(([id, prop]) => {
+    setChecked(id, (scr as any)[prop] !== false);
+  });
 }
 
 async function saveScreening(): Promise<void> {
@@ -1428,68 +1339,45 @@ async function saveScreening(): Promise<void> {
   }
   const scr = activeProfileData.legalDisclosures;
 
-  scr.over18 = (document.getElementById('scr-over-18') as HTMLSelectElement).value === 'true';
-  scr.legallyAuthorized = (document.getElementById('scr-authorized') as HTMLSelectElement).value === 'true';
-  scr.requiresSponsorship = (document.getElementById('scr-sponsorship') as HTMLSelectElement).value === 'true';
+  scr.over18 = getVal('scr-over-18') === 'true';
+  scr.legallyAuthorized = getVal('scr-authorized') === 'true';
+  scr.requiresSponsorship = getVal('scr-sponsorship') === 'true';
 
-  scr.visaStatus = (document.getElementById('scr-visa-status') as HTMLSelectElement).value;
-  scr.sponsorshipTimeline = (document.getElementById('scr-sponsorship-timeline') as HTMLSelectElement).value;
+  scr.visaStatus = getVal('scr-visa-status');
+  scr.sponsorshipTimeline = getVal('scr-sponsorship-timeline');
 
-  scr.optStemEligible = (document.getElementById('scr-opt-stem') as HTMLInputElement).checked;
-  const optMonths = parseInt((document.getElementById('scr-opt-months') as HTMLInputElement).value, 10);
+  scr.optStemEligible = getChecked('scr-opt-stem');
+  const optMonths = parseInt(getVal('scr-opt-months'), 10);
   scr.optMonthsRemaining = isNaN(optMonths) ? undefined : optMonths;
 
-  scr.securityClearance = (document.getElementById('scr-clearance') as HTMLSelectElement).value as any;
-  scr.itarCompliant = (document.getElementById('scr-itar') as HTMLSelectElement).value === 'true';
+  scr.securityClearance = getVal('scr-clearance') as any;
+  scr.itarCompliant = getVal('scr-itar') === 'true';
 
-  scr.hasValidDriverLicense = (document.getElementById('scr-driver-license') as HTMLInputElement).checked;
-  scr.driverLicenseState = (document.getElementById('scr-driver-state') as HTMLInputElement).value.trim() || undefined;
-  scr.hasCleanDrivingRecord = (document.getElementById('scr-clean-driving') as HTMLInputElement).checked;
+  scr.hasValidDriverLicense = getChecked('scr-driver-license');
+  scr.driverLicenseState = getOptVal('scr-driver-state');
+  scr.hasCleanDrivingRecord = getChecked('scr-clean-driving');
 
-  scr.previouslyEmployedAtCompany = (document.getElementById('scr-prev-employed') as HTMLSelectElement).value === 'true';
-  scr.previousEmploymentDetails = (document.getElementById('scr-prev-employed-details') as HTMLInputElement).value.trim() || undefined;
+  scr.previouslyEmployedAtCompany = getVal('scr-prev-employed') === 'true';
+  scr.previousEmploymentDetails = getOptVal('scr-prev-employed-details');
 
-  scr.hasRelativesAtCompany = (document.getElementById('scr-relatives') as HTMLSelectElement).value === 'true';
-  scr.relativesDetails = (document.getElementById('scr-relatives-details') as HTMLInputElement).value.trim() || undefined;
+  scr.hasRelativesAtCompany = getVal('scr-relatives') === 'true';
+  scr.relativesDetails = getOptVal('scr-relatives-details');
 
-  scr.hasNonCompeteOrRestrictions = (document.getElementById('scr-noncompete') as HTMLSelectElement).value === 'true';
-  scr.nonCompeteDetails = (document.getElementById('scr-noncompete-details') as HTMLInputElement).value.trim() || undefined;
+  scr.hasNonCompeteOrRestrictions = getVal('scr-noncompete') === 'true';
+  scr.nonCompeteDetails = getOptVal('scr-noncompete-details');
 
-  scr.referralSource = (document.getElementById('scr-referral-source') as HTMLSelectElement).value;
-  scr.referrerName = (document.getElementById('scr-referrer-name') as HTMLInputElement).value.trim() || undefined;
-  scr.referrerEmail = (document.getElementById('scr-referrer-email') as HTMLInputElement).value.trim() || undefined;
+  scr.referralSource = getVal('scr-referral-source');
+  scr.referrerName = getOptVal('scr-referrer-name');
+  scr.referrerEmail = getOptVal('scr-referrer-email');
 
   // Consents & Authorizations
-  const getCheck = (id: string, defVal = true) => {
-    const el = document.getElementById(id) as HTMLInputElement | null;
-    return el ? el.checked : defVal;
-  };
-  scr.consentWhatsApp = getCheck('scr-consent-whatsapp');
-  scr.consentSms = getCheck('scr-consent-sms');
-  scr.consentPhoneCalls = getCheck('scr-consent-phone-calls');
-  scr.consentDncBypass = getCheck('scr-consent-dnc-bypass');
-  scr.consentFutureOpportunities = getCheck('scr-consent-future-opps');
-  scr.consentTalentPoolSharing = getCheck('scr-consent-talent-sharing');
-  scr.backgroundCheckConsent = getCheck('scr-consent-bg-check', scr.backgroundCheckConsent ?? true);
-  scr.consentReferenceCheck = getCheck('scr-consent-ref-check');
-  scr.drugScreeningConsent = getCheck('scr-consent-drug-screen', scr.drugScreeningConsent ?? true);
-  scr.consentCreditCheck = getCheck('scr-consent-credit-check');
-  scr.consentPrivacyPolicy = getCheck('scr-consent-privacy');
-  scr.consentDataTransfer = getCheck('scr-consent-data-transfer');
-  scr.consentTermsOfService = getCheck('scr-consent-terms');
-  scr.consentElectronicSignature = getCheck('scr-consent-esign');
-  scr.consentAccurateInformation = getCheck('scr-consent-truth');
-  scr.consentAtWillEmployment = getCheck('scr-consent-at-will');
-  scr.consentArtificialIntelligence = getCheck('scr-consent-ai');
-  scr.consentEqualOpportunity = getCheck('scr-consent-eeo');
+  CONSENT_FIELDS.forEach(([id, prop]) => {
+    (scr as any)[prop] = getChecked(id, (scr as any)[prop] ?? true);
+  });
 
   // Sync existing legacy dropdowns if present
-  if (document.getElementById('scr-bg-check')) {
-    (document.getElementById('scr-bg-check') as HTMLSelectElement).value = scr.backgroundCheckConsent ? 'true' : 'false';
-  }
-  if (document.getElementById('scr-drug-screen')) {
-    (document.getElementById('scr-drug-screen') as HTMLSelectElement).value = scr.drugScreeningConsent ? 'true' : 'false';
-  }
+  setVal('scr-bg-check', scr.backgroundCheckConsent ? 'true' : 'false');
+  setVal('scr-drug-screen', scr.drugScreeningConsent ? 'true' : 'false');
 
   await saveUserProfile(activeProfileData);
   showToast('✓ Screening, Disclosures & Consents saved');
@@ -1578,13 +1466,13 @@ function populateFamilyList(): void {
 function openFamilyModal(): void {
   const modal = document.getElementById('family-modal');
   if (!modal) return;
-  (document.getElementById('family-modal-rel') as HTMLSelectElement).value = 'father';
-  (document.getElementById('family-modal-name') as HTMLInputElement).value = '';
-  (document.getElementById('family-modal-phone-cc') as HTMLInputElement).value = '+1';
-  (document.getElementById('family-modal-phone-num') as HTMLInputElement).value = '';
-  (document.getElementById('family-modal-occ') as HTMLInputElement).value = '';
-  (document.getElementById('family-modal-email') as HTMLInputElement).value = '';
-  (document.getElementById('family-modal-emergency') as HTMLInputElement).checked = false;
+  setVal('family-modal-rel', 'father');
+  setVal('family-modal-name', '');
+  setVal('family-modal-phone-cc', '+1');
+  setVal('family-modal-phone-num', '');
+  setVal('family-modal-occ', '');
+  setVal('family-modal-email', '');
+  setChecked('family-modal-emergency', false);
   modal.classList.add('active');
 }
 
@@ -1607,13 +1495,13 @@ function setupFamilyModalEvents(): void {
     if (!activeProfileData) return;
     if (!activeProfileData.familyContacts) activeProfileData.familyContacts = [];
 
-    const rel = (document.getElementById('family-modal-rel') as HTMLSelectElement).value;
-    const name = (document.getElementById('family-modal-name') as HTMLInputElement).value.trim();
-    const phoneCc = ((document.getElementById('family-modal-phone-cc') as HTMLInputElement).value || '+1').trim();
-    const phoneNum = (document.getElementById('family-modal-phone-num') as HTMLInputElement).value.trim();
-    const occ = (document.getElementById('family-modal-occ') as HTMLInputElement).value.trim();
-    const email = (document.getElementById('family-modal-email') as HTMLInputElement).value.trim();
-    const isEmergency = (document.getElementById('family-modal-emergency') as HTMLInputElement).checked || rel === 'emergency';
+    const rel = getVal('family-modal-rel');
+    const name = getVal('family-modal-name');
+    const phoneCc = getVal('family-modal-phone-cc') || '+1';
+    const phoneNum = getVal('family-modal-phone-num');
+    const occ = getOptVal('family-modal-occ');
+    const email = getOptVal('family-modal-email');
+    const isEmergency = getChecked('family-modal-emergency') || rel === 'emergency';
 
     const normalizedCc = phoneCc.startsWith('+') ? phoneCc : `+${phoneCc}`;
     const formattedPhone = `${normalizedCc} ${phoneNum}`.trim();
@@ -1627,8 +1515,8 @@ function setupFamilyModalEvents(): void {
         number: phoneNum,
         formatted: formattedPhone,
       } as any,
-      occupation: occ || undefined,
-      email: email || undefined,
+      occupation: occ,
+      email: email,
       isEmergencyContact: isEmergency,
     };
 
@@ -1638,6 +1526,161 @@ function setupFamilyModalEvents(): void {
     populateFamilyList();
     showToast('✓ Family contact added');
   });
+}
+
+// ── Hub Packs (Country & Employment Modules) ───────────────────────────────
+
+function renderPackCard(pack: any, storedPackData: Record<string, any>, prefix: 'cp' | 'ep'): HTMLElement {
+  const packCard = document.createElement('div');
+  packCard.className = `${prefix === 'cp' ? 'country' : 'employment'}-pack-hub-card`;
+  packCard.dataset.packId = pack.id;
+  packCard.style.cssText = 'margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);';
+
+  const icon = pack.icon || (prefix === 'cp' ? '🌐' : '💼');
+  const name = pack.countryName || pack.name;
+  const desc = pack.description || '';
+
+  let fieldsHtml = '';
+  pack.fields.forEach((f: any) => {
+    const fieldId = `${prefix}_${pack.id.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${f.key}`;
+    const curVal = storedPackData[f.key] ?? f.defaultValue ?? '';
+
+    let sensBadge = '';
+    if (f.sensitivity === 'restricted_identifier') {
+      sensBadge = '<span class="badge-sens restricted" style="margin-left: 6px;">Restricted</span>';
+    } else if (f.sensitivity === 'sensitive_personal') {
+      sensBadge = '<span class="badge-sens sensitive" style="margin-left: 6px;">Sensitive</span>';
+    }
+
+    let inputHtml = '';
+    if (f.dataType === 'choice') {
+      const opts = (f.options || []).map((opt: string) => {
+        const sel = String(curVal) === String(opt) ? 'selected' : '';
+        const optLabel = opt.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+        return `<option value="${opt}" ${sel}>${optLabel}</option>`;
+      }).join('');
+      inputHtml = `<select id="${fieldId}" data-field-key="${f.key}" class="field-select">${opts}</select>`;
+    } else if (f.dataType === 'boolean') {
+      const isTrue = curVal === true || String(curVal) === 'true';
+      inputHtml = `
+        <select id="${fieldId}" data-field-key="${f.key}" class="field-select">
+          <option value="false" ${!isTrue ? 'selected' : ''}>No</option>
+          <option value="true" ${isTrue ? 'selected' : ''}>Yes</option>
+        </select>
+      `;
+    } else if (f.dataType === 'number') {
+      inputHtml = `<input type="number" step="any" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal !== '' ? curVal : ''}">`;
+    } else if (f.dataType === 'date') {
+      inputHtml = `<input type="date" id="${fieldId}" data-field-key="${f.key}" class="field-input" value="${curVal || ''}">`;
+    } else if (f.dataType === 'textarea') {
+      inputHtml = `<textarea id="${fieldId}" data-field-key="${f.key}" class="field-input" style="min-height: 70px;" placeholder="${f.placeholder || ''}">${curVal || ''}</textarea>`;
+    } else if (f.dataType === 'url') {
+      inputHtml = `
+        <div style="display: flex; gap: 6px;">
+          <input type="url" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}" style="flex: 1;">
+          ${curVal ? `<button type="button" class="btn-copy-url" data-url="${curVal}" style="padding: 6px 10px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); cursor: pointer;" title="Copy URL">📋</button>` : ''}
+        </div>
+      `;
+    } else if (f.dataType === 'masked_identifier') {
+      inputHtml = `
+        <div style="display: flex; gap: 6px;">
+          <input type="password" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}" style="flex: 1;">
+          <button type="button" class="btn-toggle-mask" data-target="${fieldId}" style="padding: 6px 10px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); cursor: pointer;" title="Toggle visibility">👁</button>
+        </div>
+      `;
+    } else {
+      inputHtml = `<input type="text" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}">`;
+    }
+
+    const helpTextHtml = f.helpText ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">${f.helpText}</div>` : '';
+    const categoryLabel = f.category ? `<span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">${f.category}</span>` : '';
+
+    fieldsHtml += `
+      <div class="field-group">
+        <label style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <span>${f.label}</span>
+            ${categoryLabel ? ` <span style="font-weight: 400; opacity: 0.7;">· ${categoryLabel}</span>` : ''}
+          </div>
+          ${sensBadge}
+        </label>
+        ${inputHtml}
+        ${helpTextHtml}
+      </div>
+    `;
+  });
+
+  packCard.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 22px;">${icon}</span>
+        <div>
+          <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">${name} <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 6px;">(${pack.id})</span></h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">${desc}</p>
+        </div>
+      </div>
+      <span class="badge-sens" style="background: var(--bg-muted); color: var(--text-muted); font-size: 11px; font-weight: 600;">${pack.fields.length} Fields</span>
+    </div>
+    <div class="form-grid-3">
+      ${fieldsHtml}
+    </div>
+  `;
+
+  // Wire toggle-mask buttons
+  packCard.querySelectorAll('.btn-toggle-mask').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = (btn as HTMLElement).dataset.target!;
+      const targetInput = document.getElementById(targetId) as HTMLInputElement;
+      if (targetInput) {
+        targetInput.type = targetInput.type === 'password' ? 'text' : 'password';
+      }
+    });
+  });
+
+  // Wire copy-url buttons
+  packCard.querySelectorAll('.btn-copy-url').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const urlToCopy = (btn as HTMLElement).dataset.url;
+      if (urlToCopy) {
+        navigator.clipboard.writeText(urlToCopy);
+        showToast('Copied link to clipboard');
+      }
+    });
+  });
+
+  return packCard;
+}
+
+function collectPackDataFromContainer(container: HTMLElement): Record<string, Record<string, any>> {
+  const result: Record<string, Record<string, any>> = {};
+  container.querySelectorAll<HTMLElement>('[data-pack-id]').forEach(card => {
+    const pId = card.dataset.packId!;
+    const packObj: Record<string, any> = {};
+
+    card.querySelectorAll('[data-field-key]').forEach(inputEl => {
+      const key = (inputEl as HTMLElement).dataset.fieldKey!;
+      let val: any;
+      if (inputEl instanceof HTMLInputElement) {
+        if (inputEl.type === 'number') {
+          val = inputEl.value !== '' ? parseFloat(inputEl.value) : undefined;
+        } else {
+          val = inputEl.value.trim() || undefined;
+        }
+      } else if (inputEl instanceof HTMLTextAreaElement) {
+        val = inputEl.value.trim() || undefined;
+      } else if (inputEl instanceof HTMLSelectElement) {
+        if (inputEl.value === 'true') val = true;
+        else if (inputEl.value === 'false') val = false;
+        else val = inputEl.value;
+      }
+      if (val !== undefined) {
+        packObj[key] = val;
+      }
+    });
+
+    result[pId] = packObj;
+  });
+  return result;
 }
 
 // ── Country-Packs (Jurisdiction Modules) ───────────────────────────────────
@@ -1663,7 +1706,6 @@ async function populateCountryPacksHub(): Promise<void> {
     return;
   }
 
-  // Ensure countryPacksData exists
   if (!activeProfileData.countryPacksData) {
     activeProfileData.countryPacksData = {};
   }
@@ -1694,104 +1736,9 @@ async function populateCountryPacksHub(): Promise<void> {
   }
 
   container.innerHTML = '';
-
   activePacks.forEach(pack => {
-    const packCard = document.createElement('div');
-    packCard.className = 'country-pack-hub-card';
-    packCard.dataset.packId = pack.id;
-    packCard.style.cssText = 'margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);';
-
-    const flag = pack.icon || '🌐';
-    const name = pack.countryName;
-    const pId = pack.id;
-    const desc = pack.description || '';
-    const storedPackData = activeProfileData?.countryPacksData?.[pack.id] || {};
-
-    let fieldsHtml = '';
-    pack.fields.forEach(f => {
-      const fieldId = `cp_${pack.id.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${f.key}`;
-      const curVal = storedPackData[f.key] ?? f.defaultValue ?? '';
-      
-      let sensBadge = '';
-      if (f.sensitivity === 'restricted_identifier') {
-        sensBadge = '<span class="badge-sens restricted" style="margin-left: 6px;">Restricted</span>';
-      } else if (f.sensitivity === 'sensitive_personal') {
-        sensBadge = '<span class="badge-sens sensitive" style="margin-left: 6px;">Sensitive</span>';
-      }
-
-      let inputHtml = '';
-      if (f.dataType === 'choice') {
-        const opts = (f.options || []).map(opt => {
-          const sel = String(curVal) === String(opt) ? 'selected' : '';
-          const optLabel = opt.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-          return `<option value="${opt}" ${sel}>${optLabel}</option>`;
-        }).join('');
-        inputHtml = `<select id="${fieldId}" data-field-key="${f.key}" class="field-select">${opts}</select>`;
-      } else if (f.dataType === 'boolean') {
-        const isTrue = curVal === true || String(curVal) === 'true';
-        inputHtml = `
-          <select id="${fieldId}" data-field-key="${f.key}" class="field-select">
-            <option value="false" ${!isTrue ? 'selected' : ''}>No</option>
-            <option value="true" ${isTrue ? 'selected' : ''}>Yes</option>
-          </select>
-        `;
-      } else if (f.dataType === 'number') {
-        inputHtml = `<input type="number" step="any" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal !== '' ? curVal : ''}">`;
-      } else if (f.dataType === 'date') {
-        inputHtml = `<input type="date" id="${fieldId}" data-field-key="${f.key}" class="field-input" value="${curVal || ''}">`;
-      } else if (f.dataType === 'masked_identifier') {
-        inputHtml = `
-          <div style="display: flex; gap: 6px;">
-            <input type="password" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}" style="flex: 1;">
-            <button type="button" class="btn-toggle-mask" data-target="${fieldId}" style="padding: 6px 10px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); cursor: pointer;" title="Toggle visibility">👁</button>
-          </div>
-        `;
-      } else {
-        inputHtml = `<input type="text" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}">`;
-      }
-
-      const helpTextHtml = f.helpText ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">${f.helpText}</div>` : '';
-
-      fieldsHtml += `
-        <div class="field-group">
-          <label style="display: flex; align-items: center; justify-content: space-between;">
-            <span>${f.label}</span>
-            ${sensBadge}
-          </label>
-          ${inputHtml}
-          ${helpTextHtml}
-        </div>
-      `;
-    });
-
-    packCard.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 22px;">${flag}</span>
-          <div>
-            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">${name} <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 6px;">(${pId})</span></h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">${desc}</p>
-          </div>
-        </div>
-        <span class="badge-sens" style="background: var(--bg-muted); color: var(--text-muted); font-size: 11px; font-weight: 600;">${pack.fields.length} Fields</span>
-      </div>
-      <div class="form-grid-3">
-        ${fieldsHtml}
-      </div>
-    `;
-
-    // Wire toggle-mask buttons
-    packCard.querySelectorAll('.btn-toggle-mask').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetId = (btn as HTMLElement).dataset.target!;
-        const targetInput = document.getElementById(targetId) as HTMLInputElement;
-        if (targetInput) {
-          targetInput.type = targetInput.type === 'password' ? 'text' : 'password';
-        }
-      });
-    });
-
-    container.appendChild(packCard);
+    const stored = activeProfileData?.countryPacksData?.[pack.id] || {};
+    container.appendChild(renderPackCard(pack, stored, 'cp'));
   });
 }
 
@@ -1804,60 +1751,36 @@ async function saveCountryPacks(): Promise<void> {
   const container = document.getElementById('country-packs-hub-container');
   if (!container) return;
 
-  const packCards = container.querySelectorAll('.country-pack-hub-card');
-  packCards.forEach(card => {
-    const pId = (card as HTMLElement).dataset.packId!;
-    const packObj: Record<string, any> = {};
+  const packData = collectPackDataFromContainer(container);
+  Object.assign(activeProfileData.countryPacksData, packData);
 
-    const inputs = card.querySelectorAll('[data-field-key]');
-    inputs.forEach(inputEl => {
-      const key = (inputEl as HTMLElement).dataset.fieldKey!;
-      let val: any;
-      if (inputEl instanceof HTMLInputElement) {
-        if (inputEl.type === 'number') {
-          val = inputEl.value !== '' ? parseFloat(inputEl.value) : undefined;
-        } else {
-          val = inputEl.value.trim() || undefined;
-        }
-      } else if (inputEl instanceof HTMLSelectElement) {
-        if (inputEl.value === 'true') val = true;
-        else if (inputEl.value === 'false') val = false;
-        else val = inputEl.value;
-      }
-      if (val !== undefined) {
-        packObj[key] = val;
-      }
-    });
-
-    activeProfileData!.countryPacksData![pId] = packObj;
-
-    // Sync back to legacy indiaPack for full backwards compatibility
-    if (pId === 'IN-pack') {
-      if (!activeProfileData!.indiaPack) {
-        activeProfileData!.indiaPack = createDefaultIndiaPack();
-      }
-      const ip = activeProfileData!.indiaPack;
-      ip.enabled = true;
-      ip.tenthPercentage = packObj.tenth_percentage;
-      ip.tenthPassingYear = packObj.tenth_passing_year;
-      ip.tenthBoard = packObj.tenth_board;
-      ip.twelfthPercentage = packObj.twelfth_percentage;
-      ip.twelfthPassingYear = packObj.twelfth_passing_year;
-      ip.twelfthBoard = packObj.twelfth_board;
-      ip.undergradCgpa = packObj.undergrad_cgpa;
-      ip.cgpaConversionFormula = packObj.cgpa_conversion_formula;
-      ip.studentRegistrationNumber = packObj.student_registration_number;
-      ip.activeBacklogsCount = packObj.active_backlogs ?? 0;
-      ip.clearedBacklogsCount = packObj.history_of_backlogs ?? 0;
-      ip.educationGapYears = packObj.academic_gap_years ?? 0;
-      ip.currentCtcLpa = packObj.current_ctc_lpa;
-      ip.expectedCtcLpa = packObj.expected_ctc_lpa;
-      ip.willingToSignBond = Boolean(packObj.willing_to_sign_bond);
-      ip.aadhaarNumberMasked = packObj.aadhaar_number;
-      ip.panNumberMasked = packObj.pan_number;
-      ip.dayScholarOrHosteller = packObj.day_scholar_or_hosteller;
+  // Sync back to legacy indiaPack for full backwards compatibility
+  const inPack = packData['IN-pack'];
+  if (inPack) {
+    if (!activeProfileData.indiaPack) {
+      activeProfileData.indiaPack = createDefaultIndiaPack();
     }
-  });
+    const ip = activeProfileData.indiaPack;
+    ip.enabled = true;
+    ip.tenthPercentage = inPack.tenth_percentage;
+    ip.tenthPassingYear = inPack.tenth_passing_year;
+    ip.tenthBoard = inPack.tenth_board;
+    ip.twelfthPercentage = inPack.twelfth_percentage;
+    ip.twelfthPassingYear = inPack.twelfth_passing_year;
+    ip.twelfthBoard = inPack.twelfth_board;
+    ip.undergradCgpa = inPack.undergrad_cgpa;
+    ip.cgpaConversionFormula = inPack.cgpa_conversion_formula;
+    ip.studentRegistrationNumber = inPack.student_registration_number;
+    ip.activeBacklogsCount = inPack.active_backlogs ?? 0;
+    ip.clearedBacklogsCount = inPack.history_of_backlogs ?? 0;
+    ip.educationGapYears = inPack.academic_gap_years ?? 0;
+    ip.currentCtcLpa = inPack.current_ctc_lpa;
+    ip.expectedCtcLpa = inPack.expected_ctc_lpa;
+    ip.willingToSignBond = Boolean(inPack.willing_to_sign_bond);
+    ip.aadhaarNumberMasked = inPack.aadhaar_number;
+    ip.panNumberMasked = inPack.pan_number;
+    ip.dayScholarOrHosteller = inPack.day_scholar_or_hosteller;
+  }
 
   await saveUserProfile(activeProfileData);
   showToast('✓ Country-Packs saved');
@@ -1889,100 +1812,9 @@ async function populateEmploymentPacksHub(): Promise<void> {
   }
 
   container.innerHTML = '';
-
   activePacks.forEach(pack => {
-    const packCard = document.createElement('div');
-    packCard.className = 'employment-pack-hub-card';
-    packCard.dataset.packId = pack.id;
-    packCard.style.cssText = 'margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);';
-
-    const icon = pack.icon || '💼';
-    const name = pack.name;
-    const pId = pack.id;
-    const desc = pack.description || '';
-    const storedPackData = activeProfileData?.employmentPacksData?.[pack.id] || {};
-
-    let fieldsHtml = '';
-    pack.fields.forEach(f => {
-      const fieldId = `ep_${pack.id.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${f.key}`;
-      const curVal = storedPackData[f.key] ?? f.defaultValue ?? '';
-
-      let sensBadge = '';
-      if (f.sensitivity === 'restricted_identifier') {
-        sensBadge = '<span class="badge-sens restricted" style="margin-left: 6px;">Restricted</span>';
-      } else if (f.sensitivity === 'sensitive_personal') {
-        sensBadge = '<span class="badge-sens sensitive" style="margin-left: 6px;">Sensitive</span>';
-      }
-
-      let inputHtml = '';
-      if (f.dataType === 'choice') {
-        const opts = (f.options || []).map(opt => {
-          const sel = String(curVal) === String(opt) ? 'selected' : '';
-          const optLabel = opt.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-          return `<option value="${opt}" ${sel}>${optLabel}</option>`;
-        }).join('');
-        inputHtml = `<select id="${fieldId}" data-field-key="${f.key}" class="field-select">${opts}</select>`;
-      } else if (f.dataType === 'number') {
-        inputHtml = `<input type="number" step="any" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal !== '' ? curVal : ''}">`;
-      } else if (f.dataType === 'textarea') {
-        inputHtml = `<textarea id="${fieldId}" data-field-key="${f.key}" class="field-input" style="min-height: 70px;" placeholder="${f.placeholder || ''}">${curVal || ''}</textarea>`;
-      } else if (f.dataType === 'url') {
-        inputHtml = `
-          <div style="display: flex; gap: 6px;">
-            <input type="url" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}" style="flex: 1;">
-            ${curVal ? `<button type="button" class="btn-copy-url" data-url="${curVal}" style="padding: 6px 10px; font-size: 11px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); cursor: pointer;" title="Copy URL">📋</button>` : ''}
-          </div>
-        `;
-      } else {
-        inputHtml = `<input type="text" id="${fieldId}" data-field-key="${f.key}" class="field-input" placeholder="${f.placeholder || ''}" value="${curVal || ''}">`;
-      }
-
-      const helpTextHtml = f.helpText ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">${f.helpText}</div>` : '';
-      const categoryLabel = f.category ? `<span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">${f.category}</span>` : '';
-
-      fieldsHtml += `
-        <div class="field-group">
-          <label style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <span>${f.label}</span>
-              ${categoryLabel ? ` <span style="font-weight: 400; opacity: 0.7;">· ${categoryLabel}</span>` : ''}
-            </div>
-            ${sensBadge}
-          </label>
-          ${inputHtml}
-          ${helpTextHtml}
-        </div>
-      `;
-    });
-
-    packCard.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 22px;">${icon}</span>
-          <div>
-            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">${name} <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-left: 6px;">(${pId})</span></h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">${desc}</p>
-          </div>
-        </div>
-        <span class="badge-sens" style="background: var(--bg-muted); color: var(--text-muted); font-size: 11px; font-weight: 600;">${pack.fields.length} Fields</span>
-      </div>
-      <div class="form-grid-3">
-        ${fieldsHtml}
-      </div>
-    `;
-
-    // Copy URL helper
-    packCard.querySelectorAll('.btn-copy-url').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const urlToCopy = (btn as HTMLElement).dataset.url;
-        if (urlToCopy) {
-          navigator.clipboard.writeText(urlToCopy);
-          showToast('Copied link to clipboard');
-        }
-      });
-    });
-
-    container.appendChild(packCard);
+    const stored = activeProfileData?.employmentPacksData?.[pack.id] || {};
+    container.appendChild(renderPackCard(pack, stored, 'ep'));
   });
 }
 
@@ -1995,33 +1827,8 @@ async function saveEmploymentPacks(): Promise<void> {
   const container = document.getElementById('employment-packs-hub-container');
   if (!container) return;
 
-  const packCards = container.querySelectorAll('.employment-pack-hub-card');
-  packCards.forEach(card => {
-    const pId = (card as HTMLElement).dataset.packId!;
-    const packObj: Record<string, any> = {};
-
-    const inputs = card.querySelectorAll('[data-field-key]');
-    inputs.forEach(inputEl => {
-      const key = (inputEl as HTMLElement).dataset.fieldKey!;
-      let val: any;
-      if (inputEl instanceof HTMLInputElement) {
-        if (inputEl.type === 'number') {
-          val = inputEl.value !== '' ? parseFloat(inputEl.value) : undefined;
-        } else {
-          val = inputEl.value.trim() || undefined;
-        }
-      } else if (inputEl instanceof HTMLTextAreaElement) {
-        val = inputEl.value.trim() || undefined;
-      } else if (inputEl instanceof HTMLSelectElement) {
-        val = inputEl.value;
-      }
-      if (val !== undefined) {
-        packObj[key] = val;
-      }
-    });
-
-    activeProfileData!.employmentPacksData![pId] = packObj;
-  });
+  const packData = collectPackDataFromContainer(container);
+  Object.assign(activeProfileData.employmentPacksData, packData);
 
   await saveUserProfile(activeProfileData);
   showToast('✓ Employment-Packs saved');
@@ -2207,10 +2014,10 @@ function populateQuestionBankList(): void {
 function openQuestionModal(): void {
   const modal = document.getElementById('qb-modal');
   if (!modal) return;
-  (document.getElementById('qb-modal-category') as HTMLSelectElement).value = 'screening';
-  (document.getElementById('qb-modal-question') as HTMLInputElement).value = '';
-  (document.getElementById('qb-modal-aliases') as HTMLInputElement).value = '';
-  (document.getElementById('qb-modal-answer') as HTMLTextAreaElement).value = '';
+  setVal('qb-modal-category', 'screening');
+  setVal('qb-modal-question', '');
+  setVal('qb-modal-aliases', '');
+  setVal('qb-modal-answer', '');
   modal.classList.add('active');
 }
 
@@ -2233,10 +2040,10 @@ function setupQuestionModalEvents(): void {
     if (!activeProfileData) return;
     if (!activeProfileData.questionBank) activeProfileData.questionBank = [];
 
-    const category = (document.getElementById('qb-modal-category') as HTMLSelectElement).value;
-    const q = (document.getElementById('qb-modal-question') as HTMLInputElement).value.trim();
-    const aliasesStr = (document.getElementById('qb-modal-aliases') as HTMLInputElement).value.trim();
-    const a = (document.getElementById('qb-modal-answer') as HTMLTextAreaElement).value.trim();
+    const category = getVal('qb-modal-category');
+    const q = getVal('qb-modal-question');
+    const aliasesStr = getVal('qb-modal-aliases');
+    const a = getVal('qb-modal-answer');
 
     const item: QuestionBankItem = {
       id: `qb_${Date.now()}`,
@@ -2448,14 +2255,13 @@ function setupActionButtons(): void {
 
   setupJobModalEvents();
   setupExpOverrideModalEvents();
-  setupEducationModalEvents();
   setupFamilyModalEvents();
   setupQuestionModalEvents();
   setupStartDaysEvents();
 
   document.getElementById('btn-new-profile-modal')?.addEventListener('click', () => {
-    (document.getElementById('profile-name') as HTMLInputElement).value = '';
-    (document.getElementById('profile-role') as HTMLInputElement).value = '';
+    setVal('profile-name', '');
+    setVal('profile-role', '');
     const cloneSelect = document.getElementById('clone-from') as HTMLSelectElement;
     cloneSelect.innerHTML = '<option value="">Start empty</option>';
     for (const p of allProfiles) {
@@ -2474,10 +2280,10 @@ function setupActionButtons(): void {
 
   document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = (document.getElementById('profile-name') as HTMLInputElement).value.trim();
+    const name = getVal('profile-name');
     if (!name) return;
-    const role = (document.getElementById('profile-role') as HTMLInputElement).value.trim() || undefined;
-    const cloneFrom = (document.getElementById('clone-from') as HTMLSelectElement).value || undefined;
+    const role = getOptVal('profile-role');
+    const cloneFrom = getOptVal('clone-from');
 
     await createProfile(name, role, cloneFrom);
     document.getElementById('profile-modal')?.classList.remove('active');

@@ -1889,17 +1889,19 @@ async function saveSelfIdAndContinue(includeSelfId: boolean): Promise<void> {
   }
 }
 
+const LINK_FIELDS = ['linkedin', 'portfolio', 'github'] as const;
+
 /**
  * Pre-fill the Links form from profile data
  */
 function prefillLinksForm(profile: UserProfile): void {
-  const linkedin = document.getElementById('linksLinkedin') as HTMLInputElement;
-  const portfolio = document.getElementById('linksPortfolio') as HTMLInputElement;
-  const github = document.getElementById('linksGithub') as HTMLInputElement;
-  
-  if (linkedin && profile.professional?.linkedin) linkedin.value = profile.professional.linkedin;
-  if (portfolio && profile.professional?.portfolio) portfolio.value = profile.professional.portfolio;
-  if (github && profile.professional?.github) github.value = profile.professional.github;
+  LINK_FIELDS.forEach(field => {
+    const id = `links${field.charAt(0).toUpperCase() + field.slice(1)}`;
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (input && profile.professional?.[field]) {
+      input.value = profile.professional[field]!;
+    }
+  });
 }
 
 /**
@@ -1907,17 +1909,13 @@ function prefillLinksForm(profile: UserProfile): void {
  */
 function collectLinksFromForm(): void {
   if (!extractedProfile) return;
-  
-  const linkedin = (document.getElementById('linksLinkedin') as HTMLInputElement)?.value || '';
-  const portfolio = (document.getElementById('linksPortfolio') as HTMLInputElement)?.value || '';
-  const github = (document.getElementById('linksGithub') as HTMLInputElement)?.value || '';
-  
   if (!extractedProfile.professional) {
     extractedProfile.professional = { linkedin: '', github: '', portfolio: '' };
   }
-  extractedProfile.professional.linkedin = linkedin;
-  extractedProfile.professional.portfolio = portfolio;
-  extractedProfile.professional.github = github;
+  LINK_FIELDS.forEach(field => {
+    const id = `links${field.charAt(0).toUpperCase() + field.slice(1)}`;
+    extractedProfile!.professional![field] = (document.getElementById(id) as HTMLInputElement)?.value || '';
+  });
 }
 
 /**
@@ -2244,65 +2242,23 @@ function setupWorkAuthConditionalFields(): void {
 function preFillSelfIdForm(selfId: any): void {
   console.log('[Onboarding] Pre-filling Self-ID form with:', selfId);
   
-  // Gender checkboxes
-  if (selfId.gender && Array.isArray(selfId.gender)) {
-    selfId.gender.forEach((genderValue: string) => {
-      const checkbox = document.querySelector(`input[name="gender"][value="${genderValue}"]`) as HTMLInputElement;
-      if (checkbox) {
-        checkbox.checked = true;
-      }
-    });
-  }
-  
-  // Race checkboxes
-  if (selfId.race && Array.isArray(selfId.race)) {
-    selfId.race.forEach((raceValue: string) => {
-      const checkbox = document.querySelector(`input[name="race"][value="${raceValue}"]`) as HTMLInputElement;
-      if (checkbox) {
-        checkbox.checked = true;
-      }
-    });
-  }
-  
-  // Orientation checkboxes
-  if (selfId.orientation && Array.isArray(selfId.orientation)) {
-    selfId.orientation.forEach((orientationValue: string) => {
-      const checkbox = document.querySelector(`input[name="orientation"][value="${orientationValue}"]`) as HTMLInputElement;
-      if (checkbox) {
-        checkbox.checked = true;
-      }
-    });
-  }
-  
-  // Veteran radio buttons
-  if (selfId.veteran) {
-    const veteranRadio = document.querySelector(`input[name="veteran"][value="${selfId.veteran}"]`) as HTMLInputElement;
-    if (veteranRadio) {
-      veteranRadio.checked = true;
+  // Multi-select checkboxes
+  (['gender', 'race', 'orientation'] as const).forEach(group => {
+    if (Array.isArray(selfId[group])) {
+      selfId[group].forEach((val: string) => {
+        const checkbox = document.querySelector<HTMLInputElement>(`input[name="${group}"][value="${val}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
     }
-  }
-  
-  // Transgender radio buttons
-  if (selfId.transgender) {
-    const transgenderRadio = document.querySelector(`input[name="transgender"][value="${selfId.transgender}"]`) as HTMLInputElement;
-    if (transgenderRadio) {
-      transgenderRadio.checked = true;
-    }
-  }
-  
-  // Disability radio buttons
-  if (selfId.disability) {
-    const disabilityRadio = document.querySelector(`input[name="disability"][value="${selfId.disability}"]`) as HTMLInputElement;
-    if (disabilityRadio) {
-      disabilityRadio.checked = true;
-    }
-  }
+  });
 
-  // Ethnicity radio buttons
-  if (selfId.ethnicity) {
-    const ethnicityRadio = document.querySelector(`input[name="ethnicity"][value="${selfId.ethnicity}"]`) as HTMLInputElement;
-    if (ethnicityRadio) ethnicityRadio.checked = true;
-  }
+  // Single-select radios
+  (['veteran', 'transgender', 'disability', 'ethnicity'] as const).forEach(group => {
+    if (selfId[group]) {
+      const radio = document.querySelector<HTMLInputElement>(`input[name="${group}"][value="${selfId[group]}"]`);
+      if (radio) radio.checked = true;
+    }
+  });
 
   // Age
   const exactAgeInput  = document.getElementById('selfIdExactAge') as HTMLInputElement | null;
@@ -2436,25 +2392,17 @@ function collectSelfIdFromForm(): SelfIdentification {
 function preFillWorkAuthForm(workAuth: any): void {
   console.log('[Onboarding] Pre-filling Work Auth form with:', workAuth);
   
-  // Legally authorized radio (form uses "yes"/"no" strings)
-  if (typeof workAuth.legallyAuthorized === 'boolean') {
-    const radioValue = workAuth.legallyAuthorized ? 'yes' : 'no';
-    const legalRadio = document.querySelector(`input[name="legallyAuthorized"][value="${radioValue}"]`) as HTMLInputElement;
-    if (legalRadio) {
-      legalRadio.checked = true;
-      console.log('[Onboarding] Checked legally authorized:', radioValue);
+  // Radios (form uses "yes"/"no" strings)
+  (['legallyAuthorized', 'requiresSponsorship'] as const).forEach(field => {
+    if (typeof workAuth[field] === 'boolean') {
+      const radioValue = workAuth[field] ? 'yes' : 'no';
+      const radio = document.querySelector<HTMLInputElement>(`input[name="${field}"][value="${radioValue}"]`);
+      if (radio) {
+        radio.checked = true;
+        console.log(`[Onboarding] Checked ${field}:`, radioValue);
+      }
     }
-  }
-  
-  // Requires sponsorship radio (form uses "yes"/"no" strings)
-  if (typeof workAuth.requiresSponsorship === 'boolean') {
-    const radioValue = workAuth.requiresSponsorship ? 'yes' : 'no';
-    const sponsorRadio = document.querySelector(`input[name="requiresSponsorship"][value="${radioValue}"]`) as HTMLInputElement;
-    if (sponsorRadio) {
-      sponsorRadio.checked = true;
-      console.log('[Onboarding] Checked requires sponsorship:', radioValue);
-    }
-  }
+  });
   
   // Current status dropdown
   if (workAuth.currentStatus) {

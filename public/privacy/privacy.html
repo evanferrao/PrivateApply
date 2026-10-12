@@ -23,7 +23,17 @@
           <p>How Private Apply handles your data</p>
         </div>
       </div>
-      <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode"></button>
+      <div class="header-actions">
+        <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode"></button>
+        <button type="button" class="btn-back" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '../home/home.html'; }" title="Go back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back
+        </button>
+        <a href="../home/home.html" class="btn-back" title="Return to Home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Home
+        </a>
+      </div>
     </div>
   </div>
 
@@ -126,8 +136,13 @@
     </div>
 
     <div class="footer">
-      <p>Last updated: February 2026</p>
-      <p style="margin-top: 4px;"><a href="../settings/settings.html">Back to Settings</a></p>
+      <p>Last updated: 2026 &bull; Private Apply &bull; Local-First Architecture</p>
+      <p style="margin-top: 8px;">
+        <a href="../home/home.html">Home</a> &middot;
+        <a href="../settings/settings.html">Settings</a> &middot;
+        <a href="../dashboard/dashboard.html">Dashboard</a> &middot;
+        <a href="../help/help.html">Help &amp; Tutorial</a>
+      </p>
     </div>
 
   </div>

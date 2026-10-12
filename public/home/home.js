@@ -26,8 +26,8 @@
   }
 
   function openPage(path) {
-    if (api && api.tabs && api.runtime && api.runtime.getURL) {
-      api.tabs.create({ url: api.runtime.getURL(path) });
+    if (api && api.runtime && api.runtime.getURL) {
+      window.location.href = api.runtime.getURL(path);
     } else {
       window.location.href = '../' + path;
     }

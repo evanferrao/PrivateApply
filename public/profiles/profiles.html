@@ -21,8 +21,12 @@
       </div>
       <div class="header-actions">
         <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode"></button>
-        <a href="../home/home.html" class="btn-back">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <button type="button" class="btn-back" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '../home/home.html'; }" title="Go back">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back
+        </button>
+        <a href="../home/home.html" class="btn-back" title="Return to Home">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Home
         </a>
       </div>
@@ -1044,7 +1048,7 @@
             <div class="hub-card-desc">Configure localized compliance identifiers, tax IDs, and academic records for your active job jurisdictions (e.g. IN-pack, US-pack, DE-pack, GB-pack). You can enable or disable specific countries and add custom packs in Settings.</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <a href="../settings/settings.html#section-country-packs" target="_blank" class="btn-action-secondary" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-primary);background:var(--bg-card);">⚙ Manage Packs in Settings</a>
+            <a href="../settings/settings.html#section-country-packs" class="btn-action-secondary" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-primary);background:var(--bg-card);">⚙ Manage Packs in Settings</a>
             <button type="button" class="btn-action-primary" id="btn-save-country-packs">Save Country-Packs</button>
           </div>
         </div>
@@ -1064,7 +1068,7 @@
             <div class="hub-card-desc">Configure competitive coding handles (LeetCode, HackerRank, Codeforces, CodeChef), code repositories (GitHub, GitLab), and design portfolios (Behance, Dribbble, Figma) for your career discipline. Enable/disable packs in Settings.</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <a href="../settings/settings.html#section-employment-packs" target="_blank" class="btn-action-secondary" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-primary);background:var(--bg-card);">⚙ Manage Packs in Settings</a>
+            <a href="../settings/settings.html#section-employment-packs" class="btn-action-secondary" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-primary);background:var(--bg-card);">⚙ Manage Packs in Settings</a>
             <button type="button" class="btn-action-primary" id="btn-save-employment-packs">Save Employment-Packs</button>
           </div>
         </div>

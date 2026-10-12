@@ -536,21 +536,9 @@ async function renderCharts() {
         }
         const entry = dateMap.get(d)!;
         entry.total++;
-        if (app.status === 'submitted') entry.submitted++;
-        if (app.status === 'interviewing') entry.interviewing++;
-        if (app.status === 'rejected') entry.rejected++;
-        if (app.status === 'accepted') entry.accepted++;
-        if (app.status === 'withdrawn') entry.withdrawn++;
+        if (app.status in entry) (entry as any)[app.status]++;
       }
-      trends = Array.from(dateMap.entries()).map(([date, data]) => ({
-        date,
-        total: data.total,
-        submitted: data.submitted,
-        interviewing: data.interviewing,
-        rejected: data.rejected,
-        accepted: data.accepted,
-        withdrawn: data.withdrawn,
-      }));
+      trends = Array.from(dateMap.entries()).map(([date, data]) => ({ date, ...data }));
     }
 
     // Applications Over Time
@@ -691,18 +679,16 @@ function renderStatusChart() {
   const t = chartTheme();
   const dark = isDarkMode();
   
-  const submitted = allApplications.filter(a => a.status === 'submitted').length;
-  const interviewing = allApplications.filter(a => a.status === 'interviewing').length;
-  const rejected = allApplications.filter(a => a.status === 'rejected').length;
-  const accepted = allApplications.filter(a => a.status === 'accepted').length;
-  const withdrawn = allApplications.filter(a => a.status === 'withdrawn').length;
+  const statuses = ['submitted', 'interviewing', 'rejected', 'accepted', 'withdrawn'] as const;
+  const counts: Record<string, number> = { submitted: 0, interviewing: 0, rejected: 0, accepted: 0, withdrawn: 0 };
+  allApplications.forEach(a => { if (a.status in counts) counts[a.status]++; });
   
   statusChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: ['Submitted', 'Interviewing', 'Rejected', 'Accepted', 'Withdrawn'],
       datasets: [{
-        data: [submitted, interviewing, rejected, accepted, withdrawn],
+        data: statuses.map(s => counts[s]),
         backgroundColor: [
           dark ? '#fbbf24' : '#d97706', // Submitted (Warm Amber)
           dark ? '#c084fc' : '#9333ea', // Interviewing (Royal Violet)

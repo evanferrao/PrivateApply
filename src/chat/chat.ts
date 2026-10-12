@@ -228,8 +228,14 @@ async function init(): Promise<void> {
   const input = qs<HTMLTextAreaElement>('#chat-input');
   const backBtn = qs<HTMLButtonElement>('#back-btn');
 
-  // Back button — close this tab
-  backBtn.addEventListener('click', () => window.close());
+  // Back button — navigate to previous page or home
+  backBtn.addEventListener('click', () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '../home/home.html';
+    }
+  });
 
   // Auto-resize textarea
   input.addEventListener('input', () => {

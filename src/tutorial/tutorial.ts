@@ -35,6 +35,8 @@ const MOCK_FIELDS: FieldSchema[] = [
   { tagName: 'INPUT', type: 'email', name: 'email', id: 'field-email', autocomplete: 'email', required: true, disabled: false, multiple: false, label: 'Email Address', selector: '#field-email', valuePreview: null, trustTier: 1 },
   { tagName: 'INPUT', type: 'tel', name: 'phone', id: 'field-phone', autocomplete: 'tel', required: false, disabled: false, multiple: false, label: 'Phone Number', selector: '#field-phone', valuePreview: null, trustTier: 1 },
   { tagName: 'INPUT', type: 'url', name: 'linkedin', id: 'field-linkedin', autocomplete: null, required: false, disabled: false, multiple: false, label: 'LinkedIn Profile URL', selector: '#field-linkedin', valuePreview: null, trustTier: 1 },
+  { tagName: 'INPUT', type: 'url', name: 'github', id: 'field-github', autocomplete: null, required: false, disabled: false, multiple: false, label: 'GitHub Profile / Portfolio (CS-Pack)', selector: '#field-github', valuePreview: null, trustTier: 1 },
+  { tagName: 'INPUT', type: 'text', name: 'workauth', id: 'field-workauth', autocomplete: null, required: false, disabled: false, multiple: false, label: 'Work Authorization (Country-Pack: US)', selector: '#field-workauth', valuePreview: null, trustTier: 1 },
   { tagName: 'TEXTAREA', type: null, name: 'coverletter', id: 'field-coverletter', autocomplete: null, required: false, disabled: false, multiple: false, label: 'Cover Letter', selector: '#field-coverletter', valuePreview: null, trustTier: 1 },
   { tagName: 'TEXTAREA', type: null, name: 'interest', id: 'field-interest', autocomplete: null, required: false, disabled: false, multiple: false, label: 'Why are you interested in this role?', selector: '#field-interest', valuePreview: null, trustTier: 1 },
 ];
@@ -47,8 +49,10 @@ const MOCK_FILL_DATA: Record<string, string> = {
   'field-email': 'alex.johnson@email.com',
   'field-phone': '+1 (555) 123-4567',
   'field-linkedin': 'https://linkedin.com/in/alexjohnson',
+  'field-github': 'https://github.com/alexjohnson-dev',
+  'field-workauth': 'Authorized to work in US (Citizen / Permanent Resident, No Sponsorship Required)',
   'field-coverletter': 'Dear Hiring Manager,\n\nI am excited to apply for the Senior Software Engineer position at Private Apply Technologies. With 6 years of experience building modern web applications using TypeScript, React, and Node.js, I am confident I can contribute to your mission of building AI-powered job application tools.\n\nBest regards,\nAlex Johnson',
-  'field-interest': 'I\'m passionate about developer tools and AI integration. Private Apply\'s approach to local-first AI for job applications aligns perfectly with my interests in privacy-respecting technology and browser extension development.',
+  'field-interest': 'I\'m passionate about developer tools and AI integration. Private Apply\'s approach to local-first AI for job applications aligns perfectly with my interests in privacy-respecting technology, LaTeX tailoring, and browser extension development.',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,23 +68,23 @@ interface TourStep {
 
 const STEPS: TourStep[] = [
   {
-    title: 'Auto-Fill Application',
-    body: 'This is your one-click Auto-Fill. It pulls from your profile to fill the entire application instantly.',
+    title: '1-Click Smart Auto-Fill',
+    body: 'Pulls from your active profile, regional Country-Packs (IN/US/DE/GB), and Employment-Packs (GitHub/LeetCode) to fill all fields instantly.',
     targetIndex: -1,
   },
   {
-    title: 'Resume Keywords',
-    body: 'See how your resume matches the job keywords. If keywords are missing, tailor your resume with one click.',
+    title: 'Resume Keywords & LaTeX Tailor',
+    body: 'Scans the job description for ATS keyword matches. Click "Tailor Resume" to customize your LaTeX résumé locally via the companion daemon.',
     targetIndex: 0,
   },
   {
-    title: 'Cover Letter',
-    body: 'Generate a tailored cover letter based on the job description and your resume. It writes directly into the form.',
+    title: 'AI Tailored Cover Letter',
+    body: 'Synthesizes a role-specific cover letter using your work history and requirements, writing directly into the form field.',
     targetIndex: 1,
   },
   {
-    title: 'Unique Questions',
-    body: 'AI answers open-ended questions like "Why are you interested?" using your profile and the job posting.',
+    title: 'Question Bank & Adaptive AI',
+    body: 'Answers behavioral questions and custom form fields using your Question Bank and local AI inference.',
     targetIndex: 2,
   },
 ];
@@ -340,7 +344,7 @@ async function mockTailorResume(): Promise<void> {
 
   try {
     const url = browser.runtime.getURL('resume-tailor/resume-tailor.html');
-    window.open(url, '_blank');
+    window.location.href = url;
   } catch {
     window.location.href = '../resume-tailor/resume-tailor.html';
   }
@@ -349,7 +353,7 @@ async function mockTailorResume(): Promise<void> {
 function mockChatWithResume(): void {
   try {
     const url = browser.runtime.getURL('chat/chat.html');
-    window.open(url, '_blank');
+    window.location.href = url;
   } catch {
     window.location.href = '../chat/chat.html';
   }
@@ -374,6 +378,21 @@ async function init(): Promise<void> {
   document.getElementById('tour-skip')?.addEventListener('click', goToHome);
   document.getElementById('skip-tutorial')?.addEventListener('click', goToHome);
   document.getElementById('start-applying-btn')?.addEventListener('click', goToJobs);
+  document.getElementById('return-home-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    goToHome();
+  });
+  document.getElementById('btn-tutorial-home')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    goToHome();
+  });
+  document.getElementById('btn-tutorial-back')?.addEventListener('click', () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      goToHome();
+    }
+  });
   document.getElementById('btn-tutorial-tailor')?.addEventListener('click', () => mockTailorResume());
   document.getElementById('btn-tutorial-chat')?.addEventListener('click', () => mockChatWithResume());
 
