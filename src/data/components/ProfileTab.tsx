@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  User, Mail, Phone, MapPin, Linkedin, Github, Globe,
+  User, Mail, Phone, MapPin, Globe,
   Briefcase, GraduationCap, Zap, Shield, Calendar, Compass, FileCheck,
 } from 'lucide-react';
 import { Card } from './ui/Card';

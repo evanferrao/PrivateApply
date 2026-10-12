@@ -6,6 +6,8 @@ import {
   fieldClassifier,
 } from './field-classifier';
 
+vi.mock('./ollama-client', () => ({ ollama: null }));
+
 // ── isTypeCompatible ──────────────────────────────────────────────────────────
 
 describe('isTypeCompatible', () => {
@@ -160,10 +162,6 @@ describe('classifyFieldSync', () => {
 // ── FieldClassifier.classify (async, no LLM) ─────────────────────────────────
 
 describe('FieldClassifier.classify', () => {
-  beforeEach(() => {
-    // Ensure the ollama import path is mocked so LLM stage is never reached
-    vi.mock('./ollama-client', () => ({ ollama: null }));
-  });
 
   it('immediately marks file input as junk', async () => {
     const result = await fieldClassifier.classify('Resume', 'file', '');
