@@ -7,7 +7,7 @@
     "build": "node ../../scripts/build.mjs --browser=firefox",
     "dev": "node ../../scripts/build.mjs --browser=firefox --watch",
     "package": "node ../../scripts/package.mjs --browser=firefox",
-    "run:firefox": "web-ext run --source-dir dist",
+    "run:firefox": "npx --yes web-ext run --source-dir dist",
     "type-check": "cd ../.. && npm run type-check",
     "lint": "cd ../.. && npm run lint",
     "test": "cd ../.. && npm test",
@@ -25,16 +25,15 @@
     "@types/node": "^20.10.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@types/webextension-polyfill": "^0.10.7",
+    "@types/webextension-polyfill": "^0.12.5",
     "@vitest/coverage-v8": "^4.1.0",
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.28.2",
     "eslint": "^9.0.0",
     "jsdom": "^28.1.0",
-    "playwright": "^1.58.2",
+    "playwright": "^1.59.1",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.0.0",
-    "vitest": "^4.0.18",
-    "web-ext": "^7.8.0"
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",
@@ -46,5 +45,9 @@
     "react-dom": "^19.2.4",
     "webextension-polyfill": "^0.12.0",
     "zod": "^4.1.8"
+  },
+  "overrides": {
+    "argparse": "^2.0.1",
+    "shell-quote": "^1.12.0"
   }
 }

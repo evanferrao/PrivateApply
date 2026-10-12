@@ -27,7 +27,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/webextension-polyfill": "^0.12.5",
     "@vitest/coverage-v8": "^4.1.0",
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.28.2",
     "eslint": "^9.0.0",
     "jsdom": "^28.1.0",
     "typescript": "^5.3.3",
@@ -46,5 +46,8 @@
     "react-dom": "^19.2.4",
     "webextension-polyfill": "^0.12.0",
     "zod": "^4.1.8"
+  },
+  "overrides": {
+    "argparse": "^2.0.1"
   }
 }
