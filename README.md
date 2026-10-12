@@ -19,6 +19,7 @@
     <a href="https://chromewebstore.google.com/detail/private-apply-job-applicat/bjllpojjllhfghiemokcoknfmhpmfbph"><strong>Get for Chrome</strong></a> ·
     <a href="https://addons.mozilla.org/en-US/firefox/addon/private-apply/"><strong>Get for Firefox</strong></a> ·
     <a href="https://joelnishanth.github.io/private-apply"><strong>Website</strong></a> ·
+    <a href="#why-the-hard-fork"><strong>Why the Fork?</strong></a> ·
     <a href="#getting-started"><strong>Quick Start</strong></a> ·
     <a href="#featured-capabilities"><strong>New Features</strong></a> ·
     <a href="#acknowledgments--credits"><strong>Credits</strong></a> ·
@@ -27,7 +28,7 @@
   </p>
 
   <blockquote>
-    <p><strong>Note:</strong> PrivateApply is a hard fork of <a href="https://github.com/offlyn-ai/offlyn-apply"><strong>offlyn-ai/offlyn-apply</strong></a>, originally created by <a href="https://github.com/joelnishanth"><strong>@joelnishanth</strong></a> (Joel Nishanth).</p>
+    <p><strong>Note:</strong> PrivateApply is a hard fork of <a href="https://github.com/offlyn-ai/offlyn-apply"><strong>offlyn-ai/offlyn-apply</strong></a>, originally created by <a href="https://github.com/joelnishanth"><strong>@joelnishanth</strong></a> (Joel Nishanth). See <a href="#why-the-hard-fork"><strong>Why the Hard Fork?</strong></a> below for the rationale and philosophical differences.</p>
   </blockquote>
 
   <br/>
@@ -57,6 +58,24 @@ PrivateApply features a dedicated **AI LaTeX Résumé Tailor** that boundedly mo
 | **Application Tracker** | Interactive Kanban dashboard with status pipelines, daily trends, and response metrics | Stored in `browser.storage.local`; CSV export & import support |
 | **Data Graph & Memory** | Visual React Flow knowledge graph mapping field relationships and RL corrections | Learns from your manual edits to continuously improve autofill accuracy |
 | **Dual-Browser Native** | Single source of truth producing native Chrome (MV3) and Firefox (MV2) packages | Unified esbuild compiler; zero duplicate authoring |
+
+---
+
+## Why the Hard Fork?
+
+**[Offlyn Apply](https://github.com/offlyn-ai/offlyn-apply)** was—and continues to be—an exceptional project built around a strict, uncompromising **offline-focused philosophy**: 100% of data processing and AI inference stays strictly local on your machine, with zero outbound network traffic under any circumstance.
+
+However, two practical constraints led to the creation of **PrivateApply** as a separate hard fork:
+
+1. **Hardware Accessibility & Online AI Options:**
+   Running local LLMs through [Ollama](https://ollama.com) requires significant hardware resources—particularly high-memory systems or dedicated GPUs. For users on older laptops, low-power PCs, or machines without hardware acceleration, local inference can be painfully slow (often taking 30–60+ seconds per prompt or timing out completely). To make intelligent autofill, field classification, and LaTeX résumé tailoring practical for everyone—not just developers with powerful workstations—PrivateApply added support for configurable **online AI providers** (OpenAI, Groq, OpenRouter, DeepSeek, etc.). Users on lighter hardware can opt into fast, responsive inference while client-side privacy controls guard sensitive personal identifiers.
+
+2. **Cross-Device Profile Portability (GitHub Secret Gist Sync):**
+   Job seekers frequently work across multiple machines (such as a home desktop and an on-the-go laptop). PrivateApply introduced **GitHub Secret Gist Sync** so users can seamlessly back up and synchronize their candidate profiles, question banks, and custom configurations across workstations. Because this feature inherently requires network communication with the GitHub REST API, it is **fundamentally against the purist, zero-network philosophy of Offlyn AI**.
+
+Rather than compromising Offlyn Apply's uncompromising commitment to pure offline execution, hard-forking was the right and natural path:
+- **Offlyn Apply** stays true to its core mission: an uncompromising, 100% air-gapped, strictly offline-only application assistant.
+- **PrivateApply** offers a pragmatic, privacy-conscious alternative: local-first by default with Ollama, but providing the flexibility of optional cloud AI acceleration for weaker hardware and GitHub sync for multi-device workflows.
 
 ---
 
@@ -344,7 +363,7 @@ If you discover a security vulnerability, please follow the disclosure instructi
 
 ## Acknowledgments & Credits
 
-PrivateApply is a hard fork of **[Offlyn Apply](https://github.com/offlyn-ai/offlyn-apply)** created by **[@joelnishanth](https://github.com/joelnishanth)** (Joel Nishanth).
+PrivateApply is a hard fork of **[Offlyn Apply](https://github.com/offlyn-ai/offlyn-apply)** created by **[@joelnishanth](https://github.com/joelnishanth)** (Joel Nishanth). See [Why the Hard Fork?](#why-the-hard-fork) for our design rationale and philosophical differences.
 
 Heartfelt gratitude and full credit go to **Joel Nishanth** and the Offlyn AI community for pioneering the local-first, zero-tracking philosophy for job application assistance. This project builds upon Joel's original vision and core concepts, expanding it with:
 - A unified single-source-of-truth codebase supporting both Chrome (Manifest V3) and Firefox (Manifest V2).
