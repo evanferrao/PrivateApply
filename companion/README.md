@@ -89,11 +89,46 @@ Prompt instructions strictly constrain the AI:
 
 ---
 
-## 3. Linux Companion Installation & Registration
+---
+
+## 3. Companion Installation & Browser Registration
 
 The companion requires **Python 3.8+** and uses zero external pip dependencies.
 
-### 3.1 Installation Command
+### 3.1 Windows Installation
+
+#### Quick Start (Command Prompt / PowerShell):
+From the repository root:
+```powershell
+# Using PowerShell:
+powershell -ExecutionPolicy Bypass -File .\companion\install.ps1
+
+# Or double-click:
+.\companion\install.bat
+```
+
+What the Windows installer does:
+1. **Verifies Python 3**: Checks for `py -3` launcher or `python.exe` in PATH or standard user directories.
+2. **Detects TeX Toolchains**: Searches PATH and standard MiKTeX / TeX Live installation folders (`%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64`, `C:\Program Files\MiKTeX\...`, `C:\texlive\...`).
+3. **Installs Companion Files**: Copies `privateapply_companion.py` and the `privateapply_companion.bat` binary launcher to `%LOCALAPPDATA%\PrivateApply\`.
+4. **Registers Windows Registry Keys**: Configures native messaging manifests in `HKCU:\Software\<Browser>\NativeMessagingHosts\com.privateapply.companion` for:
+   - Google Chrome
+   - Microsoft Edge
+   - Brave Browser
+   - Mozilla Firefox
+5. **Runs Stdio Self-Test**: Validates 4-byte native messaging handshake.
+
+#### Windows Uninstallation:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\companion\uninstall.ps1
+# Or double-click .\companion\uninstall.bat
+```
+
+---
+
+### 3.2 Linux Installation
+
+#### Command:
 From the repository root:
 ```bash
 ./companion/install.sh
@@ -109,8 +144,7 @@ This script:
    - Firefox: `~/.mozilla/native-messaging-hosts/com.privateapply.companion.json`
 4. Runs an automated stdio self-test to confirm communication.
 
-### 3.2 Uninstallation Command
-To cleanly remove manifests and companion files:
+#### Linux Uninstallation:
 ```bash
 ./companion/uninstall.sh
 ```
@@ -119,9 +153,20 @@ To cleanly remove manifests and companion files:
 
 ## 4. TeX Toolchain Requirements
 
-PrivateApply does **not** bundle a multi-gigabyte TeX distribution. It invokes the user's existing system toolchain.
+PrivateApply does **not** bundle a multi-gigabyte TeX distribution. It invokes the user's existing local system toolchain.
 
-### Recommended System Packages
+### Recommended Windows Toolchains
+- **MiKTeX** (Fastest setup, installs missing packages on demand):
+  ```cmd
+  winget install MiKTeX.MiKTeX
+  ```
+  Or download the installer from [miktex.org/download](https://miktex.org/download).
+- **TeX Live**:
+  ```cmd
+  winget install IslandofTeX.TeXLive
+  ```
+
+### Recommended Linux System Packages
 - **Fedora / RHEL**:
   ```bash
   sudo dnf install texlive-scheme-basic latexmk texlive-collection-latexrecommended

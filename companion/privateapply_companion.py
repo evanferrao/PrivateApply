@@ -30,7 +30,28 @@ DEFAULT_TIMEOUT_SECS = 30
 MAX_TIMEOUT_SECS = 120
 MAX_DIAGNOSTIC_EXCERPT_CHARS = 16 * 1024
 
-LOG_FILE_PATH = Path.home() / ".cache" / "privateapply" / "companion.log"
+def get_companion_base_dir() -> Path:
+    """Return platform-appropriate base directory for logs and artifacts."""
+    if sys.platform == "win32":
+        local_app_data = os.environ.get("LOCALAPPDATA")
+        if local_app_data:
+            return Path(local_app_data) / "PrivateApply"
+        return Path.home() / "AppData" / "Local" / "PrivateApply"
+    elif sys.platform == "darwin":
+        return Path.home() / "Library" / "Caches" / "PrivateApply"
+    else:
+        return Path.home() / ".cache" / "privateapply"
+
+LOG_FILE_PATH = get_companion_base_dir() / "companion.log"
+
+# On Windows, ensure standard streams are set to pure binary mode without CRLF translation
+if sys.platform == "win32":
+    try:
+        import msvcrt
+        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
+        msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+    except Exception:
+        pass
 
 def log_debug(msg: str):
     """Write diagnostic messages ONLY to stderr or log file. NEVER TO STDOUT."""
@@ -82,17 +103,52 @@ def send_message(response: Dict[str, Any]) -> None:
 
 SUPPORTED_ENGINES = ["latexmk", "pdflatex", "xelatex", "lualatex"]
 
+WINDOWS_FALLBACK_DIRS = [
+    Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "MiKTeX" / "miktex" / "bin" / "x64",
+    Path("C:/Program Files/MiKTeX/miktex/bin/x64"),
+    Path("C:/Program Files (x86)/MiKTeX/miktex/bin"),
+    Path("C:/texlive/2026/bin/windows"),
+    Path("C:/texlive/2025/bin/windows"),
+    Path("C:/texlive/2024/bin/windows"),
+    Path("C:/texlive/2026/bin/win32"),
+    Path("C:/texlive/2025/bin/win32"),
+    Path("C:/texlive/2024/bin/win32"),
+]
+
+def find_engine_path(engine: str) -> Optional[str]:
+    """Find the engine path via PATH or standard Windows installation locations."""
+    path = shutil.which(engine)
+    if path:
+        return path
+    if sys.platform == "win32":
+        for folder in WINDOWS_FALLBACK_DIRS:
+            for ext in (".exe", ".bat", ".cmd"):
+                cand = folder / f"{engine}{ext}"
+                if cand.exists():
+                    folder_str = str(folder)
+                    if folder_str not in os.environ.get("PATH", ""):
+                        os.environ["PATH"] = folder_str + os.pathsep + os.environ.get("PATH", "")
+                    return str(cand)
+    return None
+
 def detect_installed_engines() -> Dict[str, Dict[str, Any]]:
     """
     Detect availability and paths for supported TeX compiler engines.
     """
     results = {}
     for engine in SUPPORTED_ENGINES:
-        path = shutil.which(engine)
+        path = find_engine_path(engine)
         if path:
             version_str = "Installed"
             try:
-                proc = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=3)
+                proc = subprocess.run(
+                    [path, "--version"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=3
+                )
                 if proc.stdout:
                     first_line = proc.stdout.splitlines()[0].strip()
                     version_str = first_line[:60]
@@ -269,7 +325,11 @@ def run_latex_compilation(
         return {
             "success": False,
             "error_type": "NO_ENGINE",
-            "message": "No supported LaTeX compiler found on your Linux system. Please install latexmk or texlive.",
+            "message": (
+                "No supported LaTeX compiler found on your system. Please install MiKTeX or TeX Live."
+                if sys.platform == "win32"
+                else "No supported LaTeX compiler found on your Linux system. Please install latexmk or texlive."
+            ),
             "available_engines": engines_status,
             "duration_ms": 0,
         }
@@ -353,14 +413,19 @@ def run_latex_compilation(
 
         log_debug(f"Executing: {' '.join(cmd)} in {build_dir} (timeout={timeout_secs}s)")
 
-        # Run process safely
-        process = subprocess.Popen(
-            cmd,
-            cwd=build_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+        # Run process safely with UTF-8 encoding and hidden window on Windows
+        popen_kwargs: Dict[str, Any] = {
+            "cwd": build_dir,
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.PIPE,
+            "text": True,
+            "encoding": "utf-8",
+            "errors": "replace",
+        }
+        if sys.platform == "win32":
+            popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+        process = subprocess.Popen(cmd, **popen_kwargs)
 
         try:
             stdout_data, stderr_data = process.communicate(timeout=timeout_secs)
@@ -418,7 +483,7 @@ def run_latex_compilation(
                 result["pdfBase64"] = b64
             else:
                 # Save into cache artifact directory for user access
-                artifact_dir = Path.home() / ".cache" / "privateapply" / "artifacts"
+                artifact_dir = get_companion_base_dir() / "artifacts"
                 artifact_dir.mkdir(parents=True, exist_ok=True)
                 artifact_name = f"compiled_{int(time.time())}.pdf"
                 dest_path = artifact_dir / artifact_name
@@ -466,7 +531,7 @@ def handle_request(req: Dict[str, Any]) -> Dict[str, Any]:
         engines = detect_installed_engines()
         has_any = any(e["available"] for e in engines.values())
         res["version"] = VERSION
-        res["platform"] = "linux"
+        res["platform"] = "windows" if sys.platform == "win32" else ("darwin" if sys.platform == "darwin" else "linux")
         res["installed"] = True
         res["tex_installed"] = has_any
         res["texInstalled"] = has_any

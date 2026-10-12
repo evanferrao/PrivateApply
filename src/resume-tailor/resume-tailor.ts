@@ -274,7 +274,9 @@ async function checkCompanion(): Promise<void> {
       if (status.texInstalled) {
         companionStatusDot.className = 'status-dot connected';
         const engines = Object.keys(status.engines || {}).filter(k => status.engines?.[k]?.available);
-        companionStatusText.textContent = `Ready (${engines.join(', ') || 'TeX detected'})`;
+        const platformLabel = status.platform === 'windows' ? 'Windows' : status.platform === 'linux' ? 'Linux' : '';
+        const platformPrefix = platformLabel ? `[${platformLabel}] ` : '';
+        companionStatusText.textContent = `${platformPrefix}Ready (${engines.join(', ') || 'TeX detected'})`;
       } else {
         companionStatusDot.className = 'status-dot warning';
         companionStatusText.textContent = 'Connected (TeX engines missing on host)';

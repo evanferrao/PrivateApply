@@ -93,8 +93,14 @@ class TestCompanionCompilation(unittest.TestCase):
         res = companion.handle_request({"cmd": "get_status"})
         self.assertTrue(res["ok"])
         self.assertEqual(res["version"], companion.VERSION)
-        self.assertEqual(res["platform"], "linux")
+        expected_platform = "windows" if sys.platform == "win32" else ("darwin" if sys.platform == "darwin" else "linux")
+        self.assertEqual(res["platform"], expected_platform)
         self.assertIn("engines", res)
+
+    def test_companion_base_dir(self):
+        base_dir = companion.get_companion_base_dir()
+        self.assertIsNotNone(base_dir)
+        self.assertTrue(len(str(base_dir)) > 0)
 
     def test_compile_minimal_document(self):
         engines = companion.detect_installed_engines()

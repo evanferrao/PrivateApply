@@ -57,10 +57,10 @@
           <span id="remote-disclosure-tag" class="badge-info" style="display:none;">Remote API</span>
         </div>
 
-        <!-- Linux Native Companion -->
+        <!-- Native Companion -->
         <div class="status-item">
           <span class="status-dot" id="companion-status-dot"></span>
-          <span style="font-weight:600;">Linux Companion:</span>
+          <span style="font-weight:600;" id="companion-label">Native Companion:</span>
           <span id="companion-status-text">Checking companion...</span>
           <button class="btn-sm" id="btn-companion-guide" style="padding:2px 8px;font-size:11px;">Setup Info</button>
         </div>
@@ -83,17 +83,36 @@
 
     <!-- Companion Installation Guidance (Collapsible) -->
     <div class="helper-box" id="companion-guide-box">
-      <strong>PrivateApply Linux Compilation Companion Setup</strong>
-      <p style="margin:6px 0;">To compile your LaTeX résumé directly to PDF without uploading your source to cloud servers, install the local Linux native messaging companion:</p>
-      <ol style="margin-left: 20px; margin-bottom: 8px;">
-        <li>Open your terminal and run the user-level installation script:
-          <pre style="margin:6px 0;padding:6px;background:rgba(0,0,0,0.05);border-radius:4px;"><code>./companion/install.sh</code></pre>
-        </li>
-        <li>Ensure a TeX engine is installed:
-          <code>sudo dnf install texlive-scheme-basic latexmk</code> (Fedora) or <code>sudo apt install texlive-latex-base latexmk</code> (Ubuntu/Debian)
-        </li>
-        <li>Reload this page. The companion connects automatically via Chrome Native Messaging.</li>
-      </ol>
+      <strong>PrivateApply Local TeX Compilation Companion Setup</strong>
+      <p style="margin:6px 0;">To compile your LaTeX résumé directly to PDF without uploading your source to cloud servers, install the local native messaging companion:</p>
+      
+      <div style="margin: 8px 0;">
+        <span style="font-weight: 600; font-size: 12px; color: var(--primary);">Windows Setup:</span>
+        <ol style="margin-left: 20px; margin-bottom: 8px;">
+          <li>Install a TeX toolchain (e.g. MiKTeX via winget):
+            <pre style="margin:4px 0;padding:4px 8px;background:rgba(0,0,0,0.05);border-radius:4px;"><code>winget install MiKTeX.MiKTeX</code></pre>
+          </li>
+          <li>Run the Windows installation script (PowerShell):
+            <pre style="margin:4px 0;padding:4px 8px;background:rgba(0,0,0,0.05);border-radius:4px;"><code>powershell -ExecutionPolicy Bypass -File .\companion\install.ps1</code></pre>
+            <span style="font-size:11px;color:var(--gray-600);">(Or simply double-click <code>companion\install.bat</code>)</span>
+          </li>
+          <li>Restart your browser and reload this page.</li>
+        </ol>
+      </div>
+
+      <div style="margin: 8px 0;">
+        <span style="font-weight: 600; font-size: 12px; color: var(--primary);">Linux Setup:</span>
+        <ol style="margin-left: 20px; margin-bottom: 8px;">
+          <li>Install a TeX engine:
+            <code>sudo dnf install texlive-scheme-basic latexmk</code> (Fedora) or <code>sudo apt install texlive-latex-base latexmk</code> (Ubuntu/Debian)
+          </li>
+          <li>Run the user-level installation script:
+            <pre style="margin:4px 0;padding:4px 8px;background:rgba(0,0,0,0.05);border-radius:4px;"><code>./companion/install.sh</code></pre>
+          </li>
+          <li>Reload this page.</li>
+        </ol>
+      </div>
+
       <button class="btn-sm" id="btn-close-guide" style="margin-top:4px;">Dismiss Guide</button>
     </div>
 
