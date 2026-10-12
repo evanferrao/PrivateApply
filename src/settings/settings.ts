@@ -235,10 +235,10 @@ async function init(): Promise<void> {
       profile.lastUpdated = Date.now();
       await browser.storage.local.set({ userProfile: profile });
       try {
-        const { getActiveProfileId, saveProfile } = await import('../shared/profile');
+        const { getActiveProfileId, saveProfileById } = await import('../shared/profile');
         const activeId = await getActiveProfileId();
         if (activeId) {
-          await saveProfile(activeId, profile);
+          await saveProfileById(activeId, profile);
         }
       } catch (_) { /* non-critical */ }
       showFeedback('feedback-import');

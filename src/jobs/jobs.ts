@@ -5,7 +5,7 @@
 
 import browser from '../shared/browser-compat';
 import { getUserProfile } from '../shared/profile';
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 import type { JobListing, JobSearchResult } from '../shared/job-search-service';
 import { computeCompatibilityScore } from '../shared/job-search-service';
 
@@ -89,11 +89,6 @@ const US_LOCATIONS: string[] = [
 /*  Utility helpers                                                    */
 /* ------------------------------------------------------------------ */
 
-function escapeHtml(s: string): string {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
 
 function formatSalary(min?: number, max?: number, currency?: string): string {
   if (!min && !max) return '';

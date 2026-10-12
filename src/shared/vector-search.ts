@@ -53,7 +53,7 @@ export async function searchResumeChunks(
     }));
     
     // Sort by similarity (highest first) and return top K
-    results.sort((a, b) => b.similarity - a.similarity);
+    results.sort((a: { similarity: number }, b: { similarity: number }) => b.similarity - a.similarity);
     
     return results.slice(0, topK);
   } catch (err) {

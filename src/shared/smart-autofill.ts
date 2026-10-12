@@ -66,7 +66,7 @@ function normalizePhoneNumber(phone: string): string {
  */
 function looksLikePhoneNumber(value: string): boolean {
   const digitCount = (value.match(/\d/g) || []).length;
-  return digitCount >= 7 && (value.includes('+') || value.match(/^\d/));
+  return digitCount >= 7 && (value.includes('+') || /^\d/.test(value));
 }
 
 /**
@@ -105,7 +105,7 @@ export function analyzeUnfilledFields(
       if (isCombobox) {
         // For React-Select, check visible selected value
         const visibleValue = getVisibleSelectedValue(element);
-        hasValue = visibleValue && visibleValue.trim() !== '';
+        hasValue = Boolean(visibleValue && visibleValue.trim() !== '');
         if (hasValue) {
           console.log(`[SmartAutofill] ${field.label} has visible selected value: "${visibleValue}"`);
         }
@@ -135,7 +135,7 @@ export function analyzeUnfilledFields(
         // Normalize and check if valid
         if (phoneValue && looksLikePhoneNumber(phoneValue)) {
           const normalized = normalizePhoneNumber(phoneValue);
-          hasValue = normalized && normalized.length >= 7;
+          hasValue = Boolean(normalized && normalized.length >= 7);
           if (hasValue) {
             console.log(`[SmartAutofill] ${field.label} has phone value: "${phoneValue}" (normalized: "${normalized}")`);
           }
@@ -144,13 +144,13 @@ export function analyzeUnfilledFields(
         }
       } else {
         // For regular inputs, check element.value
-        hasValue = element.value && element.value.trim() !== '';
+        hasValue = Boolean(element.value && element.value.trim() !== '');
         if (hasValue) {
           console.log(`[SmartAutofill] ${field.label} has value: "${element.value}"`);
         }
       }
     } else if (element instanceof HTMLSelectElement) {
-      hasValue = element.value && element.value !== '';
+      hasValue = Boolean(element.value && element.value !== '');
       if (hasValue) {
         const selectedText = element.options[element.selectedIndex]?.textContent?.trim() || element.value;
         console.log(`[SmartAutofill] ${field.label} has selected value: "${selectedText}"`);

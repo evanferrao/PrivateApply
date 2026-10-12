@@ -35,8 +35,10 @@ import {
   generateBatchSuggestions, 
   filterSuggestionsByConfidence,
   getPrimarySuggestions,
-  type FieldSuggestion
+  type FieldSuggestion,
+  type SuggestionOption
 } from './shared/suggestion-service';
+import { showSuggestionPanel } from './ui/suggestion-panel';
 import { scrapeJobDescription } from './shared/job-description-scraper';
 import {
   openCoverLetterPanel,
@@ -690,8 +692,8 @@ async function trySmartSuggestions(): Promise<void> {
       unfilledFields.map(f => f.field),
       profile,
       {
-        company: lastJobMeta?.company,
-        jobTitle: lastJobMeta?.jobTitle,
+        company: lastJobMeta?.company || undefined,
+        jobTitle: lastJobMeta?.jobTitle || undefined,
         url: window.location.href
       },
       ollamaAvailable // Use AI if available
@@ -710,7 +712,7 @@ async function trySmartSuggestions(): Promise<void> {
     // Show suggestion panel
     showSuggestionPanel(
       highConfidenceSuggestions,
-      async (selections) => {
+      async (selections: Map<string, SuggestionOption>) => {
         console.log('[Suggestions] onApply callback invoked!');
         console.log('[Suggestions] Total selections to apply:', selections.size);
         info(`Applying ${selections.size} selected suggestions`);
@@ -753,10 +755,11 @@ async function trySmartSuggestions(): Promise<void> {
             info(`✓ Applied suggestion: ${field.label} = ${option.value}`);
             successCount++;
             console.log(`[Suggestions] Success count now: ${successCount}`);
-          } catch (err) {
+          } catch (err: unknown) {
+            const errObj = err as any;
             warn(`Failed to apply suggestion for ${selector}:`, err);
             console.error(`[Suggestions] Error applying suggestion:`, err);
-            console.error(`[Suggestions] Error stack:`, err.stack);
+            console.error(`[Suggestions] Error stack:`, errObj?.stack);
             failCount++;
           }
           
@@ -1000,8 +1003,8 @@ async function handleInlineTileClick(field: FieldSchema, selector: string): Prom
       field,
       profile,
       {
-        company: lastJobMeta?.company,
-        jobTitle: lastJobMeta?.jobTitle,
+        company: lastJobMeta?.company || undefined,
+        jobTitle: lastJobMeta?.jobTitle || undefined,
         url: window.location.href
       },
       true, // use AI
@@ -2157,7 +2160,7 @@ async function attachFileToInputs(fileInputs: HTMLInputElement[], file: File): P
             writable: true,
             configurable: true,
           });
-          success = fileInput.files.length > 0;
+          success = Boolean(fileInput.files && fileInput.files.length > 0);
         }
         if (success) log('[Resume] Method 1 succeeded');
       } catch (dtErr) {
@@ -2488,6 +2491,7 @@ async function executeFillPlan(plan: FillPlan): Promise<void> {
     kind: 'FILL_RESULT',
     requestId: plan.requestId,
     filledCount: 0,
+    filledSelectors: [],
     failedSelectors: [],
     timestamp: Date.now(),
   };
@@ -2727,7 +2731,7 @@ async function executeFillPlan(plan: FillPlan): Promise<void> {
           
           if (matched) {
             result.filledCount++;
-            result.filledSelectors.push(mapping.selector);
+            result.filledSelectors?.push(mapping.selector);
             highlightFieldAsSuccess(mapping.selector);
             showFieldLabel(mapping.selector, `✓ ${fieldSchema?.label || ''}`);
           } else {
@@ -2754,7 +2758,7 @@ async function executeFillPlan(plan: FillPlan): Promise<void> {
         const elId = element.id || '';
         if (elId.startsWith('iti-') || elId.includes('__search') || element.closest('.iti')) {
           console.log('[OA] Skipping ITI phone country widget:', mapping.selector);
-          result.filledSelectors.push(mapping.selector); // treat as done so it doesn't count as a failure
+          result.filledSelectors?.push(mapping.selector); // treat as done so it doesn't count as a failure
           continue;
         }
 
@@ -3382,7 +3386,7 @@ async function executeFillPlan(plan: FillPlan): Promise<void> {
       if (fieldSchema) {
         autoFilledValues.set(mapping.selector, {
           field: fieldSchema,
-          value: finalValue,
+          value: typeof finalValue === 'boolean' ? finalValue : String(finalValue),
         });
       }
       

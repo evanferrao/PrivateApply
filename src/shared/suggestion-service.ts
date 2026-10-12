@@ -4,7 +4,7 @@
  */
 
 import type { FieldSchema } from './types';
-import type { UserProfile } from './profile';
+import { type UserProfile, formatPhone, formatLocation } from './profile';
 import { getBestAnswerForContext, getAllVariations, detectFieldType } from './context-aware-storage';
 import { inferFieldValue } from './ollama-service';
 import { validateFieldData } from './field-data-validator';
@@ -319,11 +319,11 @@ function matchFieldToProfileData(field: FieldSchema, profile: UserProfile): stri
   }
   
   if (matchesAny([label, name, id], ['phone', 'mobile', 'tel', 'telephone'])) {
-    return profile.personal.phone;
+    return formatPhone(profile.personal.phone);
   }
   
   if (matchesAny([label, name, id], ['location', 'city', 'address'])) {
-    return profile.personal.location || '';
+    return formatLocation(profile.personal.location);
   }
   
   if (matchesAny([label, name, id], ['linkedin'])) {

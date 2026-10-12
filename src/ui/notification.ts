@@ -3,7 +3,7 @@
  * Brand: navy #0a0a0a + green #1a7f5a
  */
 
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
@@ -149,14 +149,7 @@ function getTypeStyle(type: NotificationType): { accent: string; iconSvg: string
   return styles[type];
 }
 
-/**
- * Escape HTML
- */
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+
 
 /**
  * Inject keyframe animations once

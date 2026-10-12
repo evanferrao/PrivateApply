@@ -4,7 +4,7 @@
  */
 
 import browser from '../shared/browser-compat';
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 import {
   getAllApplications,
   getApplicationStats,
@@ -1023,14 +1023,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-/**
- * Utility: Escape HTML
- */
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+
 
 /**
  * Utility: Escape CSV field

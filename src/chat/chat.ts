@@ -8,6 +8,7 @@
  */
 
 import browser from '../shared/browser-compat';
+import { setHTML, escapeHtml } from '../shared/html';
 
 // ── Sample questions ──────────────────────────────────────────────────────
 
@@ -60,10 +61,10 @@ function appendUserBubble(text: string): void {
   const messages = qs<HTMLElement>('#messages');
   const div = document.createElement('div');
   div.className = 'message user';
-  div.innerHTML = `
+  setHTML(div, `
     <div class="avatar avatar-user">U</div>
     <div class="bubble bubble-user">${escapeHtml(text)}</div>
-  `;
+  `);
   messages.appendChild(div);
   scrollToBottom();
 }
@@ -73,14 +74,14 @@ function appendThinking(): HTMLElement {
   const div = document.createElement('div');
   div.className = 'message';
   div.id = 'thinking-indicator';
-  div.innerHTML = `
+  setHTML(div, `
     <div class="avatar avatar-ai">✦</div>
     <div class="bubble bubble-ai">
       <div class="thinking">
         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
       </div>
     </div>
-  `;
+  `);
   messages.appendChild(div);
   scrollToBottom();
   return div;
@@ -109,23 +110,15 @@ function appendAIBubble(text: string, source: AnswerSource): void {
     source === 'llm'     ? 'llm'   :
     '';
 
-  div.innerHTML = `
+  setHTML(div, `
     <div class="avatar avatar-ai">✦</div>
     <div class="bubble bubble-ai">
       <div style="white-space:pre-wrap;">${escapeHtml(text)}</div>
       <div class="source-badge ${sourceClass}">${sourceLabel}</div>
     </div>
-  `;
+  `);
   messages.appendChild(div);
   scrollToBottom();
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 // ── Streaming chat via port ───────────────────────────────────────────────
@@ -136,13 +129,13 @@ function appendStreamingAIBubble(): { contentEl: HTMLElement; badgeEl: HTMLEleme
   div.className = 'message';
   div.id = 'streaming-message';
 
-  div.innerHTML = `
+  setHTML(div, `
     <div class="avatar avatar-ai">✦</div>
     <div class="bubble bubble-ai">
       <div class="streaming-content" style="white-space:pre-wrap;"></div>
       <div class="source-badge" style="display:none;"></div>
     </div>
-  `;
+  `);
   messages.appendChild(div);
   scrollToBottom();
 

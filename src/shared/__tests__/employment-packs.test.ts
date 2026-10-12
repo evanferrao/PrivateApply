@@ -18,6 +18,7 @@ import {
 } from '../employment-packs';
 import { SemanticProfileMatcher } from '../semantic-profile-matcher';
 import type { UserProfile } from '../profile';
+import type { FieldSchema } from '../types';
 
 describe('Employment Packs Specification & Built-ins', () => {
   it('loads all built-in employment packs', () => {
@@ -214,6 +215,7 @@ describe('Semantic Profile Matcher Integration with Employment Packs', () => {
       phone: '+1 555-0199',
       location: 'San Francisco, CA',
     },
+    professional: { currentRole: '', currentCompany: '', noticePeriod: '' },
     work: [],
     education: [],
     skills: ['TypeScript', 'Python'],

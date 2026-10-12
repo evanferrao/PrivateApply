@@ -78,7 +78,7 @@ describe('GitHub Secret Gist Sync & Schema Evolution', () => {
       expect(result.reconciledProfile.certifications).toEqual([]);
       expect(result.reconciledProfile.passport?.passportNumber).toBe('');
       expect(result.reconciledProfile.employmentPacksData).toEqual({});
-      expect(result.reconciledProfile.legalDisclosures.requiresSponsorship).toBe(false);
+      expect(result.reconciledProfile.legalDisclosures?.requiresSponsorship).toBe(false);
 
       // Recorded in addedFields
       expect(result.addedFields).toContain('certifications');
@@ -120,7 +120,7 @@ describe('GitHub Secret Gist Sync & Schema Evolution', () => {
 
       const result = reconcileProfileSchema(incoming, 2);
       expect(result.reconciledProfile.personal.firstName).toBe('12345');
-      expect(result.reconciledProfile.legalDisclosures.requiresSponsorship).toBe(true);
+      expect(result.reconciledProfile.legalDisclosures?.requiresSponsorship).toBe(true);
     });
 
     it('overrides modified/incompatible fields and asks user to fill again', () => {

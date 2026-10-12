@@ -17,7 +17,7 @@
 
 import browser from '../shared/browser-compat';
 import type { FieldSchema } from '../shared/types';
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 
 let summaryPanel: HTMLElement | null = null;
 let panelFields: FieldSchema[] = [];
@@ -515,11 +515,6 @@ function makeDraggable(panel: HTMLElement): void {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function escapeHtml(text: string): string {
-  const d = document.createElement('div');
-  d.textContent = text;
-  return d.innerHTML;
-}
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 

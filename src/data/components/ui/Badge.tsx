@@ -3,17 +3,18 @@ import React from 'react';
 type BadgeVariant =
   | 'question' | 'answer' | 'field' | 'correction' | 'application'
   | 'profile' | 'llm' | 'user' | 'learned'
-  | 'success' | 'warning' | 'danger' | 'neutral';
+  | 'success' | 'warning' | 'danger' | 'neutral' | 'info';
 
 interface BadgeProps {
   variant?: BadgeVariant;
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Badge({ variant = 'neutral', children, className = '' }: BadgeProps) {
+export function Badge({ variant = 'neutral', children, className = '', style }: BadgeProps) {
   return (
-    <span className={`badge badge-${variant} ${className}`}>
+    <span className={`badge badge-${variant} ${className}`} style={style}>
       {children}
     </span>
   );

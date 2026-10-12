@@ -6,7 +6,7 @@
 
 import browser from './browser-compat';
 import type { UserProfile } from './profile';
-import type { ContextualStorage } from './context-aware-storage';
+import type { ContextualStorage, ContextualAnswer } from './context-aware-storage';
 
 export interface SyncConfig {
   enabled: boolean;
@@ -269,7 +269,7 @@ export async function pullContextualDataFromBackend(): Promise<ContextualStorage
     console.log('[Sync] Contextual data pulled successfully');
     
     // Convert object back to Map
-    const answers = new Map(Object.entries(data.contextualData.answers || {}));
+    const answers = new Map<string, ContextualAnswer>(Object.entries(data.contextualData.answers || {}) as [string, ContextualAnswer][]);
     
     return {
       answers,

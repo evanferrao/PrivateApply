@@ -308,7 +308,7 @@ export function extractLabel(field: HTMLInputElement | HTMLSelectElement | HTMLT
   }
   
   // Strategy 4: placeholder
-  if (field.placeholder) {
+  if ('placeholder' in field && field.placeholder) {
     return field.placeholder;
   }
   
@@ -372,16 +372,17 @@ export function generateSelector(field: HTMLInputElement | HTMLSelectElement | H
   }
   
   // Priority 2: name attribute (scoped to form)
-  if (field.name && form) {
+  const name = ('name' in field && typeof (field as any).name === 'string') ? (field as any).name : field.getAttribute('name');
+  if (name && form) {
     const formId = form.id ? `#${CSS.escape(form.id)}` : '';
     const formClass = form.className ? `.${form.className.split(' ')[0]}` : '';
     if (formId) {
-      return `${formId} [name="${CSS.escape(field.name)}"]`;
+      return `${formId} [name="${CSS.escape(name)}"]`;
     }
     if (formClass) {
-      return `${formClass} [name="${CSS.escape(field.name)}"]`;
+      return `${formClass} [name="${CSS.escape(name)}"]`;
     }
-    return `form [name="${CSS.escape(field.name)}"]`;
+    return `form [name="${CSS.escape(name)}"]`;
   }
   
   // Priority 3: data-testid, data-test, data-qa
@@ -398,11 +399,12 @@ export function generateSelector(field: HTMLInputElement | HTMLSelectElement | H
     let current: Element | null = field;
     
     while (current && current !== form && current !== document.body) {
-      const parent = current.parentElement;
+      const parent: HTMLElement | null = current.parentElement;
       if (!parent) break;
       
+      const currentTag = current.tagName;
       const siblings = Array.from(parent.children).filter(
-        el => el.tagName === current!.tagName
+        (el: Element) => el.tagName === currentTag
       );
       const index = siblings.indexOf(current as Element);
       
@@ -815,7 +817,7 @@ function traverseShadowDOM(root: HTMLFormElement | Document | ShadowRoot): Field
           autocomplete: field.autocomplete || null,
           required: field.required,
           disabled: field.disabled,
-          multiple: field.multiple || false,
+          multiple: 'multiple' in field ? Boolean((field as any).multiple) : false,
           label,
           selector: fieldSelector,
           valuePreview,

@@ -123,8 +123,8 @@ export function createCanonicalTemplateProfile(): UserProfile {
     passport: {
       passportNumber: '',
       issuingCountry: '',
-      expirationDate: '',
-      dateOfIssue: '',
+      expiryDate: '',
+      issueDate: '',
       nationality: '',
     },
     professional: {
@@ -154,6 +154,8 @@ export function createCanonicalTemplateProfile(): UserProfile {
     references: [],
     compensation: {
       currency: 'USD',
+      salaryPeriod: 'annual',
+      isNegotiable: false,
     },
     workPreferences: createDefaultWorkPreferences(),
     legalDisclosures: createDefaultLegalAndDisclosures(),
@@ -302,18 +304,21 @@ export function reconcileProfileSchema(
 
   // 5. Extended Catalogue (educationHistory, certifications, employmentHistory, familyContacts, references)
   if (Array.isArray(incoming.educationHistory)) {
-    result.educationHistory = incoming.educationHistory.map((item: any): EducationRecord => ({
-      id: item.id || `edu_${Date.now()}_${Math.random()}`,
-      institution: String(item.institution || ''),
-      degree: String(item.degree || ''),
-      level: item.level || 'undergraduate',
-      fieldOfStudy: item.fieldOfStudy ? String(item.fieldOfStudy) : undefined,
-      startYear: Number(item.startYear) || new Date().getFullYear() - 4,
-      endYear: item.endYear !== undefined ? Number(item.endYear) : undefined,
-      scoreOrGpa: item.scoreOrGpa ? String(item.scoreOrGpa) : undefined,
-      scoreScale: item.scoreScale ? String(item.scoreScale) : undefined,
-      isOngoing: Boolean(item.isOngoing),
-    }));
+    result.educationHistory = incoming.educationHistory.map((item: any): EducationRecord => {
+      const institution = String(item.schoolOrInstitution || item.institution || '');
+      const qualification = String(item.qualificationTitle || item.degree || '');
+      return {
+        id: item.id || `edu_${Date.now()}_${Math.random()}`,
+        schoolOrInstitution: institution,
+        qualificationTitle: qualification,
+        level: item.level || 'undergraduate',
+        streamOrMajor: item.streamOrMajor ? String(item.streamOrMajor) : (item.fieldOfStudy ? String(item.fieldOfStudy) : undefined),
+        startYear: item.startYear !== undefined ? String(item.startYear) : String(new Date().getFullYear() - 4),
+        endYear: item.endYear !== undefined ? String(item.endYear) : undefined,
+        scoreValue: item.scoreValue !== undefined ? item.scoreValue : (item.scoreOrGpa !== undefined ? item.scoreOrGpa : undefined),
+        scaleMax: item.scaleMax !== undefined ? Number(item.scaleMax) : (item.scoreScale !== undefined ? Number(item.scoreScale) : undefined),
+      };
+    });
   } else {
     addedFields.push('educationHistory');
     result.educationHistory = [];

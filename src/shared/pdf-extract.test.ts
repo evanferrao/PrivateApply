@@ -13,6 +13,7 @@ function makeMockPdf(pages: string[][]): PdfDocument {
       getTextContent: async () => ({
         items: pages[num - 1].map((str) => ({ str })),
       }),
+      getAnnotations: async () => [],
     }),
   };
 }

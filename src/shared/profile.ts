@@ -34,6 +34,29 @@ export interface SelfIdentification {
 
 // ── Re-export extended catalogue types & formatters ─────────────────────────
 export * from './applicant-profile';
+import {
+  type EducationRecord,
+  type CertificationRecord,
+  type DetailedEmploymentRecord,
+  type FamilyContact,
+  type ApplicantReference,
+  type CompensationDetails,
+  type IndiaRecruitmentPack,
+  type PassportDetails,
+  type CustomFieldDefinition,
+  type QuestionBankItem,
+  type DocumentMetadata,
+  type BackgroundCompliance,
+  type LanguageProficiency,
+  type DerivedExperienceSummary,
+  type ExperienceOverrides,
+  type WorkPreferences,
+  type LegalAndDisclosures,
+  type WorkAuthorization,
+  formatPhone,
+  formatLocation,
+} from './applicant-profile';
+
 
 
 export interface UserProfile {

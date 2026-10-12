@@ -28,8 +28,16 @@ export function scrapeJobDescription(
 ): JobDescription {
   // Strategy 1: JSON-LD structured data (most reliable when present)
   const jsonLd = extractFromJsonLd();
-  if (jsonLd && jsonLd.description.length > 100) {
-    return { ...jsonLd, title: jsonLd.title || fallbackTitle || '', company: jsonLd.company || fallbackCompany || '' };
+  if (jsonLd && jsonLd.description && jsonLd.description.length > 100) {
+    return {
+      ...jsonLd,
+      description: jsonLd.description,
+      requirements: jsonLd.requirements || [],
+      location: jsonLd.location ?? null,
+      source: jsonLd.source || 'structured-data',
+      title: jsonLd.title || fallbackTitle || '',
+      company: jsonLd.company || fallbackCompany || '',
+    };
   }
 
   // Strategy 2: Well-known JD containers (Greenhouse, Lever, Workday, etc.)

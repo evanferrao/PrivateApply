@@ -34,7 +34,7 @@ import {
   type WorkPreferences,
   type LegalAndDisclosures,
 } from '../shared/applicant-profile';
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 import { getActivePacks, type CountryPack } from '../shared/country-packs';
 import { getActivePacks as getActiveEmploymentPacks, type EmploymentPack } from '../shared/employment-packs';
 import {
@@ -53,12 +53,6 @@ const COLORS = [
 let allProfiles: ProfileMeta[] = [];
 let activeId = 'default';
 let activeProfileData: UserProfile | null = null;
-
-function escapeHtml(s: string): string {
-  const d = document.createElement('div');
-  d.textContent = s || '';
-  return d.innerHTML;
-}
 
 function getVal(id: string): string {
   return ((document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)?.value || '').trim();

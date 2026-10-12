@@ -14,7 +14,7 @@ import {
   setActiveProfile,
   migrateToMultiProfile,
 } from '../shared/profile';
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 import { getActiveAIProvider } from '../shared/ai-provider-config';
 
 let currentState: PopupState = {
@@ -128,11 +128,6 @@ function updateStats(total: number, interviewing: number): void {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 async function requestState(): Promise<void> {
   try {

@@ -17,6 +17,7 @@ import { companionClient, CompanionStatus } from '../shared/companion-client';
 import { latexTailorService, LatexTailorResult } from '../shared/latex-tailor-service';
 import { tailorResume, analyzeKeywordGap } from '../shared/resume-tailor-service';
 import { DiffLine, SemanticChange } from '../shared/latex-patch/types';
+import { escapeHtml } from '../shared/html';
 
 // DOM Elements
 const tabModeLatex = document.getElementById('tab-mode-latex') as HTMLButtonElement;
@@ -174,11 +175,7 @@ function setLiveStatus(msg: string): void {
   if (liveStatusText) liveStatusText.textContent = msg;
 }
 
-function escapeHtml(s: string): string {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
+
 
 // ── Mode Switching ─────────────────────────────────────────────────────────────
 

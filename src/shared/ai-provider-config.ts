@@ -20,6 +20,7 @@ export interface AIProviderConfig {
   enabled: boolean;
   lastChecked?: number;
   createdAt?: number;
+  updatedAt?: number;
 }
 
 export interface AIProvidersSettings {

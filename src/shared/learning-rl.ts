@@ -303,7 +303,7 @@ export class ReinforcementLearningSystem {
         [RL_STORAGE_KEYS.patterns]: patternsArr,
         [RL_STORAGE_KEYS.corrections]: this.corrections,
       })
-      .catch(err => console.error('[RL] Save failed:', err));
+      .catch((err: unknown) => console.error('[RL] Save failed:', err));
   }
 
   // ── Core RL Methods ───────────────────────────────────────────────────

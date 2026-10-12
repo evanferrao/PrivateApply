@@ -19,9 +19,12 @@ export interface FieldSchema {
   disabled: boolean;
   multiple: boolean;
   label: string | null;
+  placeholder?: string | null;
   selector: string;
   valuePreview: string | null;
+  options?: string[];
   radioOptions?: Array<{ selector: string; label: string; value: string }>;
+  shadowHost?: string;
   /** 1 = verified ATS/application form, 2 = probable first-party form, 3 = untrusted (cookie/chat/marketing) */
   trustTier?: 1 | 2 | 3;
   /** Where the field was detected from, e.g. "greenhouse.io iframe", "parent_page", "onetrust_banner" */
@@ -78,6 +81,7 @@ export interface FillResult {
   kind: 'FILL_RESULT';
   requestId: string;
   filledCount: number;
+  filledSelectors?: string[];
   failedSelectors: string[];
   timestamp: number;
 }

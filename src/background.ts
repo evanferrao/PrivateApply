@@ -133,7 +133,7 @@ async function checkOllamaConnection(): Promise<void> {
 /**
  * Handle messages from extension components
  */
-browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.runtime.MessageSender) => {
+browser.runtime.onMessage.addListener(async (message: unknown, sender: any) => {
   try {
     if (typeof message !== 'object' || message === null || !('kind' in message)) {
       return;
@@ -206,7 +206,7 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
 
     if ((message as any).kind === 'RUN_OLLAMA_SETUP') {
       return new Promise((resolve) => {
-        let port: browser.runtime.Port;
+        let port: any;
         try {
           port = browser.runtime.connectNative(NATIVE_HOST_ID);
         } catch (err) {
@@ -939,7 +939,7 @@ browser.runtime.onMessage.addListener(async (message: unknown, sender: browser.r
           await saveUserProfile(profile);
 
           try {
-            graphMemory.recordAnswer(label, String(val), 'user_prompt', fieldKey);
+            graphMemory.recordAnswer(label, String(val), 'user', fieldKey);
           } catch {}
 
           return { ok: true };
@@ -1850,7 +1850,7 @@ function createContextMenus(): void {
  * Handle context menu clicks — relay to the content script.
  * Ensures content.js is injected before sending the message.
  */
-browser.contextMenus.onClicked.addListener(async (menuInfo, tab) => {
+browser.contextMenus.onClicked.addListener(async (menuInfo: any, tab: any) => {
   if (!tab?.id) return;
 
   await ensureContentScript(tab.id);
@@ -2042,14 +2042,13 @@ function buildProfileSeedEntries(profile: UserProfile): Array<{ canonicalField: 
   }
 
   // ── Address (used by DMV, tax, HR forms) ────────────────────────────────
-  const primaryAddress = p.personal.addresses?.[0];
-  if (primaryAddress) {
-    if (primaryAddress.line1)   entries.push({ canonicalField: 'address_line1', questionText: 'What is your street address?',      value: primaryAddress.line1 });
-    if (primaryAddress.line2)   entries.push({ canonicalField: 'address_line2', questionText: 'Apartment, suite, or unit number?', value: primaryAddress.line2 });
-    if (primaryAddress.city)    entries.push({ canonicalField: 'city',          questionText: 'What city do you live in?',          value: primaryAddress.city });
-    if (primaryAddress.state)   entries.push({ canonicalField: 'state',         questionText: 'What state do you live in?',         value: primaryAddress.state });
-    if (primaryAddress.zipCode) entries.push({ canonicalField: 'zip_code',      questionText: 'What is your ZIP code?',             value: primaryAddress.zipCode });
-    if (primaryAddress.country) entries.push({ canonicalField: 'country',       questionText: 'What country do you live in?',       value: primaryAddress.country });
+  const loc = typeof p.personal.location === 'object' && p.personal.location !== null ? p.personal.location : undefined;
+  if (loc) {
+    if (loc.street)  entries.push({ canonicalField: 'address_line1', questionText: 'What is your street address?',      value: loc.street });
+    if (loc.city)    entries.push({ canonicalField: 'city',          questionText: 'What city do you live in?',          value: loc.city });
+    if (loc.state)   entries.push({ canonicalField: 'state',         questionText: 'What state do you live in?',         value: loc.state });
+    if (loc.zipCode) entries.push({ canonicalField: 'zip_code',      questionText: 'What is your ZIP code?',             value: loc.zipCode });
+    if (loc.country) entries.push({ canonicalField: 'country',       questionText: 'What country do you live in?',       value: loc.country });
   }
 
   // ── Professional links ───────────────────────────────────────────────────
@@ -2093,8 +2092,9 @@ function buildProfileSeedEntries(profile: UserProfile): Array<{ canonicalField: 
   }
 
   // ── Identity documents (DS-160, DMV, TSA PreCheck, ESTA, etc.) ──────────
-  if (p.identity) {
-    const id = p.identity;
+  const anyP = p as any;
+  if (anyP.identity) {
+    const id = anyP.identity;
     if (id.dateOfBirth)          entries.push({ canonicalField: 'date_of_birth',           questionText: 'What is your date of birth?',                         value: id.dateOfBirth });
     if (id.placeOfBirth)         entries.push({ canonicalField: 'place_of_birth',          questionText: 'What is your place of birth?',                        value: id.placeOfBirth });
     if (id.nationality)          entries.push({ canonicalField: 'nationality',             questionText: 'What is your nationality?',                            value: id.nationality });
@@ -2110,7 +2110,7 @@ function buildProfileSeedEntries(profile: UserProfile): Array<{ canonicalField: 
   }
 
   // ── Emergency contacts ────────────────────────────────────────────────────
-  const ec = p.emergencyContacts?.[0];
+  const ec = anyP.emergencyContacts?.[0];
   if (ec) {
     if (ec.name)         entries.push({ canonicalField: 'emergency_contact_name',         questionText: 'Emergency contact name?',                  value: ec.name });
     if (ec.relationship) entries.push({ canonicalField: 'emergency_contact_relationship', questionText: 'Emergency contact relationship?',           value: ec.relationship });
@@ -2170,8 +2170,8 @@ async function init(): Promise<void> {
   
   // Clean up old tab info periodically
   setInterval(() => {
-    browser.tabs.query({}).then(tabs => {
-      const activeTabs = new Set(tabs.map(t => t.id));
+    browser.tabs.query({}).then((tabs: any[]) => {
+      const activeTabs = new Set(tabs.map((t: any) => t.id));
       for (const tabId of tabJobInfo.keys()) {
         if (!activeTabs.has(tabId)) {
           tabJobInfo.delete(tabId);

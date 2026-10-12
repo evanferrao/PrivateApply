@@ -9,7 +9,7 @@
  * 2. Save the value to their profile / custom fields / question bank for future applications
  */
 
-import { setHTML } from '../shared/html';
+import { setHTML, escapeHtml } from '../shared/html';
 import type { FieldSchema } from '../shared/types';
 import { chromeCompat } from '../shared/browser-compat';
 
@@ -213,11 +213,7 @@ async function saveFieldToProfile(item: MissingFieldItem, value: string): Promis
   }
 }
 
-function escapeHtml(s: string): string {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
+
 
 function ensureStyles(): void {
   if (document.getElementById('privateapply-missing-info-styles')) return;

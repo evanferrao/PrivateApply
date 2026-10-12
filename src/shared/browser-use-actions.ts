@@ -7,7 +7,7 @@
  */
 
 import type { FieldSchema, FillMapping } from './types';
-import type { UserProfile } from './profile';
+import { type UserProfile, formatPhone, formatLocation } from './profile';
 import type { JobMeta } from './types';
 import { analyzeFieldsWithOllama } from './ollama-service';
 import { getEmbedding, cosineSimilarity, smartMatchDropdown } from './ollama-service';
@@ -112,12 +112,11 @@ export async function generateActionsWithOllama(
   let parsed: BrowserUseAction[] = [];
 
   if (response && typeof response === 'object') {
-    if (Array.isArray((response as BrowserUseActionPlan).actions)) {
-      parsed = (response as BrowserUseActionPlan).actions;
+    const r = response as any;
+    if (Array.isArray(r.actions)) {
+      parsed = r.actions;
     } else if (Array.isArray(response)) {
       parsed = response as BrowserUseAction[];
-    } else if ('actions' in response && Array.isArray((response as { actions: unknown }).actions)) {
-      parsed = (response as BrowserUseActionPlan).actions;
     }
   }
 
@@ -132,8 +131,8 @@ function buildProfileSlots(profile: UserProfile): Array<{ label: string; value: 
   slots.push({ label: 'first name given name', value: profile.personal.firstName });
   slots.push({ label: 'last name family name surname', value: profile.personal.lastName });
   slots.push({ label: 'email e-mail', value: profile.personal.email });
-  slots.push({ label: 'phone telephone mobile number', value: profile.personal.phone });
-  const loc = profile.personal.location || '';
+  slots.push({ label: 'phone telephone mobile number', value: formatPhone(profile.personal.phone) });
+  const loc = formatLocation(profile.personal.location);
   slots.push({ label: 'city', value: loc.split(',')[0]?.trim() || loc });
   slots.push({ label: 'state province', value: loc.split(',')[1]?.trim() || '' });
   slots.push({ label: 'country', value: loc.split(',')[2]?.trim() || loc });

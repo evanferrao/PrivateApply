@@ -11,7 +11,7 @@ import {
 import { rlSystem } from '../shared/learning-rl';
 import type { LearnedPattern } from '../shared/learning-types';
 import { getOllamaConfig, saveOllamaConfig, testOllamaConnection, DEFAULT_OLLAMA_CONFIG } from '../shared/ollama-config';
-import { setHTML, clearEl } from '../shared/html';
+import { setHTML, clearEl, escapeHtml } from '../shared/html';
 import { classifyParseError } from '../shared/error-classify';
 import { extractPagesText } from '../shared/pdf-extract';
 import mammoth from 'mammoth';
@@ -27,6 +27,7 @@ import {
 } from '../shared/ai-provider-config';
 import { setActivePackIds } from '../shared/country-packs';
 import { setActivePackIds as setActiveEmploymentPackIds } from '../shared/employment-packs';
+import { companionClient, type CompanionStatus } from '../shared/companion-client';
 
 // PDF.js is loaded via CDN in the HTML
 declare const pdfjsLib: any;
@@ -1092,7 +1093,7 @@ function setupOllamaStepListeners(): void {
 
       if (testFeedback) {
         testFeedback.style.display = 'block';
-        if (res.ok) {
+        if (res.success) {
           testFeedback.style.background = '#f0fdf4';
           testFeedback.style.color = '#15803d';
           testFeedback.style.border = '1px solid #bbf7d0';
@@ -1426,14 +1427,7 @@ function handleFileSelect(file: File): void {
   hideStatus();
 }
 
-/**
- * Escape HTML for safe display
- */
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+
 
 /**
  * Render profile preview with editable fields

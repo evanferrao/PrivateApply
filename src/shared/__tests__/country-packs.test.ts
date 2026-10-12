@@ -164,6 +164,10 @@ describe('Country-Packs System', () => {
         phone: '+49 151 12345678',
         location: 'Berlin, Germany',
       },
+      professional: { currentRole: '', currentCompany: '', noticePeriod: '' },
+      work: [],
+      education: [],
+      skills: [],
       countryPacksData: {
         'DE-pack': {
           de_steuer_id: '12 345 678 901',

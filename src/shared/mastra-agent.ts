@@ -3,8 +3,7 @@
  */
 
 import browser from './browser-compat';
-import type { Message } from './types';
-import { aiClient, AIClient } from './ai-client';
+import { aiClient, AIClient, type Message } from './ai-client';
 import { getActiveAIProvider } from './ai-provider-config';
 
 /**
