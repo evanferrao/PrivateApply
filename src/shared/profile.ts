@@ -32,63 +32,9 @@ export interface SelfIdentification {
   citizenshipStatus?: string; // e.g., "US Citizen", "Permanent Resident"
 }
 
-// ── Type guards ─────────────────────────────────────────────────────────────
-
-export function isPhoneDetails(phone: string | PhoneDetails): phone is PhoneDetails {
-  return typeof phone === 'object' && phone !== null && 'countryCode' in phone && 'number' in phone;
-}
-
-export function isLocationDetails(location: string | LocationDetails): location is LocationDetails {
-  return typeof location === 'object' && location !== null && 'city' in location && 'state' in location;
-}
-
-// ── Helper formatters ────────────────────────────────────────────────────────
-
-export function formatPhone(phone: string | PhoneDetails): string {
-  if (isPhoneDetails(phone)) {
-    return phone.formatted || `${phone.countryCode} ${phone.number}`;
-  }
-  return phone;
-}
-
-export function formatLocation(location: string | LocationDetails): string {
-  if (isLocationDetails(location)) {
-    const parts = [location.city, location.state, location.country].filter(Boolean);
-    return parts.join(', ');
-  }
-  return location;
-}
-
-export interface WorkAuthorization {
-  requiresSponsorship: boolean;
-  legallyAuthorized: boolean;
-  visaType?: string; // e.g., "H-1B", "OPT", "CPT", "Green Card", "TN", "O-1", etc.
-  sponsorshipTimeline?: string; // e.g., "Immediately", "Within 6 months", "Within 1 year"
-  currentStatus?: string; // e.g., "US Citizen", "Permanent Resident", "Work Visa", "Student Visa"
-}
-
-// Re-export extended catalogue types
+// ── Re-export extended catalogue types & formatters ─────────────────────────
 export * from './applicant-profile';
-import type {
-  EducationRecord,
-  DetailedEmploymentRecord,
-  FamilyContact,
-  ApplicantReference,
-  CompensationDetails,
-  IndiaRecruitmentPack,
-  CustomFieldDefinition,
-  QuestionBankItem,
-  DocumentMetadata,
-  BackgroundCompliance,
-  LanguageProficiency,
-  DerivedExperienceSummary,
-  ExperienceOverrides,
-  WorkPreferences,
-  LegalAndDisclosures,
-  PassportDetails,
-  CertificationRecord,
-} from './applicant-profile';
-export type { PassportDetails, CertificationRecord } from './applicant-profile';
+
 
 export interface UserProfile {
   personal: {

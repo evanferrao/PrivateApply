@@ -83,6 +83,57 @@ function setChecked(id: string, checked: boolean | undefined | null, def = false
   if (el) el.checked = checked !== undefined && checked !== null ? Boolean(checked) : def;
 }
 
+function setFieldValues(values: Record<string, string | number | boolean | undefined | null>): void {
+  for (const [id, val] of Object.entries(values)) {
+    if (typeof val === 'boolean') {
+      setChecked(id, val);
+    } else {
+      setVal(id, val);
+    }
+  }
+}
+
+function toggleModal(modalId: string, open: boolean): void {
+  document.getElementById(modalId)?.classList.toggle('active', open);
+}
+
+function setupModalDismiss(modalId: string, cancelBtnId: string, onClose?: () => void): void {
+  const modal = document.getElementById(modalId);
+  const cancelBtn = document.getElementById(cancelBtnId);
+  const close = () => {
+    toggleModal(modalId, false);
+    onClose?.();
+  };
+  cancelBtn?.addEventListener('click', close);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+}
+
+function bindListDelete<T>(
+  container: HTMLElement,
+  selector: string,
+  arrayGetter: () => T[] | undefined,
+  onDeleted: () => void,
+  toastMessage: string,
+  extraCleanup?: (idx: number) => void
+): void {
+  container.querySelectorAll(selector).forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
+      const arr = arrayGetter();
+      if (arr) {
+        arr.splice(idx, 1);
+        extraCleanup?.(idx);
+        if (activeProfileData) await saveUserProfile(activeProfileData);
+        onDeleted();
+        showToast(toastMessage);
+      }
+    });
+  });
+}
+
+
 function parsePhoneComponents(phone: string | PhoneDetails | undefined): { countryCode: string; number: string } {
   if (!phone) return { countryCode: '+1', number: '' };
   if (isPhoneDetails(phone)) {
@@ -249,51 +300,43 @@ function populatePersonalForm(): void {
   if (!activeProfileData) return;
   const p = activeProfileData.personal;
   const prof = activeProfileData.professional;
-
-  setVal('core-first-name', p.firstName);
-  setVal('core-middle-name', p.middleName);
-  setVal('core-last-name', p.lastName);
-  setVal('core-full-name', p.fullName);
-  setVal('core-preferred-name', p.preferredName);
-  setVal('core-email', p.email);
-
-  // Phone - split country code and national number
-  const parsedPhone = parsePhoneComponents(p.phone);
-  setVal('core-phone-cc', parsedPhone.countryCode);
-  setVal('core-phone-num', parsedPhone.number);
-  setVal('core-phone', formatPhone(p.phone) || '');
-
-  // Alternate phone
-  const parsedAltPhone = parsePhoneComponents(p.alternatePhone);
-  setVal('core-alt-phone-cc', parsedAltPhone.countryCode);
-  setVal('core-alt-phone-num', parsedAltPhone.number);
-  setVal('core-alternate-phone', formatPhone(p.alternatePhone || '') || '');
-
-  setVal('core-univ-email', p.universityEmail);
-  setVal('core-address', formatLocation(p.location) || '');
-  setVal('core-permanent-address', formatLocation(p.permanentAddress || '') || '');
-  setVal('core-nationality', p.nationality || p.citizenship || '');
-
-  setVal('core-linkedin', prof?.linkedin);
-  setVal('core-github', prof?.github);
-  setVal('core-portfolio', prof?.portfolio || prof?.website);
-
-  // Social Links
-  setVal('core-twitter', prof?.twitter);
-  setVal('core-youtube', prof?.youtube);
-  setVal('core-instagram', prof?.instagram);
-  setVal('core-facebook', prof?.facebook);
-  setVal('core-threads', prof?.threads);
-  setVal('core-bluesky', prof?.bluesky);
-  setVal('core-medium', prof?.medium);
-
-  // Passport (Protected Field)
   const pass = activeProfileData.passport;
-  setVal('core-passport-num', pass?.passportNumber);
-  setVal('core-passport-country', pass?.issuingCountry);
-  setVal('core-passport-expiry', pass?.expiryDate);
-  setVal('core-passport-issue-date', pass?.issueDate);
-  setVal('core-passport-nationality', pass?.nationality || p.nationality || p.citizenship);
+  const parsedPhone = parsePhoneComponents(p.phone);
+  const parsedAltPhone = parsePhoneComponents(p.alternatePhone);
+
+  setFieldValues({
+    'core-first-name': p.firstName,
+    'core-middle-name': p.middleName,
+    'core-last-name': p.lastName,
+    'core-full-name': p.fullName,
+    'core-preferred-name': p.preferredName,
+    'core-email': p.email,
+    'core-phone-cc': parsedPhone.countryCode,
+    'core-phone-num': parsedPhone.number,
+    'core-phone': formatPhone(p.phone) || '',
+    'core-alt-phone-cc': parsedAltPhone.countryCode,
+    'core-alt-phone-num': parsedAltPhone.number,
+    'core-alternate-phone': formatPhone(p.alternatePhone || '') || '',
+    'core-univ-email': p.universityEmail,
+    'core-address': formatLocation(p.location) || '',
+    'core-permanent-address': formatLocation(p.permanentAddress || '') || '',
+    'core-nationality': p.nationality || p.citizenship || '',
+    'core-linkedin': prof?.linkedin,
+    'core-github': prof?.github,
+    'core-portfolio': prof?.portfolio || prof?.website,
+    'core-twitter': prof?.twitter,
+    'core-youtube': prof?.youtube,
+    'core-instagram': prof?.instagram,
+    'core-facebook': prof?.facebook,
+    'core-threads': prof?.threads,
+    'core-bluesky': prof?.bluesky,
+    'core-medium': prof?.medium,
+    'core-passport-num': pass?.passportNumber,
+    'core-passport-country': pass?.issuingCountry,
+    'core-passport-expiry': pass?.expiryDate,
+    'core-passport-issue-date': pass?.issueDate,
+    'core-passport-nationality': pass?.nationality || p.nationality || p.citizenship,
+  });
 }
 
 function syncPassportFromDom(): void {
@@ -428,41 +471,33 @@ function populateEducationList(): void {
 
   setHTML(container, html);
 
-  container.querySelectorAll('.btn-del-edu').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
-      activeProfileData?.educationHistory?.splice(idx, 1);
-      await saveUserProfile(activeProfileData!);
-      populateEducationList();
-      showToast('✓ Education record deleted');
-    });
-  });
+  bindListDelete(
+    container,
+    '.btn-del-edu',
+    () => activeProfileData?.educationHistory,
+    populateEducationList,
+    '✓ Education record deleted'
+  );
 }
 
 function openEducationModal(): void {
-  const modal = document.getElementById('edu-modal');
-  if (!modal) return;
-  setVal('edu-modal-title-input', '');
-  setVal('edu-modal-school', '');
-  setVal('edu-modal-score', '');
-  setVal('edu-modal-year', '');
-  setVal('edu-modal-level', 'undergraduate');
-  modal.classList.add('active');
+  setFieldValues({
+    'edu-modal-title-input': '',
+    'edu-modal-school': '',
+    'edu-modal-score': '',
+    'edu-modal-year': '',
+    'edu-modal-level': 'undergraduate',
+  });
+  toggleModal('edu-modal', true);
 }
 
 function closeEducationModal(): void {
-  document.getElementById('edu-modal')?.classList.remove('active');
+  toggleModal('edu-modal', false);
 }
 
 function setupEducationModalEvents(): void {
-  const modal = document.getElementById('edu-modal');
   const form = document.getElementById('edu-modal-form') as HTMLFormElement | null;
-  const cancelBtn = document.getElementById('edu-modal-cancel');
-
-  cancelBtn?.addEventListener('click', closeEducationModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeEducationModal();
-  });
+  setupModalDismiss('edu-modal', 'edu-modal-cancel');
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -486,6 +521,7 @@ function setupEducationModalEvents(): void {
     showToast('✓ Education record added');
   });
 }
+
 
 // ── Certifications & Licenses ─────────────────────────────────────────────
 
@@ -632,69 +668,47 @@ function populateCertificationsList(): void {
 }
 
 function openCertificationModal(certId?: string): void {
-  const modal = document.getElementById('cert-modal');
-  if (!modal) return;
   const titleEl = document.getElementById('cert-modal-title');
   const expiryEl = document.getElementById('cert-modal-expiry-date') as HTMLInputElement | null;
 
-  if (certId && activeProfileData?.certifications) {
-    const existing = activeProfileData.certifications.find(c => c.id === certId);
-    if (existing) {
-      if (titleEl) titleEl.textContent = 'Edit Certification / License';
-      setVal('cert-modal-id', existing.id);
-      setVal('cert-modal-name', existing.name);
-      setVal('cert-modal-issuer', existing.issuer);
-      setVal('cert-modal-exam-code', existing.examCode || '');
-      setVal('cert-modal-credential-id', existing.credentialId || '');
-      setVal('cert-modal-score', existing.scoreOrGrade || '');
-      setVal('cert-modal-verification-url', existing.verificationUrl || '');
-      setVal('cert-modal-issue-date', existing.issueDate || '');
-      setVal('cert-modal-expiry-date', existing.expiryDate || '');
-      setChecked('cert-modal-no-expire', Boolean(existing.doesNotExpire));
-      if (expiryEl) expiryEl.disabled = Boolean(existing.doesNotExpire);
-      setVal('cert-modal-skills', (existing.skillsCovered || []).join(', '));
-      currentCertModalAliases = [...(existing.issuerAliases || [])];
-      renderCertModalAliases();
-      modal.classList.add('active');
-      return;
-    }
-  }
+  const existing = certId && activeProfileData?.certifications
+    ? activeProfileData.certifications.find(c => c.id === certId)
+    : undefined;
 
-  if (titleEl) titleEl.textContent = 'Add Certification / License';
-  setVal('cert-modal-id', '');
-  setVal('cert-modal-name', '');
-  setVal('cert-modal-issuer', '');
-  setVal('cert-modal-exam-code', '');
-  setVal('cert-modal-credential-id', '');
-  setVal('cert-modal-score', '');
-  setVal('cert-modal-verification-url', '');
-  setVal('cert-modal-issue-date', '');
-  setVal('cert-modal-expiry-date', '');
-  if (expiryEl) expiryEl.disabled = false;
-  setChecked('cert-modal-no-expire', false);
-  setVal('cert-modal-skills', '');
-  currentCertModalAliases = [];
+  if (titleEl) titleEl.textContent = existing ? 'Edit Certification / License' : 'Add Certification / License';
+  const noExpire = Boolean(existing?.doesNotExpire);
+  setFieldValues({
+    'cert-modal-id': existing?.id || '',
+    'cert-modal-name': existing?.name || '',
+    'cert-modal-issuer': existing?.issuer || '',
+    'cert-modal-exam-code': existing?.examCode || '',
+    'cert-modal-credential-id': existing?.credentialId || '',
+    'cert-modal-score': existing?.scoreOrGrade || '',
+    'cert-modal-verification-url': existing?.verificationUrl || '',
+    'cert-modal-issue-date': existing?.issueDate || '',
+    'cert-modal-expiry-date': existing?.expiryDate || '',
+    'cert-modal-no-expire': noExpire,
+    'cert-modal-skills': (existing?.skillsCovered || []).join(', '),
+  });
+  if (expiryEl) expiryEl.disabled = noExpire;
+  currentCertModalAliases = [...(existing?.issuerAliases || [])];
   renderCertModalAliases();
-  modal.classList.add('active');
+  toggleModal('cert-modal', true);
 }
 
 function closeCertificationModal(): void {
-  document.getElementById('cert-modal')?.classList.remove('active');
+  toggleModal('cert-modal', false);
 }
 
 function setupCertificationModalEvents(): void {
-  const modal = document.getElementById('cert-modal');
   const form = document.getElementById('cert-modal-form') as HTMLFormElement | null;
-  const cancelBtn = document.getElementById('cert-modal-cancel');
   const addAliasBtn = document.getElementById('btn-add-cert-alias');
   const aliasInput = document.getElementById('cert-modal-aliases-input') as HTMLInputElement | null;
   const noExpireCheckbox = document.getElementById('cert-modal-no-expire') as HTMLInputElement | null;
   const expiryInput = document.getElementById('cert-modal-expiry-date') as HTMLInputElement | null;
 
-  cancelBtn?.addEventListener('click', closeCertificationModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeCertificationModal();
-  });
+  setupModalDismiss('cert-modal', 'cert-modal-cancel');
+
 
   addAliasBtn?.addEventListener('click', addCertAliasFromInput);
   aliasInput?.addEventListener('keydown', (e) => {
@@ -891,18 +905,18 @@ function populateExperienceList(): void {
     });
   });
 
-  container.querySelectorAll('.btn-del-job').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
-      activeProfileData?.employmentHistory?.splice(idx, 1);
+  bindListDelete(
+    container,
+    '.btn-del-job',
+    () => activeProfileData?.employmentHistory,
+    populateExperienceList,
+    '✓ Record deleted',
+    (idx) => {
       if (activeProfileData?.work && activeProfileData.work.length > idx) {
         activeProfileData.work.splice(idx, 1);
       }
-      await saveUserProfile(activeProfileData!);
-      populateExperienceList();
-      showToast('✓ Record deleted');
-    });
-  });
+    }
+  );
 }
 
 async function saveCompensation(): Promise<void> {
@@ -939,51 +953,46 @@ async function saveCompensation(): Promise<void> {
 }
 
 function openJobModal(idx?: number, defaultType: string = 'full_time'): void {
-  const modal = document.getElementById('job-modal');
   const titleEl = document.getElementById('job-modal-title');
-  if (!modal) return;
+  const job = (idx !== undefined && idx >= 0 && activeProfileData?.employmentHistory?.[idx])
+    ? activeProfileData.employmentHistory[idx]
+    : undefined;
 
-  if (idx !== undefined && idx >= 0 && activeProfileData?.employmentHistory?.[idx]) {
-    const job = activeProfileData.employmentHistory[idx];
-    if (titleEl) titleEl.textContent = 'Edit Record';
-    setVal('job-edit-idx', idx);
-    setVal('job-type', job.employmentType || 'full_time');
-    setVal('job-company', job.employerName || '');
-    setVal('job-title', job.jobTitle || '');
-    setVal('job-start', job.startDate || '');
-    setVal('job-end', job.endDate || '');
-    setChecked('job-current', Boolean(job.currentlyEmployed));
-    setChecked('job-counts-exp', job.countsTowardsExperience !== false);
-  } else {
-    if (titleEl) titleEl.textContent = defaultType === 'internship' ? 'Add Internship' : 'Add Employment';
-    setVal('job-edit-idx', '-1');
-    setVal('job-type', defaultType);
-    setVal('job-company', '');
-    setVal('job-title', '');
-    setVal('job-start', '');
-    setVal('job-end', '');
-    setChecked('job-current', false);
-    setChecked('job-counts-exp', defaultType !== 'internship' && defaultType !== 'open_source');
+  if (titleEl) {
+    titleEl.textContent = job ? 'Edit Record' : (defaultType === 'internship' ? 'Add Internship' : 'Add Employment');
   }
 
-  modal.classList.add('active');
+  setFieldValues({
+    'job-edit-idx': job ? idx : -1,
+    'job-type': job?.employmentType || defaultType,
+    'job-company': job?.employerName || '',
+    'job-title': job?.jobTitle || '',
+    'job-start': job?.startDate || '',
+    'job-end': job?.endDate || '',
+    'job-current': Boolean(job?.currentlyEmployed),
+    'job-counts-exp': job ? job.countsTowardsExperience !== false : (defaultType !== 'internship' && defaultType !== 'open_source'),
+  });
+
+  toggleModal('job-modal', true);
 }
 
 function closeJobModal(): void {
-  document.getElementById('job-modal')?.classList.remove('active');
+  toggleModal('job-modal', false);
 }
 
 function setupJobModalEvents(): void {
-  const modal = document.getElementById('job-modal');
   const form = document.getElementById('job-form') as HTMLFormElement;
-  const cancelBtn = document.getElementById('job-cancel');
   const typeSelect = document.getElementById('job-type') as HTMLSelectElement;
-  const countsCheckbox = document.getElementById('job-counts-exp') as HTMLInputElement;
 
-  cancelBtn?.addEventListener('click', closeJobModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeJobModal();
+  setupModalDismiss('job-modal', 'job-cancel');
+
+  typeSelect?.addEventListener('change', () => {
+    if (getVal('job-edit-idx') === '-1') {
+      const selectedType = typeSelect.value;
+      setChecked('job-counts-exp', selectedType !== 'internship' && selectedType !== 'open_source');
+    }
   });
+
 
   typeSelect?.addEventListener('change', () => {
     if (getVal('job-edit-idx') === '-1') {
@@ -1037,8 +1046,7 @@ function setupJobModalEvents(): void {
 }
 
 function openExpOverrideModal(): void {
-  const modal = document.getElementById('exp-override-modal');
-  if (!modal || !activeProfileData) return;
+  if (!activeProfileData) return;
 
   const derived = calculateDerivedExperience(
     activeProfileData.employmentHistory as any,
@@ -1046,40 +1054,40 @@ function openExpOverrideModal(): void {
   );
 
   const overrides = activeProfileData.experienceOverrides;
-  setVal('override-total-exp', overrides?.totalExperienceYears ?? derived.totalExperienceYears);
-  setVal('override-fulltime-exp', overrides?.fullTimeYears ?? derived.fullTimeYears);
-  setVal('override-tenure', overrides?.currentEmployerTenureYears ?? derived.currentEmployerTenureYears);
-  setVal('override-employers', overrides?.totalEmployersCount ?? derived.totalEmployersCount);
-  setVal('override-display-text', overrides?.displayTotalExperience ?? (derived.isOverridden ? derived.displayTotalExperience : ''));
+  setFieldValues({
+    'override-total-exp': overrides?.totalExperienceYears ?? derived.totalExperienceYears,
+    'override-fulltime-exp': overrides?.fullTimeYears ?? derived.fullTimeYears,
+    'override-tenure': overrides?.currentEmployerTenureYears ?? derived.currentEmployerTenureYears,
+    'override-employers': overrides?.totalEmployersCount ?? derived.totalEmployersCount,
+    'override-display-text': overrides?.displayTotalExperience ?? (derived.isOverridden ? derived.displayTotalExperience : ''),
+  });
 
-  modal.classList.add('active');
+  toggleModal('exp-override-modal', true);
 }
 
 function closeExpOverrideModal(): void {
-  document.getElementById('exp-override-modal')?.classList.remove('active');
+  toggleModal('exp-override-modal', false);
 }
 
 function setupExpOverrideModalEvents(): void {
-  const modal = document.getElementById('exp-override-modal');
-  const cancelBtn = document.getElementById('btn-cancel-override');
   const form = document.getElementById('exp-override-form') as HTMLFormElement;
   const fresherBtn = document.getElementById('btn-apply-fresher-preset');
   const editBtn = document.getElementById('btn-edit-exp-stats');
   const resetBtn = document.getElementById('btn-reset-exp-stats');
 
   editBtn?.addEventListener('click', openExpOverrideModal);
-  cancelBtn?.addEventListener('click', closeExpOverrideModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeExpOverrideModal();
-  });
+  setupModalDismiss('exp-override-modal', 'btn-cancel-override');
 
   fresherBtn?.addEventListener('click', () => {
-    setVal('override-total-exp', 0);
-    setVal('override-fulltime-exp', 0);
-    setVal('override-tenure', 0);
-    setVal('override-employers', 0);
-    setVal('override-display-text', '0 years (Fresher)');
+    setFieldValues({
+      'override-total-exp': 0,
+      'override-fulltime-exp': 0,
+      'override-tenure': 0,
+      'override-employers': 0,
+      'override-display-text': '0 years (Fresher)',
+    });
   });
+
 
   resetBtn?.addEventListener('click', async () => {
     if (!activeProfileData) return;
@@ -1179,18 +1187,27 @@ function populateWorkPreferencesForm(): void {
   const relocateVal = typeof wp.willingToRelocate === 'boolean' 
     ? (wp.willingToRelocate ? 'true' : 'false') 
     : (wp.willingToRelocate || 'false');
-  setVal('wp-relocate', String(relocateVal));
-  setChecked('wp-relocate-assist', Boolean(wp.relocationAssistanceRequired));
-
-  // Travel
-  setChecked('wp-travel-willing', Boolean(wp.willingToTravel));
-  setVal('wp-travel-pct', wp.travelPercentage ?? '');
 
   // Earliest start (numeric days)
   const startDays = wp.earliestStartDays !== undefined 
     ? wp.earliestStartDays 
     : (wp.earliestStartDate && !isNaN(parseInt(wp.earliestStartDate, 10)) ? parseInt(wp.earliestStartDate, 10) : 0);
-  setVal('wp-earliest-start-days', startDays);
+
+  setFieldValues({
+    'wp-relocate': String(relocateVal),
+    'wp-relocate-assist': Boolean(wp.relocationAssistanceRequired),
+    'wp-travel-willing': Boolean(wp.willingToTravel),
+    'wp-travel-pct': wp.travelPercentage ?? '',
+    'wp-earliest-start-days': startDays,
+    'wp-overtime': Boolean(wp.overtimeWilling),
+    'wp-target-roles': (wp.targetRoleTitles || []).join(', '),
+    'wp-target-industries': (wp.targetIndustries || []).join(', '),
+    'wp-min-salary': wp.minimumAcceptableSalary ?? '',
+    'wp-target-salary': wp.targetSalary ?? '',
+    'wp-salary-currency': wp.salaryCurrency || 'USD',
+    'wp-salary-period': wp.salaryPeriod || 'annual',
+    'wp-notes': wp.notes || '',
+  });
   updateStartDaysDisplay(startDays);
 
   // Employment types
@@ -1204,20 +1221,6 @@ function populateWorkPreferencesForm(): void {
   document.querySelectorAll<HTMLInputElement>('.wp-shift').forEach(cb => {
     cb.checked = shifts.includes(cb.value as any);
   });
-  setChecked('wp-overtime', Boolean(wp.overtimeWilling));
-
-  // Targets
-  setVal('wp-target-roles', (wp.targetRoleTitles || []).join(', '));
-  setVal('wp-target-industries', (wp.targetIndustries || []).join(', '));
-
-  // Salary
-  setVal('wp-min-salary', wp.minimumAcceptableSalary ?? '');
-  setVal('wp-target-salary', wp.targetSalary ?? '');
-  setVal('wp-salary-currency', wp.salaryCurrency || 'USD');
-  setVal('wp-salary-period', wp.salaryPeriod || 'annual');
-
-  // Notes
-  setVal('wp-notes', wp.notes || '');
 }
 
 async function saveWorkPreferences(): Promise<void> {
@@ -1452,43 +1455,36 @@ function populateFamilyList(): void {
 
   setHTML(container, html);
 
-  container.querySelectorAll('.btn-del-fam').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
-      activeProfileData?.familyContacts?.splice(idx, 1);
-      await saveUserProfile(activeProfileData!);
-      populateFamilyList();
-      showToast('✓ Family contact removed');
-    });
-  });
+  bindListDelete(
+    container,
+    '.btn-del-fam',
+    () => activeProfileData?.familyContacts,
+    populateFamilyList,
+    '✓ Family contact removed'
+  );
 }
 
 function openFamilyModal(): void {
-  const modal = document.getElementById('family-modal');
-  if (!modal) return;
-  setVal('family-modal-rel', 'father');
-  setVal('family-modal-name', '');
-  setVal('family-modal-phone-cc', '+1');
-  setVal('family-modal-phone-num', '');
-  setVal('family-modal-occ', '');
-  setVal('family-modal-email', '');
-  setChecked('family-modal-emergency', false);
-  modal.classList.add('active');
+  setFieldValues({
+    'family-modal-rel': 'father',
+    'family-modal-name': '',
+    'family-modal-phone-cc': '+1',
+    'family-modal-phone-num': '',
+    'family-modal-occ': '',
+    'family-modal-email': '',
+    'family-modal-emergency': false,
+  });
+  toggleModal('family-modal', true);
 }
 
 function closeFamilyModal(): void {
-  document.getElementById('family-modal')?.classList.remove('active');
+  toggleModal('family-modal', false);
 }
 
 function setupFamilyModalEvents(): void {
-  const modal = document.getElementById('family-modal');
   const form = document.getElementById('family-modal-form') as HTMLFormElement | null;
-  const cancelBtn = document.getElementById('family-modal-cancel');
+  setupModalDismiss('family-modal', 'family-modal-cancel');
 
-  cancelBtn?.addEventListener('click', closeFamilyModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeFamilyModal();
-  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1955,15 +1951,13 @@ function populateCustomFieldsList(): void {
 
   setHTML(container, html);
 
-  container.querySelectorAll('.btn-del-cf').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
-      activeProfileData?.customFields?.splice(idx, 1);
-      await saveUserProfile(activeProfileData!);
-      populateCustomFieldsList();
-      showToast('✓ Custom field deleted');
-    });
-  });
+  bindListDelete(
+    container,
+    '.btn-del-cf',
+    () => activeProfileData?.customFields,
+    populateCustomFieldsList,
+    '✓ Custom field deleted'
+  );
 }
 
 // ── Question Bank ──────────────────────────────────────────────────────────
@@ -2000,40 +1994,33 @@ function populateQuestionBankList(): void {
 
   setHTML(container, html);
 
-  container.querySelectorAll('.btn-del-qb').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
-      activeProfileData?.questionBank?.splice(idx, 1);
-      await saveUserProfile(activeProfileData!);
-      populateQuestionBankList();
-      showToast('✓ Question removed');
-    });
-  });
+  bindListDelete(
+    container,
+    '.btn-del-qb',
+    () => activeProfileData?.questionBank,
+    populateQuestionBankList,
+    '✓ Question removed'
+  );
 }
 
 function openQuestionModal(): void {
-  const modal = document.getElementById('qb-modal');
-  if (!modal) return;
-  setVal('qb-modal-category', 'screening');
-  setVal('qb-modal-question', '');
-  setVal('qb-modal-aliases', '');
-  setVal('qb-modal-answer', '');
-  modal.classList.add('active');
+  setFieldValues({
+    'qb-modal-category': 'screening',
+    'qb-modal-question': '',
+    'qb-modal-aliases': '',
+    'qb-modal-answer': '',
+  });
+  toggleModal('qb-modal', true);
 }
 
 function closeQuestionModal(): void {
-  document.getElementById('qb-modal')?.classList.remove('active');
+  toggleModal('qb-modal', false);
 }
 
 function setupQuestionModalEvents(): void {
-  const modal = document.getElementById('qb-modal');
   const form = document.getElementById('qb-modal-form') as HTMLFormElement | null;
-  const cancelBtn = document.getElementById('qb-modal-cancel');
+  setupModalDismiss('qb-modal', 'qb-modal-cancel');
 
-  cancelBtn?.addEventListener('click', closeQuestionModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeQuestionModal();
-  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2260,8 +2247,7 @@ function setupActionButtons(): void {
   setupStartDaysEvents();
 
   document.getElementById('btn-new-profile-modal')?.addEventListener('click', () => {
-    setVal('profile-name', '');
-    setVal('profile-role', '');
+    setFieldValues({ 'profile-name': '', 'profile-role': '' });
     const cloneSelect = document.getElementById('clone-from') as HTMLSelectElement;
     cloneSelect.innerHTML = '<option value="">Start empty</option>';
     for (const p of allProfiles) {
@@ -2271,12 +2257,10 @@ function setupActionButtons(): void {
       cloneSelect.appendChild(opt);
     }
     renderColorPicker(COLORS[allProfiles.length % COLORS.length]);
-    document.getElementById('profile-modal')!.classList.add('active');
+    toggleModal('profile-modal', true);
   });
 
-  document.getElementById('modal-cancel')?.addEventListener('click', () => {
-    document.getElementById('profile-modal')?.classList.remove('active');
-  });
+  setupModalDismiss('profile-modal', 'modal-cancel');
 
   document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2286,10 +2270,11 @@ function setupActionButtons(): void {
     const cloneFrom = getOptVal('clone-from');
 
     await createProfile(name, role, cloneFrom);
-    document.getElementById('profile-modal')?.classList.remove('active');
+    toggleModal('profile-modal', false);
     await init();
     showToast(`✓ Created profile "${name}"`);
   });
+
 }
 
 function renderColorPicker(selected: string): void {

@@ -1811,42 +1811,6 @@ function showSuggestionError(tile: HTMLElement, message: string): void {
 }
 
 /**
- * Collect self-ID data from form
- */
-function collectSelfIdData(): any {
-  const form = document.getElementById('selfIdForm') as HTMLFormElement;
-  if (!form) return null;
-
-  const formData = new FormData(form);
-  
-  // Collect multi-select checkboxes
-  const gender: string[] = [];
-  const race: string[] = [];
-  const orientation: string[] = [];
-  
-  form.querySelectorAll('input[name="gender"]:checked').forEach((input: any) => {
-    gender.push(input.value);
-  });
-  
-  form.querySelectorAll('input[name="race"]:checked').forEach((input: any) => {
-    race.push(input.value);
-  });
-  
-  form.querySelectorAll('input[name="orientation"]:checked').forEach((input: any) => {
-    orientation.push(input.value);
-  });
-  
-  return {
-    gender,
-    race,
-    orientation,
-    veteran: formData.get('veteran') as string || '',
-    transgender: formData.get('transgender') as string || '',
-    disability: formData.get('disability') as string || '',
-  };
-}
-
-/**
  * Collect work authorization data from form
  */
 function collectWorkAuthData(): any {
@@ -1874,15 +1838,9 @@ async function saveSelfIdAndContinue(includeSelfId: boolean): Promise<void> {
   if (!extractedProfile) return;
   
   try {
-    // Add self-ID data if requested
     if (includeSelfId) {
-      const selfIdData = collectSelfIdData();
-      if (selfIdData) {
-        extractedProfile.selfId = selfIdData;
-      }
+      extractedProfile.selfId = collectSelfIdFromForm();
     }
-    
-    // Move to work authorization step
     showStep('step-workauth');
   } catch (err) {
     alert('Failed to proceed: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -2201,36 +2159,22 @@ function createEmptyProfile(): UserProfile {
  * Setup conditional field visibility for work authorization form
  */
 function setupWorkAuthConditionalFields(): void {
-  const legallyAuthorizedInputs = document.querySelectorAll('input[name="legallyAuthorized"]');
-  const requiresSponsorshipInputs = document.querySelectorAll('input[name="requiresSponsorship"]');
-  
-  const currentStatusGroup = document.getElementById('currentStatusGroup');
-  const visaTypeGroup = document.getElementById('visaTypeGroup');
-  const sponsorshipTimelineGroup = document.getElementById('sponsorshipTimelineGroup');
-
-  // Show/hide current status based on authorization
-  legallyAuthorizedInputs.forEach((input: any) => {
-    input.addEventListener('change', () => {
-      if (input.checked && input.value === 'yes') {
-        if (currentStatusGroup) currentStatusGroup.style.display = 'block';
-      } else if (input.checked) {
-        if (currentStatusGroup) currentStatusGroup.style.display = 'none';
-      }
+  const toggleGroup = (name: string, groups: Array<HTMLElement | null>) => {
+    document.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`).forEach(input => {
+      input.addEventListener('change', () => {
+        if (input.checked) {
+          const display = input.value === 'yes' ? 'block' : 'none';
+          groups.forEach(g => { if (g) g.style.display = display; });
+        }
+      });
     });
-  });
+  };
 
-  // Show/hide visa fields based on sponsorship requirement
-  requiresSponsorshipInputs.forEach((input: any) => {
-    input.addEventListener('change', () => {
-      if (input.checked && input.value === 'yes') {
-        if (visaTypeGroup) visaTypeGroup.style.display = 'block';
-        if (sponsorshipTimelineGroup) sponsorshipTimelineGroup.style.display = 'block';
-      } else if (input.checked) {
-        if (visaTypeGroup) visaTypeGroup.style.display = 'none';
-        if (sponsorshipTimelineGroup) sponsorshipTimelineGroup.style.display = 'none';
-      }
-    });
-  });
+  toggleGroup('legallyAuthorized', [document.getElementById('currentStatusGroup')]);
+  toggleGroup('requiresSponsorship', [
+    document.getElementById('visaTypeGroup'),
+    document.getElementById('sponsorshipTimelineGroup'),
+  ]);
 }
 
 /**

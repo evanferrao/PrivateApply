@@ -969,14 +969,8 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
       
       // No match found - look for "decline" option
-      const declineOption = options.find(opt => 
-        opt.label.toLowerCase().includes('decline') ||
-        opt.label.toLowerCase().includes('prefer not')
-      );
-      if (declineOption) {
-        console.log('[Autofill] ℹ️ Race: no match, selecting decline option:', declineOption.label);
-        return declineOption.label;
-      }
+      const declineOption = resolveDeclineOption(options, 'ℹ️ Race: no match, selecting decline option');
+      if (declineOption) return declineOption;
       
       return null;
     }
@@ -1002,40 +996,16 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       
       // If race is empty, find "decline" option in the dropdown
       if (!value) {
-        const declineOpt = options.find((opt: string) => {
-          const o = opt.toLowerCase();
-          return o.includes('decline') || o.includes('prefer not') || o.includes('not disclose');
-        });
-        if (declineOpt) {
-          console.log('[Autofill] Race is empty, selecting decline option:', declineOpt);
-          return declineOpt;
-        }
+        const declineOpt = resolveDeclineOption(options, 'Race is empty, selecting decline option');
+        if (declineOpt) return declineOpt;
       }
 
       // Check if user declined to answer (multiple variations)
-      const isDecline = valueLower.includes('decline') || 
-                        valueLower.includes('not disclose') || 
-                        valueLower.includes('choose not') ||
-                        valueLower.includes('prefer not') ||
-                        valueLower.includes("don't wish") ||
-                        valueLower.includes('no answer');
-      
-      if (isDecline) {
-        // Find "decline to answer" option in dropdown
-        const declineOption = options.find((opt: string) => {
-          const optLower = opt.toLowerCase();
-          return optLower.includes('decline') || 
-                 optLower.includes('not disclose') ||
-                 optLower.includes('prefer not') ||
-                 optLower.includes("don't wish") ||
-                 optLower.includes('no answer');
-        });
-        
-        if (declineOption) {
-          console.log('[Autofill] Mapped "decline" variation to:', declineOption);
-          return declineOption;
-        }
+      if (isDeclineValue(valueLower)) {
+        const declineOption = resolveDeclineOption(options, 'Mapped "decline" variation to');
+        if (declineOption) return declineOption;
       }
+
       
       // Try to find exact match in options
       const match = options.find((opt: string) => 
@@ -1138,13 +1108,8 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
       
       // Fallback: decline option
-      const declineOption = options.find(opt => 
-        opt.label.toLowerCase().includes('decline')
-      );
-      if (declineOption) {
-        console.log('[Autofill] 🎖️ Veteran: selecting decline option:', declineOption.label);
-        return declineOption.label;
-      }
+      const declineOption = resolveDeclineOption(options, '🎖️ Veteran: selecting decline option');
+      if (declineOption) return declineOption;
       
       return null;
     }
@@ -1220,22 +1185,9 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
       
       // Check if user declined to answer
-      const isDecline = valueLower.includes('decline') || 
-                        valueLower.includes('not disclose') || 
-                        valueLower.includes('choose not') ||
-                        valueLower.includes('prefer not');
-      
-      if (isDecline) {
-        const declineOption = options.find((opt: string) => {
-          const optLower = opt.toLowerCase();
-          return optLower.includes('decline') || 
-                 optLower.includes('not disclose') ||
-                 optLower.includes('prefer not');
-        });
-        if (declineOption) {
-          console.log('[Autofill] Mapped "decline" to:', declineOption);
-          return declineOption;
-        }
+      if (isDeclineValue(valueLower)) {
+        const declineOption = resolveDeclineOption(options, 'Mapped "decline" to');
+        if (declineOption) return declineOption;
       }
       
       // Try to find exact match in options
@@ -1322,14 +1274,8 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
       
       // Fallback: decline option
-      const declineOption = options.find(opt => 
-        opt.label.toLowerCase().includes('decline') ||
-        opt.label.toLowerCase().includes('do not want to answer')
-      );
-      if (declineOption) {
-        console.log('[Autofill] ♿ Disability: selecting decline option:', declineOption.label);
-        return declineOption.label;
-      }
+      const declineOption = resolveDeclineOption(options, '♿ Disability: selecting decline option');
+      if (declineOption) return declineOption;
       
       return null;
     }
@@ -1416,22 +1362,9 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
       
       // Check if user declined to answer
-      const isDecline = valueLower.includes('decline') || 
-                        valueLower.includes('not disclose') || 
-                        valueLower.includes('choose not') ||
-                        valueLower.includes('prefer not');
-      
-      if (isDecline) {
-        const declineOption = options.find((opt: string) => {
-          const optLower = opt.toLowerCase();
-          return optLower.includes('decline') || 
-                 optLower.includes('not disclose') ||
-                 optLower.includes('prefer not');
-        });
-        if (declineOption) {
-          console.log('[Autofill] Mapped "decline" to:', declineOption);
-          return declineOption;
-        }
+      if (isDeclineValue(valueLower)) {
+        const declineOption = resolveDeclineOption(options, 'Mapped "decline" to');
+        if (declineOption) return declineOption;
       }
       
       // Try to find exact match in options
@@ -1525,13 +1458,8 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
       }
       
       // Fallback: decline option
-      const declineOption = options.find(opt => 
-        opt.label.toLowerCase().includes('decline')
-      );
-      if (declineOption) {
-        console.log('[Autofill] 👤 Gender: selecting decline option:', declineOption.label);
-        return declineOption.label;
-      }
+      const declineOption = resolveDeclineOption(options, '👤 Gender: selecting decline option');
+      if (declineOption) return declineOption;
       
       return null;
     }
@@ -2104,40 +2032,22 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
     }
   }
 
-  // Twitter / X
-  if (matchesAny([label, name, id], ['twitter', 'twitter url', 'twitter handle', 'twitter profile', 'x profile', 'x url', 'x handle'])) {
-    return profile.professional?.twitter || '';
+  // Social Links
+  const SOCIAL_MATCHERS: Array<[keyof NonNullable<typeof profile.professional>, string[]]> = [
+    ['twitter', ['twitter', 'twitter url', 'twitter handle', 'twitter profile', 'x profile', 'x url', 'x handle']],
+    ['youtube', ['youtube', 'youtube url', 'youtube channel', 'video portfolio']],
+    ['instagram', ['instagram', 'instagram url', 'instagram profile', 'instagram handle']],
+    ['facebook', ['facebook', 'facebook url', 'facebook profile']],
+    ['threads', ['threads', 'threads url', 'threads profile']],
+    ['bluesky', ['bluesky', 'bsky', 'bluesky profile', 'bluesky url']],
+    ['medium', ['medium', 'medium url', 'medium profile']],
+  ];
+  for (const [key, patterns] of SOCIAL_MATCHERS) {
+    if (matchesAny([label, name, id], patterns)) {
+      return (profile.professional as any)?.[key] || '';
+    }
   }
 
-  // YouTube
-  if (matchesAny([label, name, id], ['youtube', 'youtube url', 'youtube channel', 'video portfolio'])) {
-    return profile.professional?.youtube || '';
-  }
-
-  // Instagram
-  if (matchesAny([label, name, id], ['instagram', 'instagram url', 'instagram profile', 'instagram handle'])) {
-    return profile.professional?.instagram || '';
-  }
-
-  // Facebook
-  if (matchesAny([label, name, id], ['facebook', 'facebook url', 'facebook profile'])) {
-    return profile.professional?.facebook || '';
-  }
-
-  // Threads
-  if (matchesAny([label, name, id], ['threads', 'threads url', 'threads profile'])) {
-    return profile.professional?.threads || '';
-  }
-
-  // Bluesky
-  if (matchesAny([label, name, id], ['bluesky', 'bsky', 'bluesky profile', 'bluesky url'])) {
-    return profile.professional?.bluesky || '';
-  }
-
-  // Medium
-  if (matchesAny([label, name, id], ['medium', 'medium url', 'medium profile'])) {
-    return profile.professional?.medium || '';
-  }
 
   // Certifications / Licenses
   if (matchesAny([label, name, id], ['certifications', 'licenses', 'credential id', 'certification name'])) {
@@ -2452,55 +2362,31 @@ export function matchFieldToProfile(field: FieldSchema, profile: UserProfile): s
     // Consents & Authorizations fallback for checkboxes
     const ld = profile.legalDisclosures;
     if (ld) {
-      if (fieldLabel.includes('whatsapp') || fieldLabel.includes('whats app')) {
-        return ld.consentWhatsApp ?? true;
-      }
-      if (fieldLabel.includes('do not call') || fieldLabel.includes('dnc') || fieldLabel.includes('tcpa')) {
-        return ld.consentDncBypass ?? true;
-      }
-      if (fieldLabel.includes('sms') || fieldLabel.includes('text message')) {
-        return ld.consentSms ?? true;
-      }
-      if (fieldLabel.includes('phone') && (fieldLabel.includes('call') || fieldLabel.includes('contact'))) {
-        return ld.consentPhoneCalls ?? true;
-      }
-      if (fieldLabel.includes('future') || fieldLabel.includes('talent pool') || fieldLabel.includes('talent community') || fieldLabel.includes('other roles') || fieldLabel.includes('other relevant') || fieldLabel.includes('keep on file')) {
-        return ld.consentFutureOpportunities ?? true;
-      }
-      if (fieldLabel.includes('affiliate') || fieldLabel.includes('subsidiary')) {
-        return ld.consentTalentPoolSharing ?? true;
-      }
-      if (fieldLabel.includes('background') && (fieldLabel.includes('check') || fieldLabel.includes('investigation') || fieldLabel.includes('consent'))) {
-        return ld.backgroundCheckConsent ?? true;
-      }
-      if (fieldLabel.includes('drug') && (fieldLabel.includes('screen') || fieldLabel.includes('test'))) {
-        return ld.drugScreeningConsent ?? true;
-      }
-      if (fieldLabel.includes('reference') && (fieldLabel.includes('check') || fieldLabel.includes('contact'))) {
-        return ld.consentReferenceCheck ?? true;
-      }
-      if (fieldLabel.includes('credit') && fieldLabel.includes('check')) {
-        return ld.consentCreditCheck ?? true;
-      }
-      if (fieldLabel.includes('privacy') || fieldLabel.includes('data protection') || fieldLabel.includes('gdpr') || fieldLabel.includes('ccpa')) {
-        return ld.consentPrivacyPolicy ?? true;
-      }
-      if (fieldLabel.includes('terms') || fieldLabel.includes('agreement')) {
-        return ld.consentTermsOfService ?? true;
-      }
-      if (fieldLabel.includes('electronic signature') || fieldLabel.includes('e-sign') || fieldLabel.includes('sign electronically')) {
-        return ld.consentElectronicSignature ?? true;
-      }
-      if (fieldLabel.includes('true') || fieldLabel.includes('certify') || fieldLabel.includes('accurate')) {
-        return ld.consentAccurateInformation ?? true;
-      }
-      if (fieldLabel.includes('at-will') || fieldLabel.includes('at will')) {
-        return ld.consentAtWillEmployment ?? true;
-      }
-      if (fieldLabel.includes('artificial intelligence') || fieldLabel.includes('ai screening')) {
-        return ld.consentArtificialIntelligence ?? true;
+      const consentChecks: Array<[keyof typeof ld, (l: string) => boolean]> = [
+        ['consentWhatsApp', l => l.includes('whatsapp') || l.includes('whats app')],
+        ['consentDncBypass', l => l.includes('do not call') || l.includes('dnc') || l.includes('tcpa')],
+        ['consentSms', l => l.includes('sms') || l.includes('text message')],
+        ['consentPhoneCalls', l => l.includes('phone') && (l.includes('call') || l.includes('contact'))],
+        ['consentFutureOpportunities', l => l.includes('future') || l.includes('talent pool') || l.includes('talent community') || l.includes('other roles') || l.includes('other relevant') || l.includes('keep on file')],
+        ['consentTalentPoolSharing', l => l.includes('affiliate') || l.includes('subsidiary')],
+        ['backgroundCheckConsent', l => l.includes('background') && (l.includes('check') || l.includes('investigation') || l.includes('consent'))],
+        ['drugScreeningConsent', l => l.includes('drug') && (l.includes('screen') || l.includes('test'))],
+        ['consentReferenceCheck', l => l.includes('reference') && (l.includes('check') || l.includes('contact'))],
+        ['consentCreditCheck', l => l.includes('credit') && l.includes('check')],
+        ['consentPrivacyPolicy', l => l.includes('privacy') || l.includes('data protection') || l.includes('gdpr') || l.includes('ccpa')],
+        ['consentTermsOfService', l => l.includes('terms') || l.includes('agreement')],
+        ['consentElectronicSignature', l => l.includes('electronic signature') || l.includes('e-sign') || l.includes('sign electronically')],
+        ['consentAccurateInformation', l => l.includes('true') || l.includes('certify') || l.includes('accurate')],
+        ['consentAtWillEmployment', l => l.includes('at-will') || l.includes('at will')],
+        ['consentArtificialIntelligence', l => l.includes('artificial intelligence') || l.includes('ai screening')],
+      ];
+      for (const [prop, test] of consentChecks) {
+        if (test(fieldLabel)) {
+          return (ld as any)[prop] ?? true;
+        }
       }
     }
+
 
     console.log('[Autofill] Checkbox did not match any patterns, skipping');
   }
@@ -2524,3 +2410,37 @@ function matchesAny(texts: string[], patterns: string[]): boolean {
   }
   return false;
 }
+
+function isDeclineValue(val: string): boolean {
+  const v = val.toLowerCase();
+  return v.includes('decline') ||
+    v.includes('not disclose') ||
+    v.includes('choose not') ||
+    v.includes('prefer not') ||
+    v.includes("don't wish") ||
+    v.includes('no answer') ||
+    v.includes('do not want');
+}
+
+function findDeclineOption<T extends string | { label: string }>(options: T[]): T | undefined {
+  return options.find(opt => {
+    const str = typeof opt === 'string' ? opt : opt.label;
+    return isDeclineValue(str);
+  });
+}
+
+function resolveDeclineOption<T extends string | { label: string }>(
+  options: T[],
+  logPrefix?: string
+): string | null {
+  const declineOption = findDeclineOption(options);
+  if (declineOption) {
+    const label = typeof declineOption === 'string' ? declineOption : declineOption.label;
+    if (logPrefix) {
+      console.log(`[Autofill] ${logPrefix}:`, label);
+    }
+    return label;
+  }
+  return null;
+}
+
